@@ -16,6 +16,7 @@ namespace ADE_WFM.Data
             builder.Entity<WorkFlowUser>()
                 .HasKey(wu => new { wu.WorkFlowId, wu.UserId }); // composite key
 
+            // Cascade delete
             builder.Entity<WorkFlowUser>()
                 .HasOne(wu => wu.WorkFlow)
                 .WithMany(w => w.WorkFlowUsers)
@@ -26,6 +27,12 @@ namespace ADE_WFM.Data
                 .HasOne(wu => wu.User)
                 .WithMany(u => u.WorkFlowUsers)
                 .HasForeignKey(wu => wu.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<WorkFlow>()
+                .HasMany(wf => wf.Comment)
+                .WithOne(c => c.WorkFlow)
+                .HasForeignKey(c => c.WorkFlowId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
