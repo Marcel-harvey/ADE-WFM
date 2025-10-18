@@ -1,5 +1,5 @@
 ﻿using ADE_WFM.Models;
-using ADE_WFM.Models.ViewModels;
+using ADE_WFM.Models.ViewModels.WorkFlowViewModels;
 
 namespace ADE_WFM.Services.WorkFlowService
 {
@@ -16,5 +16,6 @@ namespace ADE_WFM.Services.WorkFlowService
 
         // ADD services
         Task AddWorkFlow(CreateWorkFlowViewModel model);
+        Task AddUserToWorkFlow();
     }
 }

@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ADE_WFM.Models.ViewModels
+namespace ADE_WFM.Models.ViewModels.WorkFlowViewModels
 {
     public class CreateWorkFlowViewModel
     {
         [Required]
-        [Display(Name ="Work Flow Name")]
+        [Display(Name = "Work Flow Name")]
         public string WorkFlowName { get; set; } = string.Empty;
         [Required]
         public string CurrentUserId { get; set; } = string.Empty;

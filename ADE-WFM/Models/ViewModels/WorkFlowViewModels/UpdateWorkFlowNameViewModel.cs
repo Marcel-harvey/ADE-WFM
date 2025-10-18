@@ -1,4 +1,4 @@
-﻿namespace ADE_WFM.Models.ViewModels
+﻿namespace ADE_WFM.Models.ViewModels.WorkFlowViewModels
 {
     public class UpdateWorkFlowNameViewModel
     {

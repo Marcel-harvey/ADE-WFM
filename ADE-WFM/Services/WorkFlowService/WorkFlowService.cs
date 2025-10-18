@@ -1,6 +1,6 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
-using ADE_WFM.Models.ViewModels;
+using ADE_WFM.Models.ViewModels.WorkFlowViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SQLitePCL;
