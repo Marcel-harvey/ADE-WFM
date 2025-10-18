@@ -3,6 +3,6 @@
     public class UpdateWorkFlowNameViewModel
     {
         public string WorkFlowName { get; set; } = string.Empty;
-        public WorkFlow WorkFlow { get; set; } = null!;
+        public int WorkFlowId { get; set; }
     }
 }
