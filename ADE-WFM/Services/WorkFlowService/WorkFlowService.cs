@@ -157,21 +157,35 @@ namespace ADE_WFM.Services.WorkFlowService
         // TODO: Move to comment service
         public async Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model)
         {
-            var workFlow = await _context.WorkFlows
-                .FirstOrDefaultAsync(wfId => wfId.Id == model.WorkFlowId);
-
             var comment = new Comment
             {
                 DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                 CommentContent = model.Comment.CommentContent,
                 UserId = model.Comment.User.Id,
-                CompanyId = model.Comment.CompanyId,
+                WorkFlowId = model.Comment.WorkFlowId,
                 IsViewed = false,
             };
 
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
         }
+
+
+        // DELETE services
+        // Delete workflow
+        public async Task DeleteWorkFlow(int workFlowId)
+        {
+            var workFlow = await _context.WorkFlows
+                .Include(w => w.Comment)
+                .FirstOrDefaultAsync(w => w.Id == workFlowId);
+
+            if (workFlow == null)
+                throw new KeyNotFoundException($"Workflow with ID {workFlowId} was not found.");
+
+            _context.WorkFlows.Remove(workFlow);
+            await _context.SaveChangesAsync();
+        }
+
 
 
 
