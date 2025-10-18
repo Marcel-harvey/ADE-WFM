@@ -35,5 +35,6 @@ namespace ADE_WFM.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<StickyNote> StickyNotes { get; set; }
+        public DbSet<WorkFlowUser> WorkFlowUsers { get; set; }
     }
 }

@@ -15,17 +15,17 @@ namespace ADE_WFM.Services.CompanyService
             _context = context;
         }
 
-        //Get list of all companies ONLY 
+        // list of all workflows  
         public async Task<List<WorkFlow>> GetAllWorkFlows()
         {
-            var companies = await _context.WorkFlows
+            var workFlow = await _context.WorkFlows
                                 .Include(project => project.Project)
-                                .Include(comment =>  comment.Comment)
-                                .Include(user => user.WorkFlowUsers)
+                                .Include(comment => comment.Comment)
                                 .ToListAsync();
 
-            return companies; 
+            return workFlow; 
         }
+
 
         // Get company By id
         public WorkFlow? GetWorkFlowName(int id)
