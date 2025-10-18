@@ -77,11 +77,11 @@ namespace ADE_WFM.Services.WorkFlowService
         public async Task UpdateWorkFlowName(UpdateWorkFlowNameViewModel model)
         {
             var workFlow = await _context.WorkFlows
-                .FirstOrDefaultAsync(wfId => wfId.Id == model.WorkFlow.Id);
+                .FirstOrDefaultAsync(wfId => wfId.Id == model.WorkFlowId);
 
             if (workFlow == null)
             {
-                throw new KeyNotFoundException($"Work flow with ID {model.WorkFlow.Id} was not found");
+                throw new KeyNotFoundException($"Work flow with ID {model.WorkFlowId} was not found");
             }
 
             workFlow.WorkFlowName = model.WorkFlowName;
@@ -149,6 +149,27 @@ namespace ADE_WFM.Services.WorkFlowService
                 }
             }
 
+            await _context.SaveChangesAsync();
+        }
+
+
+        // Add comment to workflow
+        // TODO: Move to comment service
+        public async Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model)
+        {
+            var workFlow = await _context.WorkFlows
+                .FirstOrDefaultAsync(wfId => wfId.Id == model.WorkFlowId);
+
+            var comment = new Comment
+            {
+                DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
+                CommentContent = model.Comment.CommentContent,
+                UserId = model.Comment.User.Id,
+                CompanyId = model.Comment.CompanyId,
+                IsViewed = false,
+            };
+
+            _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
         }
 
