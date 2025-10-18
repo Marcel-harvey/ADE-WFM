@@ -91,6 +91,7 @@ namespace ADE_WFM.Services.WorkFlowService
 
 
         // ADD:
+        // Add new workflow with user the created and extra list of users if selected
         public async Task AddWorkFlow(CreateWorkFlowViewModel model)
         {
 
@@ -121,5 +122,37 @@ namespace ADE_WFM.Services.WorkFlowService
             _context.WorkFlows.Add(workFlow);
             await _context.SaveChangesAsync();
         }
+
+
+        // Add users to existing workflow
+        public async Task AddUserToWorkFlow(AddUserWorkFlowViewModel model)
+        {
+
+            // Duplicate check
+            var existingUserIds = await _context.WorkFlowUsers
+                .Where(wfUser => wfUser.WorkFlowId == model.WorkFlowId)
+                .Select(wfUser => wfUser.UserId)
+                .ToListAsync();
+
+            foreach (var user in model.UserIds)
+            {
+                if (!existingUserIds.Contains(user))
+                {
+                    var wfUser = new WorkFlowUser
+                    {
+                        WorkFlowId = model.WorkFlowId,
+                        UserId = user,
+                        Role = "Standard"
+                    };
+
+                    _context.WorkFlowUsers.Add(wfUser);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+
+
     }
 }

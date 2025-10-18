@@ -16,6 +16,6 @@ namespace ADE_WFM.Services.WorkFlowService
 
         // ADD services
         Task AddWorkFlow(CreateWorkFlowViewModel model);
-        Task AddUserToWorkFlow();
+        Task AddUserToWorkFlow(AddUserWorkFlowViewModel model);
     }
 }
