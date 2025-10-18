@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ADE_WFM.Models
 {
@@ -11,16 +12,18 @@ namespace ADE_WFM.Models
 
 
         // Foreign Keys
-        public int ProjectId { get; set; }
+        public int? ProjectId { get; set; }
         [ForeignKey(nameof(ProjectId))]
-        public Project Project { get; set; } = null!;
+        public Project? Project { get; set; }
 
+        [Required]
         public string UserId { get; set; } = string.Empty;
         [ForeignKey(nameof(UserId))]
         public ApplicationUser User { get; set; } = null!;
 
-        public int CompanyId { get; set; }
-        [ForeignKey(nameof(CompanyId))]
-        public WorkFlow Company { get; set;} = null!;
+        [Required]
+        public int WorkFlowId { get; set; }
+        [ForeignKey(nameof(WorkFlowId))]
+        public WorkFlow WorkFlow { get; set;} = null!;
     }
 }
