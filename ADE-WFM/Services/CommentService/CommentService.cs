@@ -28,10 +28,22 @@ namespace ADE_WFM.Services.CommentService
         }
 
         // UPDATE services
+        public async Task MarkCommentsAsViewed(int commentId)
+        {
+            var comment = await _context.Comments.FindAsync(commentId);
 
-        // ADD services
-        // Add comment to workflow
-        public async Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model)
+            if (comment == null)
+            {
+                throw new KeyNotFoundException($"Comment with ID {commentId} not found.");
+            }
+
+            comment.IsViewed = true;
+            await _context.SaveChangesAsync();
+        }
+
+            // ADD services
+            // Add comment to workflow
+            public async Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model)
         {
             var comment = new Comment
             {
