@@ -2,6 +2,7 @@
 using ADE_WFM.Models;
 using ADE_WFM.Services.CommentService;
 using ADE_WFM.Services.WorkFlowService;
+using ADE_WFM.Services.ProjectService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -35,6 +36,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // Add Services
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
