@@ -1,4 +1,4 @@
-﻿namespace ADE_WFM.Models.ViewModels.WorkFlowViewModels
+﻿namespace ADE_WFM.Models.ViewModels.CommentViewModels
 {
     public class AddCommentWorkFlowViewModel
     {
