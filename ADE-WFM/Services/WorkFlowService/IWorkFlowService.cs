@@ -17,8 +17,7 @@ namespace ADE_WFM.Services.WorkFlowService
         // ADD services
         Task AddWorkFlow(CreateWorkFlowViewModel model);
         Task AddUserToWorkFlow(AddUserWorkFlowViewModel model);
-        Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model);
-
+        
         // DELETE services
         Task DeleteWorkFlow(int workFlowId);
     }

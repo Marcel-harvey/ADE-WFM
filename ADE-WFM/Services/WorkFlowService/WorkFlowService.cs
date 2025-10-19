@@ -1,5 +1,6 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
+using ADE_WFM.Models.ViewModels.CommentViewModels;
 using ADE_WFM.Models.ViewModels.WorkFlowViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -149,24 +150,6 @@ namespace ADE_WFM.Services.WorkFlowService
                 }
             }
 
-            await _context.SaveChangesAsync();
-        }
-
-
-        // Add comment to workflow
-        // TODO: Move to comment service
-        public async Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model)
-        {
-            var comment = new Comment
-            {
-                DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
-                CommentContent = model.Comment.CommentContent,
-                UserId = model.Comment.User.Id,
-                WorkFlowId = model.Comment.WorkFlowId,
-                IsViewed = false,
-            };
-
-            _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
         }
 
