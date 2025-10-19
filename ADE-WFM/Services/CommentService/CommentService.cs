@@ -39,6 +39,15 @@ namespace ADE_WFM.Services.CommentService
             return projectComments;
         }
 
+        public async Task<List<Comment>> GetUserComments(string userId)
+        {
+            var userComments = await _context.Comments
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
+
+            return userComments;
+        }
+
 
         // UPDATE services
         public async Task MarkCommentAsViewed(int commentId)

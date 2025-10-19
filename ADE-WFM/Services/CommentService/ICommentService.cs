@@ -8,6 +8,7 @@ namespace ADE_WFM.Services.CommentService
         // GET serivces
         Task<List<Comment>> GetWorkFlowComments(int workFlowId);
         Task <List<Comment>> GetProjectComments(int projectId);
+        Task<List<Comment>> GetUserComments(string userId);
 
         // UPDATE services
         Task MarkCommentAsViewed(int commentId);
