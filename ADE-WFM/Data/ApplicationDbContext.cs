@@ -13,10 +13,15 @@ namespace ADE_WFM.Data
         {
             base.OnModelCreating(builder);
 
+            // Composite key
             builder.Entity<WorkFlowUser>()
-                .HasKey(wu => new { wu.WorkFlowId, wu.UserId }); // composite key
+                .HasKey(wu => new { wu.WorkFlowId, wu.UserId }); 
 
-            // Cascade delete
+            builder.Entity<ProjectUser>()
+                .HasKey(wu => new { wu.ProjectId, wu.UserId });
+
+            // Cascade deletes
+            // WorkFlowUser relationships
             builder.Entity<WorkFlowUser>()
                 .HasOne(wu => wu.WorkFlow)
                 .WithMany(w => w.WorkFlowUsers)
@@ -26,6 +31,19 @@ namespace ADE_WFM.Data
             builder.Entity<WorkFlowUser>()
                 .HasOne(wu => wu.User)
                 .WithMany(u => u.WorkFlowUsers)
+                .HasForeignKey(wu => wu.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ProjectUser relationships
+            builder.Entity<ProjectUser>()
+                .HasOne(wu => wu.Project)
+                .WithMany(w => w.ProjectUsers)
+                .HasForeignKey(wu => wu.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProjectUser>()
+                .HasOne(wu => wu.User)
+                .WithMany(u => u.ProjectUsers)
                 .HasForeignKey(wu => wu.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -43,5 +61,6 @@ namespace ADE_WFM.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<StickyNote> StickyNotes { get; set; }
         public DbSet<WorkFlowUser> WorkFlowUsers { get; set; }
+        public DbSet<ProjectUser> ProjectUsers { get; set; }
     }
 }

@@ -14,5 +14,6 @@ namespace ADE_WFM.Models
 
         // Foreign Key - many to many relationship via WorkFlowUser
         public ICollection<WorkFlowUser> WorkFlowUsers { get; set; } = new List<WorkFlowUser>();
+        public ICollection<ProjectUser> ProjectUsers { get; set; } = new List<ProjectUser>();
     }
 }
