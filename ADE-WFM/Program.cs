@@ -1,6 +1,6 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
-using ADE_WFM.Services.CompanyService;
+using ADE_WFM.Services.CommentService;
 using ADE_WFM.Services.WorkFlowService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 
 // Add Services
-builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 
 builder.Services.AddControllersWithViews();
