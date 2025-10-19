@@ -9,7 +9,6 @@ namespace ADE_WFM.Services.WorkFlowService
         Task<List<WorkFlow>> GetAllWorkFlows();
         Task<WorkFlow> GetWorkFlowById(int id);
         Task<List<ApplicationUser>> GetUsersInWorkFlow(int workFlowId);
-        Task<List<Comment>> GetWorkFlowComments(int workFlowId);
 
         // UPDATE services
         Task UpdateWorkFlowName(UpdateWorkFlowNameViewModel model);
