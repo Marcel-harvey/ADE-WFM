@@ -13,7 +13,7 @@ namespace ADE_WFM.Models
 
         // Navigation Properties
         public ICollection<Project>? Project { get; set; }
-        public ICollection<Comment>? Comment { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
 
 
         // Foreign Key many to many via WorkFlowUser

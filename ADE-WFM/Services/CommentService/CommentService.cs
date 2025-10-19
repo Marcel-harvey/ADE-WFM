@@ -18,11 +18,11 @@ namespace ADE_WFM.Services.CommentService
         public async Task<List<Comment>> GetWorkFlowComments(int workFlowId)
         {
             var workFlow = await _context.WorkFlows
-                .Include(wfComment => wfComment.Comment!)
+                .Include(wfComment => wfComment.Comments!)
                 .ThenInclude(wfUser => wfUser.User)
                 .FirstOrDefaultAsync(wfId => wfId.Id == workFlowId);
 
-            var workFlowComment = workFlow?.Comment?.ToList() ?? new List<Comment>();
+            var workFlowComment = workFlow?.Comments?.ToList() ?? new List<Comment>();
 
             return workFlowComment;
         }

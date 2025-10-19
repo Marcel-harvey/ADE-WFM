@@ -30,7 +30,7 @@ namespace ADE_WFM.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<WorkFlow>()
-                .HasMany(wf => wf.Comment)
+                .HasMany(wf => wf.Comments)
                 .WithOne(c => c.WorkFlow)
                 .HasForeignKey(c => c.WorkFlowId)
                 .OnDelete(DeleteBehavior.Cascade);

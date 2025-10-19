@@ -145,7 +145,7 @@ namespace ADE_WFM.Services.WorkFlowService
         public async Task DeleteWorkFlow(int workFlowId)
         {
             var workFlow = await _context.WorkFlows
-                .Include(w => w.Comment)
+                .Include(w => w.Comments)
                 .FirstOrDefaultAsync(w => w.Id == workFlowId);
 
             if (workFlow == null)
