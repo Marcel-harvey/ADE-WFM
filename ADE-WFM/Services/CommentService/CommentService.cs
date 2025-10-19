@@ -60,5 +60,17 @@ namespace ADE_WFM.Services.CommentService
 
 
         // DELETE services
+        public async Task DeleteComment(int commentId)
+        {
+            var comment = await _context.Comments.FindAsync(commentId);
+
+            if (comment == null)
+            {
+                throw new KeyNotFoundException($"Comment with ID {commentId} not found.");
+            }
+
+            _context.Comments.Remove(comment);
+            await _context.SaveChangesAsync();
+        }
     }
 }
