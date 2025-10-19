@@ -73,7 +73,7 @@ namespace ADE_WFM.Services.CommentService
             {
                 DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                 CommentContent = model.Comment.CommentContent,
-                UserId = model.Comment.UserId,
+                UserId = model.UserId,
                 WorkFlowId = model.Comment.WorkFlowId,
                 IsViewed = false,
             };
