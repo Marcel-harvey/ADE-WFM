@@ -83,6 +83,23 @@ namespace ADE_WFM.Services.CommentService
         }
 
 
+        // Add comment to project
+        public async Task AddCommentToProject(AddCommentProjectViewModel model)
+        {
+            var comment = new Comment
+            {
+                DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
+                CommentContent = model.Comment.CommentContent,
+                UserId = model.UserId,
+                ProjectId = model.Comment.ProjectId,
+                IsViewed = false,
+            };
+
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+        }
+
+
         // DELETE services
         public async Task DeleteComment(int commentId)
         {

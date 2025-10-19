@@ -15,6 +15,7 @@ namespace ADE_WFM.Services.CommentService
 
         // ADD services
         Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model);
+        Task AddCommentToProject(AddCommentProjectViewModel model);
 
         // DELETE services
         Task DeleteComment(int commentId);
