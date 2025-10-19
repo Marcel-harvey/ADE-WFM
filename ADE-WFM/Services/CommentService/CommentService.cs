@@ -27,6 +27,17 @@ namespace ADE_WFM.Services.CommentService
             return workFlowComment;
         }
 
+        // Get all comments on project
+        public async Task<List<Comment>> GetProjectComments(int projectId)
+        {
+            var projectComments = await _context.Comments
+                .Where(c => c.ProjectId == projectId)
+                .Include(c => c.User)
+                .ToListAsync();
+
+            return projectComments;
+        }
+
         // UPDATE services
         public async Task MarkCommentAsViewed(int commentId)
         {
@@ -41,9 +52,9 @@ namespace ADE_WFM.Services.CommentService
             await _context.SaveChangesAsync();
         }
 
-            // ADD services
-            // Add comment to workflow
-            public async Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model)
+        // ADD services
+        // Add comment to workflow
+        public async Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model)
         {
             var comment = new Comment
             {
