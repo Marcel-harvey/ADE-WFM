@@ -32,8 +32,8 @@ namespace ADE_WFM.Services.CommentService
         public async Task<List<Comment>> GetProjectComments(int projectId)
         {
             var projectComments = await _context.Comments
-                .Where(c => c.ProjectId == projectId)
-                .Include(c => c.User)
+                .Where(projectComment => projectComment.ProjectId == projectId)
+                .Include(user => user.User)
                 .ToListAsync();
 
             return projectComments;
@@ -42,7 +42,8 @@ namespace ADE_WFM.Services.CommentService
         public async Task<List<Comment>> GetUserComments(string userId)
         {
             var userComments = await _context.Comments
-                .Where(c => c.UserId == userId)
+                .Where(user => user.UserId == userId)
+                .Include(user => user.User)
                 .ToListAsync();
 
             return userComments;
