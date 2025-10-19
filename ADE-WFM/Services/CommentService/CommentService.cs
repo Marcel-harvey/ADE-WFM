@@ -28,7 +28,7 @@ namespace ADE_WFM.Services.CommentService
         }
 
         // UPDATE services
-        public async Task MarkCommentsAsViewed(int commentId)
+        public async Task MarkCommentAsViewed(int commentId)
         {
             var comment = await _context.Comments.FindAsync(commentId);
 
@@ -49,7 +49,7 @@ namespace ADE_WFM.Services.CommentService
             {
                 DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                 CommentContent = model.Comment.CommentContent,
-                UserId = model.Comment.User.Id,
+                UserId = model.Comment.UserId,
                 WorkFlowId = model.Comment.WorkFlowId,
                 IsViewed = false,
             };

@@ -9,7 +9,7 @@ namespace ADE_WFM.Services.CommentService
         Task<List<Comment>> GetWorkFlowComments(int workFlowId);
 
         // UPDATE services
-        Task MarkCommentsAsViewed(int commentId);
+        Task MarkCommentAsViewed(int commentId);
 
         // ADD services
         Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model);
