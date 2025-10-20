@@ -27,7 +27,7 @@ namespace ADE_WFM.Services.ProjectService
         Task<ApplicationUser> AddUserToProject(AddUserProjectViewModel model);
 
         // DELETE API services
-        Task<Project> DeleteProject(DeleteProjectDto dto);
+        Task DeleteProject(DeleteProjectDto dto);
         Task RemoveUserFromProject(RemoveUserFromProjectDto dto);
     }
 }

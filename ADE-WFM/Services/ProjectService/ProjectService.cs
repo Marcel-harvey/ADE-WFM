@@ -155,7 +155,7 @@ namespace ADE_WFM.Services.ProjectService
 
         // DELETE API services
         // Delete project
-        public async Task<Project> DeleteProject(DeleteProjectDto dto)
+        public async Task DeleteProject(DeleteProjectDto dto)
         {
             // Check if the dto is null
             if (dto == null)
@@ -170,8 +170,6 @@ namespace ADE_WFM.Services.ProjectService
 
             _context.Projects.Remove(project);
             await _context.SaveChangesAsync();
-
-            return project;
         }
 
         // Remove user from project
