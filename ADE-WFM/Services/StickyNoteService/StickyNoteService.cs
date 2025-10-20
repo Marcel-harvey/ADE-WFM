@@ -1,5 +1,6 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
+using ADE_WFM.Models.DTOs.StickyNoteDto;
 using Microsoft.EntityFrameworkCore;
 
 namespace ADE_WFM.Services.StickyNoteService
@@ -23,10 +24,43 @@ namespace ADE_WFM.Services.StickyNoteService
             return stickyNotes;
         }
 
+
+        public async Task<StickyNote> GetStickyNoteById(GetStickyNoteByIdDto dto)
+        {
+            var stickyNote = await _context.StickyNotes
+                .Include(user => user.User)
+                .FirstOrDefaultAsync(snId => snId.Id == dto.stickyNoteId)
+                ?? throw new KeyNotFoundException($"Sticky Note with Id {dto.stickyNoteId} not found.");
+
+            return stickyNote;
+        }
+
+
         // ADD services
+        public async Task AddStickyNote(CreateStickyNoteDto dto)
+        {
+            var newStickyNote = new StickyNote
+            {
+                Content = dto.Content,
+                UserId = dto.UserId
+            };
+
+            _context.StickyNotes.Add(newStickyNote);
+            await _context.SaveChangesAsync();
+        }
+
 
         // UPDATE services
+        public async Task UpdateStickyNote(UpdateStickyNoteDto dto)
+        {
+            var stickyNote = await _context.StickyNotes
+                .FirstOrDefaultAsync(snId => snId.Id == dto.StickyNoteId)
+                ?? throw new KeyNotFoundException($"Sticky Note with Id {dto.StickyNoteId} not found.");
 
-        // DELETE services
-    }
+            stickyNote.Content = dto.NewContent;
+            await _context.SaveChangesAsync();
+        }
+
+            // DELETE services
+        }
 }
