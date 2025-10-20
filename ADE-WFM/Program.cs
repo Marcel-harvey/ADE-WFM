@@ -3,6 +3,7 @@ using ADE_WFM.Models;
 using ADE_WFM.Services.CommentService;
 using ADE_WFM.Services.WorkFlowService;
 using ADE_WFM.Services.ProjectService;
+using ADE_WFM.Services.StickyNoteService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -37,6 +38,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IStickyNoteService, StickyNoteService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
