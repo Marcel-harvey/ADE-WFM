@@ -34,6 +34,12 @@ namespace ADE_WFM.Data
                 .HasForeignKey(wu => wu.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<WorkFlow>()
+              .HasMany(wf => wf.Comments)
+              .WithOne(c => c.WorkFlow)
+              .HasForeignKey(c => c.WorkFlowId)
+              .OnDelete(DeleteBehavior.Cascade);
+
             // ProjectUser relationships
             builder.Entity<ProjectUser>()
                 .HasOne(wu => wu.Project)
@@ -47,11 +53,33 @@ namespace ADE_WFM.Data
                 .HasForeignKey(wu => wu.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<WorkFlow>()
-                .HasMany(wf => wf.Comments)
-                .WithOne(c => c.WorkFlow)
-                .HasForeignKey(c => c.WorkFlowId)
+            // Cascade deletes for Project related entities
+            // Project - Comments
+            builder.Entity<Project>()
+                .HasMany(p => p.Comment)
+                .WithOne(c => c.Project)
+                .HasForeignKey(c => c.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            //  Project - Todos (if linked)
+            builder.Entity<Project>()
+                .HasMany(p => p.PorjectTodos)
+                .WithOne(c => c.Project)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // - Project - TaskPlanning (if linked)
+            builder.Entity<Project>()
+                .HasMany(p => p.Task)
+                .WithOne(c => c.Project)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // DO NOT CASCADE — because multiple Projects share a WorkFlow
+            builder.Entity<Project>()
+                .HasOne(p => p.WorkFlows)
+                .WithMany(wf => wf.Project) // if WorkFlow has a Projects collection
+                .HasForeignKey(p => p.WorkFlowId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
 
         // Company Info
