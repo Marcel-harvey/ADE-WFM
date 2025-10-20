@@ -112,5 +112,30 @@ namespace ADE_WFM.Services.ProjectService
 
             return project;
         }
+
+
+        // Update project due date
+        public async Task<Project> UpdateProjectDueDate(UpdateProjectDueDateViewModel model)
+        {
+            var project = await _context.Projects
+                .FindAsync(model.ProjectId);
+
+            // Confirm that the project exists
+            if (project == null)
+            {
+                throw new KeyNotFoundException($"Project with ID: {model.ProjectId} was not found");
+            }
+
+            // Check if the new due date is not in the past
+            if (model.NewDueDate < DateOnly.FromDateTime(DateTime.UtcNow))
+            {
+                throw new ArgumentException("Due date cannot be in the past", nameof(model.NewDueDate));
+            }
+
+            project.DueDate = model.NewDueDate;
+            await _context.SaveChangesAsync();
+
+            return project;
+        }
     }
 }

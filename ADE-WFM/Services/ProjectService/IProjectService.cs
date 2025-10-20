@@ -20,5 +20,6 @@ namespace ADE_WFM.Services.ProjectService
         // UPDATE API services
         Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model);
         Task<Project> UpdateProjectDescription(UpdateProjectDescriptionViewModel model);
+        Task<Project> UpdateProjectDueDate(UpdateProjectDueDateViewModel model);
     }
 }
