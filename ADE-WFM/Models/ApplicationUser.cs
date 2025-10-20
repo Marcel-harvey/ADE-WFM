@@ -10,6 +10,7 @@ namespace ADE_WFM.Models
         public ICollection<Todo>? Todo { get; set; }
         public ICollection<Comment>? Comment { get; set; }
         public ICollection<StickyNote>? StickyNote { get; set; }
+        public ICollection<TaskPlanning>? TaskPlanning { get; set; }
 
 
         // Foreign Key - many to many relationship via WorkFlowUser
