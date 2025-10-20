@@ -57,15 +57,16 @@ namespace ADE_WFM.Services.ProjectService
         }
 
         // UPDATE services
+
+        // ADD services
+
+        // DELETE services
+
+
+        // UPDATE API services
         // Update project title
         public async Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model)
         {
-            // Check if the project title is not empty
-            if (string.IsNullOrWhiteSpace(model.newProjectTitle))
-            {
-                throw new ArgumentException("Project title cannot be empty", nameof(model.newProjectTitle));
-            }
-
             var project = await _context.Projects
                 .FindAsync(model.projectId);
 
@@ -75,14 +76,41 @@ namespace ADE_WFM.Services.ProjectService
                 throw new KeyNotFoundException($"Project with ID: {model.projectId} was not found");
             }
 
+            // Check if the project title is not empty
+            if (string.IsNullOrWhiteSpace(model.newProjectTitle))
+            {
+                throw new ArgumentException("Project title cannot be empty", nameof(model.newProjectTitle));
+            }
+
             project.ProjectTitle = model.newProjectTitle;
             await _context.SaveChangesAsync();
 
             return project;
         }
 
-        // ADD services
 
-        // DELETE services
+        // Update project description
+        public async Task<Project> UpdateProjectDescription(UpdateProjectDescriptionViewModel model)
+        {
+            var project = await _context.Projects
+                .FindAsync(model.projectId);
+
+            // Confirm that the project exists
+            if (project == null)
+            {
+                throw new KeyNotFoundException($"Project with ID: {model.projectId} was not found");
+            }
+
+            // Check if the new project description is not null
+            if (model.newProjectDescription == null)
+            {
+                throw new ArgumentNullException(nameof(model.newProjectDescription), "Project description cannot be null");
+            }
+
+            project.ProjectDescription = model.newProjectDescription;
+            await _context.SaveChangesAsync();
+
+            return project;
+        }
     }
 }

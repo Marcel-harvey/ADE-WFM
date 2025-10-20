@@ -11,11 +11,14 @@ namespace ADE_WFM.Services.ProjectService
         Task<List<ApplicationUser>> GetUsersInProject(int projectId);
 
         // UPDATE services
-        // Used for API
-        Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model);
+
 
         // ADD services
 
         // DELETE services
+
+        // UPDATE API services
+        Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model);
+        Task<Project> UpdateProjectDescription(UpdateProjectDescriptionViewModel model);
     }
 }
