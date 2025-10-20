@@ -16,7 +16,6 @@ namespace ADE_WFM.Models
 
         // Navigation Properties
         public ICollection<Todo>? PorjectTodos { get; set; }
-        public ICollection<ApplicationUser> Users { get; set; } = null!;
         public ICollection<Comment>? Comment { get; set; }
         public ICollection<TaskPlanning>? Task { get; set; }
 
