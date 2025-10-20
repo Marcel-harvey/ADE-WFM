@@ -35,12 +35,8 @@ namespace ADE_WFM.Services.ProjectService
             var project = await _context.Projects
                 .Include(workFlow => workFlow.WorkFlowId)
                 .Include(user => user.Users)
-                .FirstOrDefaultAsync(p => p.Id == projectId);
-
-            if (project == null)
-            {
-                throw new KeyNotFoundException($"Project with ID: {projectId} was not found");
-            }
+                .FirstOrDefaultAsync(p => p.Id == projectId)
+                ?? throw new KeyNotFoundException($"Project with ID: {projectId} was not found");
 
             return project;
         }
@@ -69,14 +65,9 @@ namespace ADE_WFM.Services.ProjectService
         public async Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model)
         {
             var project = await _context.Projects
-                .FindAsync(model.projectId);
-
-            // Confirm that the project exists
-            if (project == null)
-            {
-                throw new KeyNotFoundException($"Project with ID: {model.projectId} was not found");
-            }
-
+                .FindAsync(model.projectId) 
+                ?? throw new KeyNotFoundException($"Project with ID: {model.projectId} was not found");
+                        
             // Check if the project title is not empty
             if (string.IsNullOrWhiteSpace(model.newProjectTitle))
             {
@@ -94,13 +85,8 @@ namespace ADE_WFM.Services.ProjectService
         public async Task<Project> UpdateProjectDescription(UpdateProjectDescriptionViewModel model)
         {
             var project = await _context.Projects
-                .FindAsync(model.projectId);
-
-            // Confirm that the project exists
-            if (project == null)
-            {
-                throw new KeyNotFoundException($"Project with ID: {model.projectId} was not found");
-            }
+                .FindAsync(model.projectId)
+                ?? throw new KeyNotFoundException($"Project with ID: {model.projectId} was not found");
 
             // Check if the new project description is not null
             if (model.newProjectDescription == null)
@@ -119,13 +105,8 @@ namespace ADE_WFM.Services.ProjectService
         public async Task<Project> UpdateProjectDueDate(UpdateProjectDueDateViewModel model)
         {
             var project = await _context.Projects
-                .FindAsync(model.ProjectId);
-
-            // Confirm that the project exists
-            if (project == null)
-            {
-                throw new KeyNotFoundException($"Project with ID: {model.ProjectId} was not found");
-            }
+                .FindAsync(model.ProjectId)
+                ?? throw new KeyNotFoundException($"Project with ID: {model.ProjectId} was not found");
 
             // Check if the new due date is not in the past
             if (model.NewDueDate < DateOnly.FromDateTime(DateTime.UtcNow))
