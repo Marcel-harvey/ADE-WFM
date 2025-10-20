@@ -1,6 +1,7 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
 using ADE_WFM.Models.ViewModels.ProjectViewModels;
+using ADE_WFM.Models.DTOs.ProjectDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace ADE_WFM.Services.ProjectService
@@ -167,6 +168,27 @@ namespace ADE_WFM.Services.ProjectService
             await _context.SaveChangesAsync();
 
             return user;
+        }
+
+
+        // DELETE API services
+        public async Task<Project> DeleteProject(DeleteProjectDto dto)
+        {
+            // Check if the dto is null
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto), "DeleteProjectDto cannot be null");
+            }
+
+            // Find the project to be deleted
+            var project = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId)
+                ?? throw new KeyNotFoundException($"Project with ID: {dto.ProjectId} was not found");
+
+            _context.Projects.Remove(project);
+            await _context.SaveChangesAsync();
+
+            return project;
         }
     }
 }

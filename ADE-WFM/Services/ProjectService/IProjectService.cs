@@ -1,5 +1,6 @@
 ﻿using ADE_WFM.Models;
 using ADE_WFM.Models.ViewModels.ProjectViewModels;
+using ADE_WFM.Models.DTOs.ProjectDtos;
 
 namespace ADE_WFM.Services.ProjectService
 {
@@ -24,5 +25,8 @@ namespace ADE_WFM.Services.ProjectService
 
         // ADD API services
         Task<ApplicationUser> AddUserToProject(AddUserProjectViewModel model);
+
+        // DELETE API services
+        Task<Project> DeleteProject(DeleteProjectDto dto);
     }
 }
