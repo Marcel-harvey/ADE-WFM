@@ -1,5 +1,4 @@
 ﻿using ADE_WFM.Models;
-using ADE_WFM.Models.ViewModels.ProjectViewModels;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 
 namespace ADE_WFM.Services.ProjectService
@@ -22,12 +21,12 @@ namespace ADE_WFM.Services.ProjectService
 
         // API services
         // UPDATE API services
-        Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model);
-        Task<Project> UpdateProjectDescription(UpdateProjectDescriptionViewModel model);
-        Task<Project> UpdateProjectDueDate(UpdateProjectDueDateViewModel model);
+        Task<Project> UpdateProjectTitle(UpdateProjectTitleDto model);
+        Task<Project> UpdateProjectDescription(UpdateProjectDescriptionDto model);
+        Task<Project> UpdateProjectDueDate(UpdateProjectDueDateDto model);
 
         // ADD API services
-        Task<ApplicationUser> AddUserToProject(AddUserProjectViewModel model);
+        Task<ApplicationUser> AddUserToProject(AddUserProjectDto model);
 
         // DELETE API services
         Task DeleteProject(DeleteProjectDto dto);

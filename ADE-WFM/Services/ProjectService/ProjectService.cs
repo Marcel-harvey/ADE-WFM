@@ -1,6 +1,5 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
-using ADE_WFM.Models.ViewModels.ProjectViewModels;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 using Microsoft.EntityFrameworkCore;
 
@@ -96,7 +95,7 @@ namespace ADE_WFM.Services.ProjectService
 
         // UPDATE API services
         // Update project title
-        public async Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model)
+        public async Task<Project> UpdateProjectTitle(UpdateProjectTitleDto model)
         {
             var project = await _context.Projects
                 .FindAsync(model.projectId)
@@ -116,7 +115,7 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // Update project description
-        public async Task<Project> UpdateProjectDescription(UpdateProjectDescriptionViewModel model)
+        public async Task<Project> UpdateProjectDescription(UpdateProjectDescriptionDto model)
         {
             var project = await _context.Projects
                 .FindAsync(model.projectId)
@@ -136,7 +135,7 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // Update project due date
-        public async Task<Project> UpdateProjectDueDate(UpdateProjectDueDateViewModel model)
+        public async Task<Project> UpdateProjectDueDate(UpdateProjectDueDateDto model)
         {
             var project = await _context.Projects
                 .FindAsync(model.ProjectId)
@@ -157,7 +156,7 @@ namespace ADE_WFM.Services.ProjectService
 
         // ADD API services
         // Add new user to project
-        public async Task<ApplicationUser> AddUserToProject(AddUserProjectViewModel model)
+        public async Task<ApplicationUser> AddUserToProject(AddUserProjectDto model)
         {
             var project = await _context.Projects
                 .Include(p => p.ProjectUsers)

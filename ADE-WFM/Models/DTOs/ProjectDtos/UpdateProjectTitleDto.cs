@@ -1,6 +1,6 @@
-﻿namespace ADE_WFM.Models.ViewModels.ProjectViewModels
+﻿namespace ADE_WFM.Models.DTOs.ProjectDtos
 {
-    public class UpdateProjectTitleViewModel
+    public class UpdateProjectTitleDto
     {
         public int projectId { get; set; }
         public string newProjectTitle { get; set; } = string.Empty;
