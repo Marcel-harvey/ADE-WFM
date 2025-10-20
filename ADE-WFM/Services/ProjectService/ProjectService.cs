@@ -57,6 +57,29 @@ namespace ADE_WFM.Services.ProjectService
         }
 
         // UPDATE services
+        // Update project title
+        public async Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model)
+        {
+            // Check if the project title is not empty
+            if (string.IsNullOrWhiteSpace(model.newProjectTitle))
+            {
+                throw new ArgumentException("Project title cannot be empty", nameof(model.newProjectTitle));
+            }
+
+            var project = await _context.Projects
+                .FindAsync(model.projectId);
+
+            // Confirm that the project exists
+            if (project == null)
+            {
+                throw new KeyNotFoundException($"Project with ID: {model.projectId} was not found");
+            }
+
+            project.ProjectTitle = model.newProjectTitle;
+            await _context.SaveChangesAsync();
+
+            return project;
+        }
 
         // ADD services
 
