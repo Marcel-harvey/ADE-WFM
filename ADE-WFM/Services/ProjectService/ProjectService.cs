@@ -45,7 +45,7 @@ namespace ADE_WFM.Services.ProjectService
         }
 
 
-        // Get al users invloced in project
+        // Get all users involved in project
         public async Task<List<ApplicationUser>> GetUsersInProject(int projectId)
         {
             var projectUsers = await _context.ProjectUsers
