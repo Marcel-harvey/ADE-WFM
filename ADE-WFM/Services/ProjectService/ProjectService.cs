@@ -65,9 +65,9 @@ namespace ADE_WFM.Services.ProjectService
         public async Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model)
         {
             var project = await _context.Projects
-                .FindAsync(model.projectId) 
+                .FindAsync(model.projectId)
                 ?? throw new KeyNotFoundException($"Project with ID: {model.projectId} was not found");
-                        
+
             // Check if the project title is not empty
             if (string.IsNullOrWhiteSpace(model.newProjectTitle))
             {
@@ -122,6 +122,7 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // ADD API services
+        // Add new user to project
         public async Task<ApplicationUser> AddUserToProject(AddUserProjectViewModel model)
         {
             var project = await _context.Projects
@@ -153,6 +154,7 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // DELETE API services
+        // Delete project
         public async Task<Project> DeleteProject(DeleteProjectDto dto)
         {
             // Check if the dto is null
@@ -170,6 +172,29 @@ namespace ADE_WFM.Services.ProjectService
             await _context.SaveChangesAsync();
 
             return project;
+        }
+
+        // Remove user from project
+        public async Task RemoveUserFromProject(RemoveUserFromProjectDto dto)
+        {
+            // Check if the dto is null
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto), "RemoveUserFromProjectDto cannot be null");
+            }
+
+            // Find the project user association
+            var projectUser = await _context.ProjectUsers
+                .FirstOrDefaultAsync(pu => pu.ProjectId == dto.ProjectId && pu.UserId == dto.UserId)
+                ?? throw new KeyNotFoundException($"User with ID: {dto.UserId} is not associated with Project ID: {dto.ProjectId}");
+
+            // Find the user to be removed
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == dto.UserId)
+                ?? throw new KeyNotFoundException($"User with ID: {dto.UserId} was not found");
+
+            _context.ProjectUsers.Remove(projectUser);
+            await _context.SaveChangesAsync();                  
         }
     }
 }
