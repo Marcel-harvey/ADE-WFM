@@ -22,7 +22,7 @@ namespace ADE_WFM.Services.ProjectService
         {
             var projects = await _context.Projects
                 .Include(workFlow => workFlow.WorkFlowId)
-                .Include(user => user.Users)
+                .Include(user => user.ProjectUsers)
                 .ToListAsync();
 
             return projects;
@@ -34,7 +34,7 @@ namespace ADE_WFM.Services.ProjectService
         {
             var project = await _context.Projects
                 .Include(workFlow => workFlow.WorkFlowId)
-                .Include(user => user.Users)
+                .Include(user => user.ProjectUsers)
                 .FirstOrDefaultAsync(p => p.Id == projectId)
                 ?? throw new KeyNotFoundException($"Project with ID: {projectId} was not found");
 
@@ -56,6 +56,40 @@ namespace ADE_WFM.Services.ProjectService
         // UPDATE services
 
         // ADD services
+        public async Task AddProject(CreateProjectDto dto)
+        {
+            var newProject = new Project
+            {
+                ProjectTitle = dto.ProjectTitle,
+                ProjectDescription = dto.ProjectDescription,
+                DueDate = dto.DueDate,
+                WorkFlowId = dto.WorkFlowId,
+                DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
+                ProjectUsers = new List<ProjectUser>(),
+            };
+
+            // Add user that created project automatically
+            newProject.ProjectUsers.Add(new ProjectUser
+            {
+                UserId = dto.CurrentUserId,
+                Project = newProject
+            });
+
+            // Add list of selected user after checking if already exists
+            foreach (var userId in dto.UserIds)
+            {
+                if (userId != dto.CurrentUserId)
+                {
+                    newProject.ProjectUsers.Add(new ProjectUser
+                    {
+                        UserId = userId,
+                    });
+                }
+            }
+
+            _context.Projects.Add(newProject);
+            await _context.SaveChangesAsync();
+        }
 
         // DELETE services
 

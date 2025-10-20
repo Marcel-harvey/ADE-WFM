@@ -15,9 +15,12 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // ADD services
+        Task AddProject(CreateProjectDto dto);
 
         // DELETE services
 
+
+        // API services
         // UPDATE API services
         Task<Project> UpdateProjectTitle(UpdateProjectTitleViewModel model);
         Task<Project> UpdateProjectDescription(UpdateProjectDescriptionViewModel model);
