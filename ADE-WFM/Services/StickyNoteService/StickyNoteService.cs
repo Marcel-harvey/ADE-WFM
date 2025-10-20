@@ -1,4 +1,6 @@
 ﻿using ADE_WFM.Data;
+using ADE_WFM.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ADE_WFM.Services.StickyNoteService
 {
@@ -10,5 +12,21 @@ namespace ADE_WFM.Services.StickyNoteService
         {
             _context = context;
         }
+
+        // GET services
+        public async Task<List<StickyNote>> GetAllStickyNotes()
+        {
+            var stickyNotes = await _context.StickyNotes
+                .Include(user => user.User)
+                .ToListAsync();
+
+            return stickyNotes;
+        }
+
+        // ADD services
+
+        // UPDATE services
+
+        // DELETE services
     }
 }
