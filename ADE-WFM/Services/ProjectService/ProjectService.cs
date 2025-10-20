@@ -137,5 +137,36 @@ namespace ADE_WFM.Services.ProjectService
 
             return project;
         }
+
+
+        // ADD API services
+        public async Task<ApplicationUser> AddUserToProject(AddUserProjectViewModel model)
+        {
+            var project = await _context.Projects
+                .Include(p => p.ProjectUsers)
+                .FirstOrDefaultAsync(p => p.Id == model.ProjectId)
+                ?? throw new KeyNotFoundException($"Project with ID: {model.ProjectId} was not found");
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == model.UserId)
+                ?? throw new KeyNotFoundException($"User with ID: {model.UserId} was not found");
+
+            // Check if the user is already in the project
+            if (project.ProjectUsers.Any(pu => pu.UserId == model.UserId))
+            {
+                throw new InvalidOperationException($"User with ID: {model.UserId} is already in the project");
+            }
+
+            var projectUser = new ProjectUser
+            {
+                ProjectId = model.ProjectId,
+                UserId = model.UserId
+            };
+
+            await _context.ProjectUsers.AddAsync(projectUser);
+            await _context.SaveChangesAsync();
+
+            return user;
+        }
     }
 }
