@@ -21,7 +21,7 @@ namespace ADE_WFM.Data
                 .HasKey(wu => new { wu.ProjectId, wu.UserId });
 
             // Cascade deletes
-            // WorkFlowUser relationships
+            // Cascade deletes for WorkFlow related entities
             builder.Entity<WorkFlowUser>()
                 .HasOne(wu => wu.WorkFlow)
                 .WithMany(w => w.WorkFlowUsers)
@@ -80,6 +80,12 @@ namespace ADE_WFM.Data
                 .HasForeignKey(p => p.WorkFlowId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // When deleting user will cascade delete their StickyNotes - NOT otherway around
+            builder.Entity<StickyNote>()
+                .HasOne(sn => sn.User)
+                .WithMany(u => u.StickyNote)
+                .HasForeignKey(sn => sn.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         // Company Info

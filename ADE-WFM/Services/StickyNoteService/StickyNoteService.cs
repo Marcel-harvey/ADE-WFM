@@ -61,6 +61,15 @@ namespace ADE_WFM.Services.StickyNoteService
             await _context.SaveChangesAsync();
         }
 
-            // DELETE services
+        // DELETE services
+        public async Task DeleteStickyNote(DeleteStickyNoteDto dto)
+        {
+            var stickyNote = await _context.StickyNotes
+                .FirstOrDefaultAsync(snId => snId.Id == dto.StickyNoteId)
+                ?? throw new KeyNotFoundException($"Sticky Note with Id {dto.StickyNoteId} not found.");
+
+            _context.StickyNotes.Remove(stickyNote);
+            await _context.SaveChangesAsync();
         }
+    }
 }
