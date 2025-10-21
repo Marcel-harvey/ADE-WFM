@@ -11,6 +11,7 @@ namespace ADE_WFM.Services.TodoService
         Task<List<Todo>> GetAllUserTodos(GetAllUserTodoDto dto);
 
         // ADD service
+        Task AddTodo(AddTodoDto dto);
 
         // UPDATE service
 

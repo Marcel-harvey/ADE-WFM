@@ -55,6 +55,29 @@ namespace ADE_WFM.Services.TodoService
 
 
         // ADD service
+        public async Task AddTodo(AddTodoDto dto)
+        {
+            var todo = new Todo
+            {
+                IsComplete = false,
+                Title = dto.Title,
+                Description = dto.Description,
+                DateCreated = DateTime.UtcNow,
+                DueDate = dto.DueDate,
+                UserId = dto.UserId,
+                ProjectId = dto.ProjectId ?? null,
+                SubTasks = dto.SubTasks?.Select(st => new SubTask
+                {
+                    IsCompleted = st.IsCompleted,
+                    Description = st.Description
+                }).ToList()
+            };
+
+            _context.Todos.Add(todo);
+            await _context.SaveChangesAsync();
+        }
+
+
 
         // UPDATE service
 
