@@ -67,7 +67,7 @@ namespace ADE_WFM.Data
                 .WithOne(c => c.Project)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // - Project - TaskPlanning (if linked)
+            // Project - TaskPlanning (if linked)
             builder.Entity<Project>()
                 .HasMany(p => p.Task)
                 .WithOne(c => c.Project)
@@ -85,6 +85,13 @@ namespace ADE_WFM.Data
                 .HasOne(sn => sn.User)
                 .WithMany(u => u.StickyNote)
                 .HasForeignKey(sn => sn.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Cascade deletes for Todo related entities
+            builder.Entity<Todo>()
+                .HasMany(t => t.SubTasks)
+                .WithOne(st => st.Todo)
+                .HasForeignKey(st => st.TodoId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
