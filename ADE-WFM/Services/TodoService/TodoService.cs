@@ -80,6 +80,40 @@ namespace ADE_WFM.Services.TodoService
 
 
         // UPDATE service
+        // Update the title of todo
+        public async Task UpdateTodoTitle(UpdateTodoTitleDto dto)
+        {
+            var todo = await _context.Todos.FindAsync(dto.TodoId)
+                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
+
+            todo.Title = dto.NewTitle;
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        // Update the description of todo
+        public async Task UpdateTodoDescription(UpdateTodoDescriptionDto dto)
+        {
+            var todo = await _context.Todos.FindAsync(dto.TodoId)
+                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
+
+            todo.Description = dto.NewDescription;
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        // Update the due date of todo
+        public async Task UpdateTodoDueDate(UpdateTodoDueDateDto dto)
+        {
+            var todo = await _context.Todos.FindAsync(dto.TodoId)
+                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
+
+            todo.DueDate = dto.NewDueDate;
+
+            await _context.SaveChangesAsync();
+        }
 
         // DELETE service
 
