@@ -22,6 +22,7 @@ namespace ADE_WFM.Services.TodoService
 
 
         // DELETE service
+        Task DeleteTodo(DeleteTodoDto dto);
 
 
     }

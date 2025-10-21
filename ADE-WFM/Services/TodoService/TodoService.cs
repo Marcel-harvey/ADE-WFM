@@ -35,7 +35,7 @@ namespace ADE_WFM.Services.TodoService
                 .Include(t => t.SubTasks)
                 .FirstOrDefaultAsync(t => t.Id == dto.TodoId)
                 ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
-            
+
             return todo;
         }
 
@@ -116,8 +116,13 @@ namespace ADE_WFM.Services.TodoService
         }
 
         // DELETE service
+        public async Task DeleteTodo(DeleteTodoDto dto)
+        {
+            var todo = await _context.Todos.FindAsync(dto.TodoId)
+                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
 
-
-
+            _context.Todos.Remove(todo);
+            await _context.SaveChangesAsync();
+        }
     }
 }
