@@ -1,4 +1,4 @@
-﻿using ADE_WFM.Services.SubTaskService;
+﻿using ADE_WFM.Models.DTOs.SubTaskDtos;
 using ADE_WFM.Models;
 
 namespace ADE_WFM.Services.SubTaskService
@@ -8,6 +8,7 @@ namespace ADE_WFM.Services.SubTaskService
         // GET serives
 
         // ADD services
+        Task AddSubTasksToTodo(AddSubTasksToTodoDto dto);
 
         // UPDATE services
 

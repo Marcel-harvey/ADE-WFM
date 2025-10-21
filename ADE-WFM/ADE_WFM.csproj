@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\DTOs\SubTaskDtos\" />
     <Folder Include="Models\ViewModels\ProjectViewModels\" />
     <Folder Include="Views\Company\" />
   </ItemGroup>
