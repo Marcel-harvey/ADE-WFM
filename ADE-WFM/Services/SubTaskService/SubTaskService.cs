@@ -45,7 +45,27 @@ namespace ADE_WFM.Services.SubTaskService
 
 
         // UPDATE services
+        public async Task UpdateSubTask(UpdateSubTaskDto dto)
+        {
+            var subTask = await _context.SubTasks
+                .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId)
+                ?? throw new KeyNotFoundException($"SubTask with ID {dto.SubTaskId} not found for Todo {dto.TodoId}.");
+
+            subTask.Description = dto.Description ?? subTask.Description;
+            subTask.IsCompleted = dto.IsCompleted ?? subTask.IsCompleted;
+
+            await _context.SaveChangesAsync();
+        }
 
         // DELETE serives
+        public async Task DeleteSubTask(DeleteSubTaskDto dto)
+        {
+            var subTask = await _context.SubTasks
+                .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId)
+                ?? throw new KeyNotFoundException($"SubTask with ID {dto.SubTaskId} not found for Todo {dto.TodoId}.");
+
+            _context.SubTasks.Remove(subTask);
+            await _context.SaveChangesAsync();
+        }
     }
 }

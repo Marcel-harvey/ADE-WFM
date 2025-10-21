@@ -103,5 +103,6 @@ namespace ADE_WFM.Data
         public DbSet<StickyNote> StickyNotes { get; set; }
         public DbSet<WorkFlowUser> WorkFlowUsers { get; set; }
         public DbSet<ProjectUser> ProjectUsers { get; set; }
+        public DbSet<SubTask> SubTasks { get; set; }
     }
 }

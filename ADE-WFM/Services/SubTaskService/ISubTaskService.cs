@@ -11,7 +11,9 @@ namespace ADE_WFM.Services.SubTaskService
         Task AddSubTasksToTodo(AddSubTasksToTodoDto dto);
 
         // UPDATE services
+        Task UpdateSubTask(UpdateSubTaskDto dto);
 
         // DELETE serives
+        Task DeleteSubTask(DeleteSubTaskDto dto);
     }
 }
