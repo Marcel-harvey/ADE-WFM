@@ -5,6 +5,7 @@ using ADE_WFM.Services.WorkFlowService;
 using ADE_WFM.Services.ProjectService;
 using ADE_WFM.Services.StickyNoteService;
 using ADE_WFM.Services.TodoService;
+using ADE_WFM.Services.SubTaskService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -41,6 +42,7 @@ builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IStickyNoteService, StickyNoteService>();
 builder.Services.AddScoped<ITodoService, TodoService>();
+builder.Services.AddScoped<ISubTaskService, SubTaskService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
