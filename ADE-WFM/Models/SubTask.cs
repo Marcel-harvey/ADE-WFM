@@ -12,13 +12,13 @@ namespace ADE_WFM.Models
         public bool IsCompleted { get; set; }
 
         // Foreign Keys
-        public int WorkFlowId { get; set; }
+        public int? WorkFlowId { get; set; }
         [ForeignKey(nameof(WorkFlowId))]
-        public WorkFlow WorkFlow { get; set; } = null!;
+        public WorkFlow? WorkFlow { get; set; } = null!;
 
-        public int TodoId { get; set; }
+        public int? TodoId { get; set; }
         [ForeignKey(nameof(TodoId))]
-        public Todo Todo { get; set; } = null!;
+        public Todo? Todo { get; set; } = null!;
 
     }
 }
