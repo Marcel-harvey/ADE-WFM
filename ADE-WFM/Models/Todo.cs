@@ -28,7 +28,7 @@ namespace ADE_WFM.Models
         public string UserId { get; set; } = string.Empty;
         public ApplicationUser User { get; set; } = null!;
 
-       public int ProjectId { get; set; }
+       public int? ProjectId { get; set; }
        public Project? Project { get; set; }
 
     }
