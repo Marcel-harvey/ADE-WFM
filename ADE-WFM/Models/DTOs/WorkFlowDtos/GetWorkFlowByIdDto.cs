@@ -1,10 +1,11 @@
 ﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos
 {
-    public class GetAllWorkFlowsDto
+    public class GetWorkFlowByIdDto
     {
+        public int Id { get; set; }
     }
 
-    public class ResponseGetAllWorkFlowsDto
+    public class ResponseGetWorkFlowByIdDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
