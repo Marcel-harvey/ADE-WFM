@@ -7,10 +7,15 @@
     public class ResponseGetAllWorkFlowsDto
     {
         public int Id { get; set; }
-        public string WorkFlowName { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
+        // Lists
         public List<GetWorkFlowProjects>? Projects { get; set; }
         public List<GetWorkFlowUsers>? Users { get; set; }
+
+        // Counts
+        public int ProjectCount => Projects?.Count ?? 0;
+        public int UserCount => Users?.Count ?? 0;
     }
 
     public class GetWorkFlowProjects
