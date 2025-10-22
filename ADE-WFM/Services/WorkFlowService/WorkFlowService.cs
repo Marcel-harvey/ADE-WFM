@@ -1,5 +1,6 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
+using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 using ADE_WFM.Models.ViewModels.CommentViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -22,13 +23,31 @@ namespace ADE_WFM.Services.WorkFlowService
 
         // GET
         // list of all workflows  
-        public async Task<List<WorkFlow>> GetAllWorkFlows()
+        public async Task<List<ResponseGetAllWorkFlowsDto>> GetAllWorkFlows()
         {
-            var workFlow = await _context.WorkFlows
-                .Include(project => project.Project)
+            var workflows = await _context.WorkFlows
+                .Include(wf => wf.Project)      // projects in workflow
+                .Include(wf => wf.WorkFlowUsers)
+                    .ThenInclude(wu => wu.User) // users in workflow
                 .ToListAsync();
 
-            return workFlow;
+            var result = workflows.Select(wf => new ResponseGetAllWorkFlowsDto
+            {
+                Id = wf.Id,
+                Name = wf.WorkFlowName,
+                Projects = wf.Project?.Select(p => new GetWorkFlowProjects
+                {
+                    Id = p.Id,
+                    ProjectName = p.ProjectTitle
+                }).ToList(),
+                Users = wf.WorkFlowUsers?.Select(wu => new GetWorkFlowUsers
+                {
+                    Id = wu.UserId,
+                    UserName = wu.User.UserName ?? ""
+                }).ToList()
+            }).ToList();
+
+            return result;
         }
 
 

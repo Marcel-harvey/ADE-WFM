@@ -1,4 +1,5 @@
 ﻿using ADE_WFM.Models;
+using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 
 namespace ADE_WFM.Services.WorkFlowService
@@ -6,7 +7,7 @@ namespace ADE_WFM.Services.WorkFlowService
     public interface IWorkFlowService
     {
         // GET services
-        Task<List<WorkFlow>> GetAllWorkFlows();
+        Task<List<ResponseGetAllWorkFlowsDto>> GetAllWorkFlows();
         Task<WorkFlow> GetWorkFlowById(int id);
         Task<List<ApplicationUser>> GetUsersInWorkFlow(int workFlowId);
         Task <List<Project>> GetProjectsInWorkFlow(int workFlowId);
