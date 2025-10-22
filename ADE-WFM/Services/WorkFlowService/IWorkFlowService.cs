@@ -1,5 +1,5 @@
 ﻿using ADE_WFM.Models;
-using ADE_WFM.Models.ViewModels.WorkFlowViewModels;
+using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 
 namespace ADE_WFM.Services.WorkFlowService
 {

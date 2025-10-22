@@ -1,7 +1,7 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
+using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 using ADE_WFM.Models.ViewModels.CommentViewModels;
-using ADE_WFM.Models.ViewModels.WorkFlowViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SQLitePCL;

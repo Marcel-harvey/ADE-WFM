@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ADE_WFM.Models.ViewModels.WorkFlowViewModels
+namespace ADE_WFM.Models.DTOs.WorkFlowViewModels
 {
     public class CreateWorkFlowViewModel
     {
