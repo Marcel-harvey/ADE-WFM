@@ -12,16 +12,14 @@ using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
+// Add services to the container
+builder.Services.AddControllers(); // ✅ API controllers only
 
 // Register DbContext with PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-// Register Identity with ApplicationUser and ApplicationRole
+// Register Identity (no UI)
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = true;
@@ -32,11 +30,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireLowercase = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders()
-.AddDefaultUI();
+.AddDefaultTokenProviders();
 
-
-// Add Services
+// Register custom services
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
@@ -44,13 +40,33 @@ builder.Services.AddScoped<IStickyNoteService, StickyNoteService>();
 builder.Services.AddScoped<ITodoService, TodoService>();
 builder.Services.AddScoped<ISubTaskService, SubTaskService>();
 
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+// Add Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Add CORS (so frontends can connect)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 
 var app = builder.Build();
 
+// Only enable Swagger in Development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "ADE-WFM API v1");
+        options.RoutePrefix = string.Empty; // optional – serves Swagger UI at root "/"
+    });
+}
 
-// Apply migrations and create roles on startup
+// Apply migrations and seed roles/users
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -58,17 +74,12 @@ using (var scope = app.Services.CreateScope())
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     string[] roles = { "Admin", "Standard", "View" };
-
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
-        {
             await roleManager.CreateAsync(new IdentityRole(role));
-        }
     }
 
-
-    // Create default admin user
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var adminEmail = "marcel@ade.com";
     var adminPassword = "Admin123!";
@@ -81,55 +92,28 @@ using (var scope = app.Services.CreateScope())
         {
             UserName = adminEmail,
             Email = adminEmail,
-            EmailConfirmed = true,
-            // optional: assign to default company if one exists
-            // CompanyId = 1
+            EmailConfirmed = true
         };
 
-        var createResult = await userManager.CreateAsync(adminUser, adminPassword);
-        if (createResult.Succeeded)
-        {
+        var result = await userManager.CreateAsync(adminUser, adminPassword);
+        if (result.Succeeded)
             await userManager.AddToRoleAsync(adminUser, adminRole);
-        }
         else
-        {
-            Console.WriteLine("Failed to create admin user: " +
-                string.Join(", ", createResult.Errors.Select(e => e.Description)));
-        }
+            Console.WriteLine("Failed to create admin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 }
 
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-
-
-// Set South African culture defaults
-var defaultCulture = new CultureInfo("en-ZA")
-{
-    NumberFormat =
-    {
-        NumberDecimalSeparator = ".",
-        CurrencyDecimalSeparator = ".",
-        NumberGroupSeparator = ","
-    }
-};
-CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
-CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
-
-
+// Configure middleware pipeline
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapRazorPages();
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Map API controllers
+app.MapControllers();
+
+// Health/test endpoint
+app.MapGet("/health", () => Results.Ok("ADE-WFM API is running ✅"));
 
 app.Run();
