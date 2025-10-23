@@ -255,9 +255,32 @@ namespace ADE_WFM.Services.WorkFlowService
                 Name = workFlowName,
                 Message = $"Work flow '{workFlowName}' deleted successfully."
             };
-
-
-
         }
+
+
+        // Remove user from workflow
+        public async Task<ResponseRemoveUserFromWorkFlowDto> RemoveUserFromWorkFlow(RemoveUserFromWorkFlowDto dto)
+        {
+            var workFlowUser = await _context.WorkFlowUsers
+                .FirstOrDefaultAsync(wfu => wfu.UserId == dto.UserId && wfu.WorkFlowId == dto.WorkFlowId)
+                ?? throw new KeyNotFoundException($"User with ID {dto.UserId} not found in any workflow.");
+
+            var userName = await _userManager
+                .FindByIdAsync(dto.UserId);
+
+            _context.WorkFlowUsers.Remove(workFlowUser);
+            await _context.SaveChangesAsync();
+
+            return new ResponseRemoveUserFromWorkFlowDto
+            {
+                Name = userName?.UserName ?? "Unknown",
+                Message = $"User '{userName?.UserName ?? "Unknown"}' removed from workflow successfully."
+            };
+        }
+
+
+
+
+
     }
 }

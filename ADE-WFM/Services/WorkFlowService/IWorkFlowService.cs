@@ -19,5 +19,6 @@ namespace ADE_WFM.Services.WorkFlowService
         
         // DELETE services
         Task <ResponseDeleteWorkFlowDto> DeleteWorkFlow(DeleteWorkFlowDto dto);
+        Task <ResponseRemoveUserFromWorkFlowDto> RemoveUserFromWorkFlow(RemoveUserFromWorkFlowDto dto);
     }
 }
