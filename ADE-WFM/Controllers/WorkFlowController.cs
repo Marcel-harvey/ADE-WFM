@@ -2,6 +2,7 @@
 using ADE_WFM.Services.WorkFlowService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ADE_WFM.Controllers
 {
@@ -13,6 +14,38 @@ namespace ADE_WFM.Controllers
         public WorkFlowController(IWorkFlowService workFlowService)
         {
             _workFlowService = workFlowService;
+        }
+
+
+        // CREATE API's
+        // Create a new workflow
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateWorkFlowDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var response = await _workFlowService.AddWorkFlow(dto);
+                return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (DbUpdateException ex)
+            {
+                // Database update errors
+                return StatusCode(500, new { Message = "Database error occurred.", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Catch-all for unexpected errors
+                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
+            }
         }
 
 
