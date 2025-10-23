@@ -149,7 +149,8 @@ namespace ADE_WFM.Controllers
 
 
         // DELETE API's
-        [HttpDelete("Delete")]
+        // Delete a workflow via id
+        [HttpDelete("Delete-work-flow")]
         public async Task<IActionResult> DeleteWorkFlow([FromBody] DeleteWorkFlowDto dto)
         {
             if (dto == null || dto.Id <= 0)
@@ -164,11 +165,36 @@ namespace ADE_WFM.Controllers
             {
                 return NotFound(new { error = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new { error = "An unexpected error occurred while deleting the workflow." });
             }
         }
+
+
+        // Remove a user from a workflow
+        [HttpDelete("Remove-user-from-work-flow")]
+        public async Task<IActionResult> RemoveUserFromWorkFlow([FromBody] RemoveUserFromWorkFlowDto dto)
+        {
+            if (dto == null || dto.WorkFlowId <= 0 || dto.UserId == null)
+                return BadRequest("Invalid workflow ID.");
+
+            try
+            {
+                var result = await _workFlowService.RemoveUserFromWorkFlow(dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred while removing the user from your work flow." });
+            }
+
+        }
+
 
 
     }
