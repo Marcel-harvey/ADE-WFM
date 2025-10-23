@@ -72,32 +72,63 @@ namespace ADE_WFM.Services.WorkFlowService
 
 
         // Add users to existing workflow
-        public async Task AddUserToWorkFlow(AddUserWorkFlowDto model)
+        public async Task<ResponseAddUserWorkFlowDto> AddUserToWorkFlow(AddUserWorkFlowDto model)
         {
+            // Check if the workflow exists
+            var workFlow = await _context.WorkFlows
+                .Include(wf => wf.WorkFlowUsers)
+                .FirstOrDefaultAsync(wf => wf.Id == model.WorkFlowId);
 
-            // Duplicate check
-            var existingUserIds = await _context.WorkFlowUsers
-                .Where(wfUser => wfUser.WorkFlowId == model.WorkFlowId)
+            if (workFlow == null)
+                throw new KeyNotFoundException($"Workflow with ID {model.WorkFlowId} not found.");
+
+            var existingUserIds = workFlow.WorkFlowUsers
                 .Select(wfUser => wfUser.UserId)
-                .ToListAsync();
+                .ToList();
 
-            foreach (var user in model.UserIds)
+            var addedUsers = new List<WorkFlowUserDto>();
+
+            foreach (var userId in model.UserIds)
             {
-                if (!existingUserIds.Contains(user))
+                if (!existingUserIds.Contains(userId))
                 {
+
+                    // Verify the user exists in Identity
+                    var user = await _userManager.FindByIdAsync(userId);
+                    if (user == null)
+                        throw new KeyNotFoundException($"User with ID {userId} not found.");
+
                     var wfUser = new WorkFlowUser
                     {
                         WorkFlowId = model.WorkFlowId,
-                        UserId = user,
+                        UserId = userId,
                         Role = "Standard"
                     };
 
                     _context.WorkFlowUsers.Add(wfUser);
+
+                    addedUsers.Add(new WorkFlowUserDto
+                    {
+                        Name = user.UserName ?? "Unknown",
+                        Role = wfUser.Role
+                    });
                 }
             }
 
             await _context.SaveChangesAsync();
+
+            return new ResponseAddUserWorkFlowDto
+            {
+                WorkFlowId = workFlow.Id,
+                WorkFlowName = workFlow.WorkFlowName,
+                Users = addedUsers,
+                Message = addedUsers.Any()
+                    ? "Users added successfully."
+                    : "No new users were added (duplicates skipped)."
+            };
         }
+
+
 
 
         // GET

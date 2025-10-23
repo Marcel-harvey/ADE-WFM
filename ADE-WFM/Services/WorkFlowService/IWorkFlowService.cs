@@ -8,7 +8,7 @@ namespace ADE_WFM.Services.WorkFlowService
     {
         // ADD services
         Task <ResponseCreateWorkFlowDto> AddWorkFlow(CreateWorkFlowDto dto);
-        Task AddUserToWorkFlow(AddUserWorkFlowDto model);
+        Task <ResponseAddUserWorkFlowDto> AddUserToWorkFlow(AddUserWorkFlowDto dto);
 
         // GET services
         Task<List<ResponseGetWorkFlowsDto>> GetAllWorkFlows();
