@@ -2,7 +2,6 @@
 using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
-using ADE_WFM.Models.ViewModels.CommentViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SQLitePCL;
@@ -21,48 +20,143 @@ namespace ADE_WFM.Services.WorkFlowService
         }
 
 
-        // GET
-        // list of all workflows  
-        public async Task<List<ResponseGetAllWorkFlowsDto>> GetAllWorkFlows()
+        // CREATE:
+        // Add new workflow with user the created and extra list of users if selected
+        public async Task<ResponseCreateWorkFlowDto> AddWorkFlow(CreateWorkFlowDto dto)
         {
-            var workflows = await _context.WorkFlows
-                .Include(wf => wf.Project)      // projects in workflow
-                .Include(wf => wf.WorkFlowUsers)
-                    .ThenInclude(wu => wu.User) // users in workflow
+            // Create the new workflow entity
+            var workFlow = new WorkFlow
+            {
+                WorkFlowName = dto.WorkFlowName,
+                WorkFlowUsers = new List<WorkFlowUser>()
+            };
+
+            // Add creator as admin
+            workFlow.WorkFlowUsers.Add(new WorkFlowUser
+            {
+                UserId = dto.CurrentUserId,
+                Role = "Admin"
+            });
+
+            // Add other assigned users
+            foreach (var userId in dto.UserIds)
+            {
+                if (userId != dto.CurrentUserId)
+                {
+                    workFlow.WorkFlowUsers.Add(new WorkFlowUser
+                    {
+                        UserId = userId,
+                        Role = "Standard"
+                    });
+                }
+            }
+
+            // Save workflow to database
+            _context.WorkFlows.Add(workFlow);
+            await _context.SaveChangesAsync();
+
+            // Build response DTO
+            var response = new ResponseCreateWorkFlowDto
+            {
+                Id = workFlow.Id,
+                WorkFlowName = workFlow.WorkFlowName,
+                CreatedByUserId = dto.CurrentUserId,
+                AssignedUserIds = workFlow.WorkFlowUsers.Select(u => u.UserId).ToList(),
+                CreatedAt = DateTime.UtcNow,
+                Message = "Workflow created successfully"
+            };
+
+            return response;
+        }
+
+
+
+        // Add users to existing workflow
+        public async Task AddUserToWorkFlow(AddUserWorkFlowDto model)
+        {
+
+            // Duplicate check
+            var existingUserIds = await _context.WorkFlowUsers
+                .Where(wfUser => wfUser.WorkFlowId == model.WorkFlowId)
+                .Select(wfUser => wfUser.UserId)
                 .ToListAsync();
 
-            var result = workflows.Select(wf => new ResponseGetAllWorkFlowsDto
+            foreach (var user in model.UserIds)
+            {
+                if (!existingUserIds.Contains(user))
+                {
+                    var wfUser = new WorkFlowUser
+                    {
+                        WorkFlowId = model.WorkFlowId,
+                        UserId = user,
+                        Role = "Standard"
+                    };
+
+                    _context.WorkFlowUsers.Add(wfUser);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        // GET
+        // list of all workflows  
+        public async Task<List<ResponseGetWorkFlowsDto>> GetAllWorkFlows()
+        {
+            var workflows = await _context.WorkFlows
+                .Include(wf => wf.Project)
+                .Include(wf => wf.WorkFlowUsers)
+                .ThenInclude(wu => wu.User)
+                .ToListAsync();
+
+            var response = workflows.Select(wf => new ResponseGetWorkFlowsDto
             {
                 Id = wf.Id,
                 Name = wf.WorkFlowName,
-                Projects = wf.Project?.Select(p => new GetWorkFlowProjects
+                Projects = wf.Project?.Select(p => new GetWorkFlowProjectsDto
                 {
                     Id = p.Id,
                     ProjectName = p.ProjectTitle
                 }).ToList(),
-                Users = wf.WorkFlowUsers?.Select(wu => new GetWorkFlowUsers
+                Users = wf.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto
                 {
                     Id = wu.UserId,
                     UserName = wu.User.UserName ?? ""
                 }).ToList()
             }).ToList();
 
-            return result;
+            return response;
         }
 
 
         // Get workflow by ID
-        public async Task<WorkFlow> GetWorkFlowById(int id)
+        public async Task<ResponseGetWorkFlowsDto> GetWorkFlowById(GetWorkFlowByIdDto dto)
         {
             var workFlow = await _context.WorkFlows
-                .FindAsync(id);
+                .Include(wf => wf.Project)
+                .Include(wf => wf.WorkFlowUsers)
+                    .ThenInclude(wu => wu.User)
+                .FirstOrDefaultAsync(wf => wf.Id == dto.Id)
+                ?? throw new KeyNotFoundException($"Work flow with ID: {dto.Id} was not found");
 
-            if (workFlow == null)
+            var response = new ResponseGetWorkFlowsDto
             {
-                throw new KeyNotFoundException($"Work flow with ID: {id} was not found");
-            }
+                Id = workFlow.Id,
+                Name = workFlow.WorkFlowName,
+                Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto
+                {
+                    Id = p.Id,
+                    ProjectName = p.ProjectTitle
+                }).ToList(),
+                Users = workFlow.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto
+                {
+                    Id = wu.UserId,
+                    UserName = wu.User.UserName ?? ""
+                }).ToList()
+            };
 
-            return workFlow;
+            return response;
         }
 
 
@@ -107,70 +201,7 @@ namespace ADE_WFM.Services.WorkFlowService
             workFlow.WorkFlowName = model.WorkFlowName;
 
             await _context.SaveChangesAsync();
-        }
-
-
-        // ADD:
-        // Add new workflow with user the created and extra list of users if selected
-        public async Task AddWorkFlow(CreateWorkFlowViewModel model)
-        {
-
-            var workFlow = new WorkFlow
-            {
-                WorkFlowName = model.WorkFlowName,
-                WorkFlowUsers = new List<WorkFlowUser>(),
-            };
-
-            workFlow.WorkFlowUsers.Add(new WorkFlowUser
-            {
-                UserId = model.CurrentUserId,
-                Role = "Admin",
-            });
-
-            foreach (var userId in model.UserIds)
-            {
-                if (userId != model.CurrentUserId)
-                {
-                    workFlow.WorkFlowUsers.Add(new WorkFlowUser
-                    {
-                        UserId = userId,
-                        Role = "Standard",
-                    });
-                }                
-            }
-
-            _context.WorkFlows.Add(workFlow);
-            await _context.SaveChangesAsync();
-        }
-
-
-        // Add users to existing workflow
-        public async Task AddUserToWorkFlow(AddUserWorkFlowViewModel model)
-        {
-
-            // Duplicate check
-            var existingUserIds = await _context.WorkFlowUsers
-                .Where(wfUser => wfUser.WorkFlowId == model.WorkFlowId)
-                .Select(wfUser => wfUser.UserId)
-                .ToListAsync();
-
-            foreach (var user in model.UserIds)
-            {
-                if (!existingUserIds.Contains(user))
-                {
-                    var wfUser = new WorkFlowUser
-                    {
-                        WorkFlowId = model.WorkFlowId,
-                        UserId = user,
-                        Role = "Standard"
-                    };
-
-                    _context.WorkFlowUsers.Add(wfUser);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-        }
+        }        
 
 
         // DELETE services

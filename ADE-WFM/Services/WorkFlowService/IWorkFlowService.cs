@@ -6,18 +6,18 @@ namespace ADE_WFM.Services.WorkFlowService
 {
     public interface IWorkFlowService
     {
+        // ADD services
+        Task <ResponseCreateWorkFlowDto> AddWorkFlow(CreateWorkFlowDto dto);
+        Task AddUserToWorkFlow(AddUserWorkFlowDto model);
+
         // GET services
-        Task<List<ResponseGetAllWorkFlowsDto>> GetAllWorkFlows();
-        Task<WorkFlow> GetWorkFlowById(int id);
+        Task<List<ResponseGetWorkFlowsDto>> GetAllWorkFlows();
+        Task<ResponseGetWorkFlowsDto> GetWorkFlowById(GetWorkFlowByIdDto dto);
         Task<List<ApplicationUser>> GetUsersInWorkFlow(int workFlowId);
         Task <List<Project>> GetProjectsInWorkFlow(int workFlowId);
 
         // UPDATE services
         Task UpdateWorkFlowName(UpdateWorkFlowNameViewModel model);
-
-        // ADD services
-        Task AddWorkFlow(CreateWorkFlowViewModel model);
-        Task AddUserToWorkFlow(AddUserWorkFlowViewModel model);
         
         // DELETE services
         Task DeleteWorkFlow(int workFlowId);
