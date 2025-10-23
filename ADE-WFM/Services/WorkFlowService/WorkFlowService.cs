@@ -77,10 +77,8 @@ namespace ADE_WFM.Services.WorkFlowService
             // Check if the workflow exists
             var workFlow = await _context.WorkFlows
                 .Include(wf => wf.WorkFlowUsers)
-                .FirstOrDefaultAsync(wf => wf.Id == model.WorkFlowId);
-
-            if (workFlow == null)
-                throw new KeyNotFoundException($"Workflow with ID {model.WorkFlowId} not found.");
+                .FirstOrDefaultAsync(wf => wf.Id == model.WorkFlowId)
+                ?? throw new KeyNotFoundException($"Workflow with ID {model.WorkFlowId} not found.");
 
             var existingUserIds = workFlow.WorkFlowUsers
                 .Select(wfUser => wfUser.UserId)
