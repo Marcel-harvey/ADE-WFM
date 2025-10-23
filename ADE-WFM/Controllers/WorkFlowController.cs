@@ -113,5 +113,40 @@ namespace ADE_WFM.Controllers
                 return StatusCode(500, new { Message = $"An unexpected error occurred. {ex.Message}" });
             }
         }
+
+
+        // UPDATE API's
+        [HttpPut("update-name")]
+        public async Task<IActionResult> UpdateWorkFlowName([FromBody] UpdateWorkFlowNameDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var response = await _workFlowService.UpdateWorkFlowName(dto);
+                return Ok(new
+                {
+                    Data = response
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                // Workflow not found
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (DbUpdateException ex)
+            {
+                // Database save issues
+                return StatusCode(500, new { Message = "Database error occurred while updating workflow.", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Any other unhandled exceptions
+                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
+            }
+        }
+
+
     }
 }
