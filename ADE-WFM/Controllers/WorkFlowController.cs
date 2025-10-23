@@ -20,8 +20,8 @@ namespace ADE_WFM.Controllers
 
         // CREATE API's
         // Create a new workflow
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateWorkFlowDto dto)
+        [HttpPost("Create-new-work-flow")]
+        public async Task<IActionResult> CreateNewWorkFlow([FromBody] CreateWorkFlowDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -85,7 +85,7 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Return all workflows
-        [HttpGet]
+        [HttpGet("Get-all-work-flows")]
         public async Task<IActionResult> GetAll()
         {
             var workflows = await _workFlowService.GetAllWorkFlows();
@@ -95,7 +95,7 @@ namespace ADE_WFM.Controllers
 
 
         // Return workflow by ID
-        [HttpGet("{id}")]
+        [HttpGet("get-work-flow-by-id/{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             try
