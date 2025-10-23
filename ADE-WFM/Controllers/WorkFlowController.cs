@@ -148,5 +148,28 @@ namespace ADE_WFM.Controllers
         }
 
 
+        // DELETE API's
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteWorkFlow([FromBody] DeleteWorkFlowDto dto)
+        {
+            if (dto == null || dto.Id <= 0)
+                return BadRequest("Invalid workflow ID.");
+
+            try
+            {
+                var result = await _workFlowService.DeleteWorkFlow(dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred while deleting the workflow." });
+            }
+        }
+
+
     }
 }
