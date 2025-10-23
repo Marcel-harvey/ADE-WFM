@@ -127,8 +127,6 @@ namespace ADE_WFM.Services.WorkFlowService
         }
 
 
-
-
         // GET
         // list of all workflows  
         public async Task<List<ResponseGetWorkFlowsDto>> GetAllWorkFlows()
@@ -217,19 +215,21 @@ namespace ADE_WFM.Services.WorkFlowService
 
         //UPDATE:
         // Update workflow's name
-        public async Task UpdateWorkFlowName(UpdateWorkFlowNameViewModel model)
+        public async Task <ResponseUpdateWorkFlowNameDto> UpdateWorkFlowName(UpdateWorkFlowNameDto dto)
         {
             var workFlow = await _context.WorkFlows
-                .FirstOrDefaultAsync(wfId => wfId.Id == model.WorkFlowId);
+                .FirstOrDefaultAsync(wfId => wfId.Id == dto.WorkFlowId)
+                ?? throw new KeyNotFoundException($"Workflow with ID {dto.WorkFlowId} was not found.");
 
-            if (workFlow == null)
-            {
-                throw new KeyNotFoundException($"Work flow with ID {model.WorkFlowId} was not found");
-            }
-
-            workFlow.WorkFlowName = model.WorkFlowName;
+            workFlow.WorkFlowName = dto.WorkFlowName;
 
             await _context.SaveChangesAsync();
+
+            return new ResponseUpdateWorkFlowNameDto
+            {
+                OldName = workFlow.WorkFlowName,
+                NewName = dto.WorkFlowName
+            };
         }        
 
 

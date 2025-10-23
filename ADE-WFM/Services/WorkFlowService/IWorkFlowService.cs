@@ -13,11 +13,9 @@ namespace ADE_WFM.Services.WorkFlowService
         // GET services
         Task<List<ResponseGetWorkFlowsDto>> GetAllWorkFlows();
         Task<ResponseGetWorkFlowsDto> GetWorkFlowById(GetWorkFlowByIdDto dto);
-        Task<List<ApplicationUser>> GetUsersInWorkFlow(int workFlowId);
-        Task <List<Project>> GetProjectsInWorkFlow(int workFlowId);
 
         // UPDATE services
-        Task UpdateWorkFlowName(UpdateWorkFlowNameViewModel model);
+        Task <ResponseUpdateWorkFlowNameDto> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);
         
         // DELETE services
         Task DeleteWorkFlow(int workFlowId);
