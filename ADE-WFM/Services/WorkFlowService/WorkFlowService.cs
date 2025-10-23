@@ -187,32 +187,6 @@ namespace ADE_WFM.Services.WorkFlowService
         }
 
 
-        // Get users that is part of the workflow
-        public async Task<List<ApplicationUser>> GetUsersInWorkFlow(int workFlowId)
-        {
-            var workFlowUsers = await _context.WorkFlowUsers
-                .Where(id => id.WorkFlowId == workFlowId)
-                .Select(wfUser => wfUser.User)
-                .ToListAsync();
-
-            return workFlowUsers;
-        }
-
-        public async Task<List<Project>> GetProjectsInWorkFlow(int workFlowId)
-        {
-            var projects = await _context.Projects
-                .Where(p => p.WorkFlowId == workFlowId)
-                .ToListAsync();
-
-            if (projects == null)
-            {
-                throw new KeyNotFoundException($"Key with ID: {workFlowId} was not found");
-            }
-
-            return projects;
-        }
-
-
         //UPDATE:
         // Update workflow's name
         public async Task <ResponseUpdateWorkFlowNameDto> UpdateWorkFlowName(UpdateWorkFlowNameDto dto)
