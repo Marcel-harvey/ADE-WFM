@@ -221,14 +221,17 @@ namespace ADE_WFM.Services.WorkFlowService
                 .FirstOrDefaultAsync(wfId => wfId.Id == dto.WorkFlowId)
                 ?? throw new KeyNotFoundException($"Workflow with ID {dto.WorkFlowId} was not found.");
 
+            var oldName = workFlow.WorkFlowName;
+
             workFlow.WorkFlowName = dto.WorkFlowName;
 
             await _context.SaveChangesAsync();
 
             return new ResponseUpdateWorkFlowNameDto
             {
-                OldName = workFlow.WorkFlowName,
-                NewName = dto.WorkFlowName
+                OldName = oldName,
+                NewName = dto.WorkFlowName,
+                Message = $"Workflow name updated to {dto.WorkFlowName}."
             };
         }        
 
