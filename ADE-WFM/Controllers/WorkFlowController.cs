@@ -1,4 +1,5 @@
 ﻿using ADE_WFM.Models.DTOs.WorkFlowDtos;
+using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 using ADE_WFM.Services.WorkFlowService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,39 @@ namespace ADE_WFM.Controllers
             catch (Exception ex)
             {
                 // Catch-all for unexpected errors
+                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
+            }
+        }
+
+
+        // Add multiple users to a workflow
+        [HttpPost("add-users")]
+        public async Task<IActionResult> AddUsersToWorkFlow([FromBody] AddUserWorkFlowDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var response = await _workFlowService.AddUserToWorkFlow(dto);
+
+                return Ok(response);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                // Thrown when workflow or user not found
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (DbUpdateException ex)
+            {
+                // Handle DB-related issues like constraint violations
+                return StatusCode(500, new { Message = "Database error occurred.", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Fallback for unexpected exceptions
                 return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
             }
         }
