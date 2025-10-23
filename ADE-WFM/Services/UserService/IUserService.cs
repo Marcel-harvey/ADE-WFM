@@ -1,4 +1,6 @@
-﻿namespace ADE_WFM.Services.UserService
+﻿using ADE_WFM.Models.DTOs.UserDtos;
+
+namespace ADE_WFM.Services.UserService
 {
     public interface IUserService
     {
