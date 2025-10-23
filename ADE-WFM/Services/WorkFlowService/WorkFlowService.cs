@@ -231,28 +231,33 @@ namespace ADE_WFM.Services.WorkFlowService
             {
                 OldName = oldName,
                 NewName = dto.WorkFlowName,
-                Message = $"Workflow name updated to {dto.WorkFlowName}."
+                Message = $"Workflow name updated to '{dto.WorkFlowName}'."
             };
         }        
 
 
         // DELETE services
         // Delete workflow
-        public async Task DeleteWorkFlow(int workFlowId)
+        public async Task <ResponseDeleteWorkFlowDto> DeleteWorkFlow(DeleteWorkFlowDto dto)
         {
             var workFlow = await _context.WorkFlows
                 .Include(w => w.Comments)
-                .FirstOrDefaultAsync(w => w.Id == workFlowId);
+                .FirstOrDefaultAsync(w => w.Id == dto.Id)
+                ?? throw new KeyNotFoundException($"Workflow with ID {dto.Id} was not found.");
 
-            if (workFlow == null)
-                throw new KeyNotFoundException($"Workflow with ID {workFlowId} was not found.");
+            var workFlowName = workFlow.WorkFlowName;
 
             _context.WorkFlows.Remove(workFlow);
             await _context.SaveChangesAsync();
+
+            return new ResponseDeleteWorkFlowDto
+            {
+                Name = workFlowName,
+                Message = $"Work flow '{workFlowName}' deleted successfully."
+            };
+
+
+
         }
-
-
-
-
     }
 }

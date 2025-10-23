@@ -18,6 +18,6 @@ namespace ADE_WFM.Services.WorkFlowService
         Task <ResponseUpdateWorkFlowNameDto> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);
         
         // DELETE services
-        Task DeleteWorkFlow(int workFlowId);
+        Task <ResponseDeleteWorkFlowDto> DeleteWorkFlow(DeleteWorkFlowDto dto);
     }
 }
