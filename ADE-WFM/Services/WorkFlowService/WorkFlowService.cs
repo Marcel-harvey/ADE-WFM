@@ -55,8 +55,7 @@ namespace ADE_WFM.Services.WorkFlowService
             _context.WorkFlows.Add(workFlow);
             await _context.SaveChangesAsync();
 
-            // Build response DTO
-            var response = new ResponseCreateWorkFlowDto
+            return new ResponseCreateWorkFlowDto
             {
                 Id = workFlow.Id,
                 WorkFlowName = workFlow.WorkFlowName,
@@ -65,8 +64,6 @@ namespace ADE_WFM.Services.WorkFlowService
                 CreatedAt = DateTime.UtcNow,
                 Message = "Workflow created successfully"
             };
-
-            return response;
         }
 
 
@@ -137,7 +134,7 @@ namespace ADE_WFM.Services.WorkFlowService
                 .ThenInclude(wu => wu.User)
                 .ToListAsync();
 
-            var response = workflows.Select(wf => new ResponseGetWorkFlowsDto
+            return workflows.Select(wf => new ResponseGetWorkFlowsDto
             {
                 Id = wf.Id,
                 Name = wf.WorkFlowName,
@@ -152,8 +149,6 @@ namespace ADE_WFM.Services.WorkFlowService
                     UserName = wu.User.UserName ?? ""
                 }).ToList()
             }).ToList();
-
-            return response;
         }
 
 
@@ -167,7 +162,7 @@ namespace ADE_WFM.Services.WorkFlowService
                 .FirstOrDefaultAsync(wf => wf.Id == dto.Id)
                 ?? throw new KeyNotFoundException($"Work flow with ID: {dto.Id} was not found");
 
-            var response = new ResponseGetWorkFlowsDto
+            return new ResponseGetWorkFlowsDto
             {
                 Id = workFlow.Id,
                 Name = workFlow.WorkFlowName,
@@ -181,9 +176,7 @@ namespace ADE_WFM.Services.WorkFlowService
                     Id = wu.UserId,
                     UserName = wu.User.UserName ?? ""
                 }).ToList()
-            };
-
-            return response;
+            }; 
         }
 
 
