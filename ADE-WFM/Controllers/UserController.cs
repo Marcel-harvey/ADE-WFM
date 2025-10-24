@@ -54,6 +54,38 @@ namespace ADE_WFM.Controllers
         }
 
 
+        // GET:
+        // Get all users
+        [HttpGet("All-users")]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _userService.GetAllUsers();
+
+            // service returns an error as a single-item list with Message populated
+            if (result == null)
+            {
+                _logger.LogError("GetAll: service returned null.");
+                return StatusCode(500, new { message = "Unexpected error." });
+            }
+
+            // if single item with non-empty Message and no Id/email, treat as error/info
+            if (result.Count == 1 &&
+                string.IsNullOrWhiteSpace(result[0].Id) &&
+                string.IsNullOrWhiteSpace(result[0].Email) &&
+                !string.IsNullOrWhiteSpace(result[0].Message) &&
+                result[0].Message != "OK")
+            {
+                // decide status code based on message — usually 404 or 500
+                if (result[0].Message.Contains("No users found", StringComparison.OrdinalIgnoreCase))
+                    return NotFound(result);
+
+                return StatusCode(500, result);
+            }
+
+            return Ok(result);
+        }
+
+
 
 
 

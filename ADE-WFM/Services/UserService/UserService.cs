@@ -2,6 +2,7 @@
 using ADE_WFM.Models.DTOs.UserDtos;
 using ADE_WFM.Services.UserService;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 public class UserService : IUserService
@@ -20,6 +21,8 @@ public class UserService : IUserService
         _logger = logger;
     }
 
+
+    // CREATE:
     public async Task<CreateUserResponseDto> AddUser(CreateUserDto dto)
     {
         // --- Basic validation ---
@@ -82,4 +85,65 @@ public class UserService : IUserService
             Errors = Array.Empty<string>()
         };
     }
+
+
+    // GET:
+    // Get all users
+    public async Task<List<GetAllUsersResponseDto>> GetAllUsers()
+    {
+        try
+        {
+            var users = await _userManager.Users.ToListAsync();
+
+            if (users == null || users.Count == 0)
+            {
+                _logger.LogInformation("GetAllUsers: no users found.");
+
+                return new List<GetAllUsersResponseDto>
+                {
+                    new GetAllUsersResponseDto
+                    {
+                        Message = "No users found."
+                    }
+                };
+            }
+
+            var response = users.Select(u => new GetAllUsersResponseDto
+            {
+                Id = u.Id,
+                UserName = u.UserName ?? string.Empty,
+                Email = u.Email ?? string.Empty,
+                Message = "OK"
+            }).ToList();
+
+            _logger.LogInformation("GetAllUsers: retrieved {Count} users.", response.Count);
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetAllUsers: unexpected error retrieving users.");
+
+            return new List<GetAllUsersResponseDto>
+            {
+                new GetAllUsersResponseDto
+                {
+                    Message = "An error occurred while retrieving users."
+                }
+            };
+        }
+    }
+
+
+
+    // UPDATE:
+
+    // DELETE:
+
+
+
+
+
+
+
 }

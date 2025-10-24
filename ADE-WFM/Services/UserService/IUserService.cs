@@ -8,6 +8,7 @@ namespace ADE_WFM.Services.UserService
         Task <CreateUserResponseDto> AddUser(CreateUserDto dto);
 
         // GET Services
+        Task<List<GetAllUsersResponseDto>> GetAllUsers();
 
         // UPDATE services
 
