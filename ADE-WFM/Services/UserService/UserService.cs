@@ -20,23 +20,23 @@ public class UserService : IUserService
         _logger = logger;
     }
 
-    public async Task<ResponseCreateUserDto> AddUser(CreateUserDto dto)
+    public async Task<CreateUserResponseDto> AddUser(CreateUserDto dto)
     {
         // --- Basic validation ---
         if (string.IsNullOrWhiteSpace(dto.Email))
-            return new ResponseCreateUserDto { Succeeded = false, Errors = new[] { "Email is required." } };
+            return new CreateUserResponseDto { Succeeded = false, Errors = new[] { "Email is required." } };
 
         if (string.IsNullOrWhiteSpace(dto.UserName))
             dto.UserName = dto.Email; // fallback
 
         if (string.IsNullOrWhiteSpace(dto.Password))
-            return new ResponseCreateUserDto { Succeeded = false, Errors = new[] { "Password is required." } };
+            return new CreateUserResponseDto { Succeeded = false, Errors = new[] { "Password is required." } };
 
         // --- Check for existing user ---
         var existing = await _userManager.FindByEmailAsync(dto.Email);
         if (existing != null)
         {
-            return new ResponseCreateUserDto
+            return new CreateUserResponseDto
             {
                 Succeeded = false,
                 Errors = new[] { "A user with that email already exists." }
@@ -66,7 +66,7 @@ public class UserService : IUserService
             _logger.LogWarning("Failed to create user {Email}: {Errors}",
                 dto.Email, string.Join(", ", createResult.Errors.Select(e => e.Description)));
 
-            return new ResponseCreateUserDto
+            return new CreateUserResponseDto
             {
                 Succeeded = false,
                 Errors = createResult.Errors.Select(e => e.Description)
@@ -75,7 +75,7 @@ public class UserService : IUserService
 
         _logger.LogInformation("User created successfully with ID {UserId}", user.Id);
 
-        return new ResponseCreateUserDto
+        return new CreateUserResponseDto
         {
             Succeeded = true,
             UserId = user.Id,
