@@ -29,24 +29,30 @@ namespace ADE_WFM.Services.UserService
         {
             try
             {
-                // --- Basic validation ---
+                // Check if email is provided, and set username to email if not provided
                 if (string.IsNullOrWhiteSpace(dto.Email))
+                {
                     return ServiceResult<CreateUserResponseDto>.Failure("Email is required.");
+                }
 
                 if (string.IsNullOrWhiteSpace(dto.UserName))
-                    dto.UserName = dto.Email; // fallback
+                {
+                    dto.UserName = dto.Email;
+                }
 
                 if (string.IsNullOrWhiteSpace(dto.Password))
+                {
                     return ServiceResult<CreateUserResponseDto>.Failure("Password is required.");
+                }
 
-                // --- Check for existing user ---
-                var existing = await _userManager.FindByEmailAsync(dto.Email);
+                // Check if user exists with the same email
+                var existing = await _userManager
+                    .FindByEmailAsync(dto.Email);
                 if (existing != null)
                 {
                     return ServiceResult<CreateUserResponseDto>.Failure("A user with that email already exists.");
                 }
 
-                // --- Build new user object ---
                 var user = new ApplicationUser
                 {
                     UserName = dto.UserName,
@@ -57,10 +63,14 @@ namespace ADE_WFM.Services.UserService
                 // Optional mapping for extra properties
                 var userType = user.GetType();
                 if (!string.IsNullOrEmpty(dto.FirstName) && userType.GetProperty("FirstName") != null)
+                {
                     userType.GetProperty("FirstName")!.SetValue(user, dto.FirstName);
+                }
 
                 if (!string.IsNullOrEmpty(dto.LastName) && userType.GetProperty("LastName") != null)
+                {
                     userType.GetProperty("LastName")!.SetValue(user, dto.LastName);
+                }
 
                 // --- Create user ---
                 var createResult = await _userManager.CreateAsync(user, dto.Password);
@@ -93,6 +103,7 @@ namespace ADE_WFM.Services.UserService
                     new[] { ex.Message });
             }
         }
+
 
         // GET ALL:
         public async Task<ServiceResult<List<GetAllUsersResponseDto>>> GetAllUsers()
@@ -128,6 +139,7 @@ namespace ADE_WFM.Services.UserService
                     new[] { ex.Message });
             }
         }
+
 
         // DELETEE:
         // Delete user by ID
