@@ -1,19 +1,17 @@
-﻿using ADE_WFM.Models.DTOs;
-using ADE_WFM.Models.DTOs.UserDtos;
+﻿using ADE_WFM.Models.DTOs.UserDtos;
 
 namespace ADE_WFM.Services.UserService
 {
     public interface IUserService
     {
-        // CREATE: Add a new user
-        Task<ServiceResult<CreateUserResponseDto>> AddUser(CreateUserDto dto);
+        // CREATE services
+        Task <CreateUserResponseDto> AddUser(CreateUserDto dto);
 
-        // GET: Retrieve all users
-        Task<ServiceResult<List<GetAllUsersResponseDto>>> GetAllUsers();
+        // GET Services
+        Task<List<GetAllUsersResponseDto>> GetAllUsers();
 
-        // UPDATE: (To be added later)
+        // UPDATE services
 
-        // DELETE: (To be added later)
-        Task<ServiceResult<DeleteUserResponseDto>> DeleteUser(DeleteUserDto dto);
+        // DELETE servicves
     }
 }
