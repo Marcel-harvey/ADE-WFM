@@ -1,6 +1,6 @@
 ﻿namespace ADE_WFM.Models.DTOs.UserDtos
 {
-    public class ResponseCreateUserDto
+    public class CreateUserResponseDto
     {
         public bool Succeeded { get; set; }
         public string? UserId { get; set; }
