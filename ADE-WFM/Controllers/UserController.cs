@@ -45,7 +45,7 @@ namespace ADE_WFM.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating user with email {Email}", dto.Email);
-                return StatusCode(500, new ResponseCreateUserDto
+                return StatusCode(500, new CreateUserResponseDto
                 {
                     Succeeded = false,
                     Errors = new[] { "An unexpected error occurred while creating the user." }
