@@ -60,11 +60,12 @@ namespace ADE_WFM.Controllers
 
 
         // Return workflow by ID
-        [HttpPost("Get-by-id")]
-        public async Task<IActionResult> GetWorkFlowById([FromBody] GetWorkFlowByIdDto dto)
+        [HttpGet("Get/{id}")]
+        public async Task<IActionResult> GetWorkFlowById(int id)
         {
             try
             {
+                var dto = new GetWorkFlowByIdDto { Id = id };
                 var result = await _workFlowService.GetWorkFlowById(dto);
 
                 if (!result.Succeeded)
