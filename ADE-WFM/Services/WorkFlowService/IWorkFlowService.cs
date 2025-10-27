@@ -12,8 +12,8 @@ namespace ADE_WFM.Services.WorkFlowService
         Task <ServiceResult<AddUserWorkFlowResponseDto>> AddUserToWorkFlow(AddUserWorkFlowDto dto);
 
         // GET services
-        Task<List<ResponseGetWorkFlowsDto>> GetAllWorkFlows();
-        Task<ResponseGetWorkFlowsDto> GetWorkFlowById(GetWorkFlowByIdDto dto);
+        Task<ServiceResult<List<GetAllWorkFlowsDtoResponse>>> GetAllWorkFlows();
+        Task<GetAllWorkFlowsDtoResponse> GetWorkFlowById(GetWorkFlowByIdDto dto);
 
         // UPDATE services
         Task <ResponseUpdateWorkFlowNameDto> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);

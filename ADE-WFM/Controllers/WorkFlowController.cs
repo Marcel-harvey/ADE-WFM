@@ -50,9 +50,11 @@ namespace ADE_WFM.Controllers
         [HttpGet("Get-all-work-flows")]
         public async Task<IActionResult> GetAll()
         {
-            var workflows = await _workFlowService.GetAllWorkFlows();
+            var result = await _workFlowService.GetAllWorkFlows();
+            if (!result.Succeeded)
+                return NotFound(result.Message);
 
-            return Ok(workflows);
+            return Ok(result);
         }
 
 
