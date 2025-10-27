@@ -1,20 +1,21 @@
 ﻿using ADE_WFM.Models;
+using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 
 namespace ADE_WFM.Services.ProjectService
 {
     public interface IProjectService
     {
+
+        // ADD services
+        Task<ServiceResult<CreateProjectResponseDto>> CreateProject(CreateProjectDto dto);
+
         // GET services
-        Task<List<Project>> GetAllProjects();
-        Task<Project> GetProjectById(int projectId);
+        Task<ServiceResult<List<GetProjectByIdResponseDto>>> GetProjectById(GetProjectByIdDto dto);
+        //Task<Project> GetAllProjects();
         Task<List<ApplicationUser>> GetUsersInProject(int projectId);
 
         // UPDATE services
-
-
-        // ADD services
-        Task AddProject(CreateProjectDto dto);
 
         // DELETE services
 
