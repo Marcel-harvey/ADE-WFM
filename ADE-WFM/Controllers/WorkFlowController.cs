@@ -33,35 +33,15 @@ namespace ADE_WFM.Controllers
 
 
         // Add multiple users to a workflow
-        [HttpPost("add-users")]
+        [HttpPost("Add-users")]
         public async Task<IActionResult> AddUsersToWorkFlow([FromBody] AddUserWorkFlowDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var result = await _workFlowService.AddUserToWorkFlow(dto);
 
-            try
-            {
-                var response = await _workFlowService.AddUserToWorkFlow(dto);
+            if (!result.Succeeded)
+                return BadRequest(result.Message);
 
-                return Ok(response);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                // Thrown when workflow or user not found
-                return NotFound(new { Message = ex.Message });
-            }
-            catch (DbUpdateException ex)
-            {
-                // Handle DB-related issues like constraint violations
-                return StatusCode(500, new { Message = "Database error occurred.", Details = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                // Fallback for unexpected exceptions
-                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
-            }
+            return Ok(result);
         }
 
 

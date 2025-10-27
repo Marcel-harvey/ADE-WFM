@@ -88,6 +88,7 @@ namespace ADE_WFM.Services.WorkFlowService
                     "Workflow created successfully."
                 );
             }
+            // Database exceptions
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Database error while creating workflow '{WorkFlowName}'", dto.WorkFlowName);
@@ -108,29 +109,47 @@ namespace ADE_WFM.Services.WorkFlowService
 
 
         // Add users to existing workflow
-        public async Task<ResponseAddUserWorkFlowDto> AddUserToWorkFlow(AddUserWorkFlowDto model)
+        public async Task<ServiceResult<AddUserWorkFlowResponseDto>> AddUserToWorkFlow(AddUserWorkFlowDto model)
         {
-            // Check if the workflow exists
-            var workFlow = await _context.WorkFlows
-                .Include(wf => wf.WorkFlowUsers)
-                .FirstOrDefaultAsync(wf => wf.Id == model.WorkFlowId)
-                ?? throw new KeyNotFoundException($"Workflow with ID {model.WorkFlowId} not found.");
-
-            var existingUserIds = workFlow.WorkFlowUsers
-                .Select(wfUser => wfUser.UserId)
-                .ToList();
-
-            var addedUsers = new List<WorkFlowUserDto>();
-
-            foreach (var userId in model.UserIds)
+            try
             {
-                if (!existingUserIds.Contains(userId))
+                // Validate input
+                if (model.UserIds == null || !model.UserIds.Any())
+                    return ServiceResult<AddUserWorkFlowResponseDto>.Failure("No user IDs were provided.");
+
+                // Check if the workflow exists
+                var workFlow = await _context.WorkFlows
+                    .Include(wf => wf.WorkFlowUsers)
+                    .FirstOrDefaultAsync(wf => wf.Id == model.WorkFlowId);
+
+                if (workFlow == null)
+                    return ServiceResult<AddUserWorkFlowResponseDto>.Failure($"Workflow with ID {model.WorkFlowId} not found.");
+
+                // Get existing user IDs to avoid duplicates
+                var existingUserIds = workFlow.WorkFlowUsers
+                    .Select(wfUser => wfUser.UserId)
+                    .ToList();
+
+                var addedUsers = new List<WorkFlowUserDto>();
+                // For errors in users added
+                var errors = new List<string>();
+
+                // Loop through new users
+                foreach (var userId in model.UserIds)
                 {
+                    if (existingUserIds.Contains(userId))
+                    {
+                        errors.Add($"User {userId} is already part of this workflow.");
+                        continue;
+                    }
 
                     // Verify the user exists in Identity
                     var user = await _userManager.FindByIdAsync(userId);
                     if (user == null)
-                        throw new KeyNotFoundException($"User with ID {userId} not found.");
+                    {
+                        errors.Add($"User with ID {userId} not found. Skipped.");
+                        continue;
+                    }
 
                     var wfUser = new WorkFlowUser
                     {
@@ -147,20 +166,46 @@ namespace ADE_WFM.Services.WorkFlowService
                         Role = wfUser.Role
                     });
                 }
+
+                await _context.SaveChangesAsync();
+
+                // Log the operation
+                _logger.LogInformation(
+                    "Added {Count} users to workflow '{WorkFlowName}' (ID: {WorkFlowId})",
+                    addedUsers.Count,
+                    workFlow.WorkFlowName,
+                    workFlow.Id
+                );
+
+                // Return response
+                return ServiceResult<AddUserWorkFlowResponseDto>.Success(
+                    new AddUserWorkFlowResponseDto
+                    {
+                        WorkFlowId = workFlow.Id,
+                        WorkFlowName = workFlow.WorkFlowName,
+                        Users = addedUsers,
+                    },
+                    errors.Any()
+                        ? "Completed with warnings."
+                        : "Users added successfully."
+                );
             }
-
-            await _context.SaveChangesAsync();
-
-            return new ResponseAddUserWorkFlowDto
+            catch (DbUpdateException ex)
             {
-                WorkFlowId = workFlow.Id,
-                WorkFlowName = workFlow.WorkFlowName,
-                Users = addedUsers,
-                Message = addedUsers.Any()
-                    ? "Users added successfully."
-                    : "No new users were added (duplicates skipped)."
-            };
+                _logger.LogError(ex, "Database error while adding users to workflow ID {WorkFlowId}", model.WorkFlowId);
+                return ServiceResult<AddUserWorkFlowResponseDto>.Failure(
+                    "A database error occurred while adding users to the workflow.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while adding users to workflow ID {WorkFlowId}", model.WorkFlowId);
+                return ServiceResult<AddUserWorkFlowResponseDto>.Failure(
+                    "An unexpected error occurred while adding users to the workflow.",
+                    new[] { ex.Message });
+            }
         }
+
 
 
         // GET
