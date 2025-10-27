@@ -27,7 +27,7 @@ namespace ADE_WFM.Controllers
             var result = await _workFlowService.AddWorkFlow(dto);
 
             if (!result.Succeeded)
-                return BadRequest(result.Message);
+                return BadRequest(result);
 
             return Ok(result);
         }
@@ -40,7 +40,7 @@ namespace ADE_WFM.Controllers
             var result = await _workFlowService.AddUserToWorkFlow(dto);
 
             if (!result.Succeeded)
-                return BadRequest(result.Message);
+                return BadRequest(result);
 
             return Ok(result);
         }
@@ -53,7 +53,7 @@ namespace ADE_WFM.Controllers
         {
             var result = await _workFlowService.GetAllWorkFlows();
             if (!result.Succeeded)
-                return NotFound(result.Message);
+                return NotFound(result);
 
             return Ok(result);
         }
