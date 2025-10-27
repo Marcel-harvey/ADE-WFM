@@ -306,7 +306,7 @@ namespace ADE_WFM.Services.WorkFlowService
 
         //UPDATE:
         // Update workflow's name
-        public async Task <ServiceResult<ResponseUpdateWorkFlowNameDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto)
+        public async Task <ServiceResult<UpdateWorkFlowNameResponseDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto)
         {
             try
             {
@@ -316,13 +316,13 @@ namespace ADE_WFM.Services.WorkFlowService
                 if (workFlow == null)
                 {
                     _logger.LogWarning("Workflow with ID {WorkFlowId} not found for update.", dto.WorkFlowId);
-                    return ServiceResult<ResponseUpdateWorkFlowNameDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
+                    return ServiceResult<UpdateWorkFlowNameResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
                 }
 
                 var oldName = workFlow.WorkFlowName;
 
                 if (string.IsNullOrWhiteSpace(dto.WorkFlowName))
-                    return ServiceResult<ResponseUpdateWorkFlowNameDto>.Failure("New workflow name cannot be empty.");
+                    return ServiceResult<UpdateWorkFlowNameResponseDto>.Failure("New workflow name cannot be empty.");
 
                 workFlow.WorkFlowName = dto.WorkFlowName.Trim();
 
@@ -331,8 +331,8 @@ namespace ADE_WFM.Services.WorkFlowService
                 _logger.LogInformation("Workflow name updated from '{OldName}' to '{NewName}' for ID {WorkFlowId}",
                     oldName, dto.WorkFlowName, dto.WorkFlowId);
 
-                return ServiceResult<ResponseUpdateWorkFlowNameDto>.Success(
-                    new ResponseUpdateWorkFlowNameDto
+                return ServiceResult<UpdateWorkFlowNameResponseDto>.Success(
+                    new UpdateWorkFlowNameResponseDto
                     {
                         OldName = oldName,
                         NewName = dto.WorkFlowName,
@@ -344,14 +344,14 @@ namespace ADE_WFM.Services.WorkFlowService
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Database error while updating workflow name for ID {WorkFlowId}", dto.WorkFlowId);
-                return ServiceResult<ResponseUpdateWorkFlowNameDto>.Failure(
+                return ServiceResult<UpdateWorkFlowNameResponseDto>.Failure(
                     "A database error occurred while updating the workflow name.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while updating workflow name for ID {WorkFlowId}", dto.WorkFlowId);
-                return ServiceResult<ResponseUpdateWorkFlowNameDto>.Failure(
+                return ServiceResult<UpdateWorkFlowNameResponseDto>.Failure(
                     "An unexpected error occurred while updating the workflow name.",
                     new[] { ex.Message });
             }
