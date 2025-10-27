@@ -233,12 +233,12 @@ namespace ADE_WFM.Services.WorkFlowService
                     {
                         Id = p.Id,
                         ProjectName = p.ProjectTitle
-                    }).ToList(),
+                    }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
                     Users = wf.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto
                     {
                         Id = wu.UserId,
                         UserName = wu.User.UserName ?? ""
-                    }).ToList()
+                    }).ToList() ?? new List<GetWorkFlowUsersDto>()
                 }).ToList();
 
                 _logger.LogInformation("Retrieved {Count} workflows successfully.", response.Count);
@@ -257,30 +257,50 @@ namespace ADE_WFM.Services.WorkFlowService
 
 
         // Get workflow by ID
-        public async Task<GetAllWorkFlowsDtoResponse> GetWorkFlowById(GetWorkFlowByIdDto dto)
+        public async Task<ServiceResult<GetAllWorkFlowsDtoResponse>> GetWorkFlowById(GetWorkFlowByIdDto dto)
         {
-            var workFlow = await _context.WorkFlows
-                .Include(wf => wf.Project)
-                .Include(wf => wf.WorkFlowUsers)
-                    .ThenInclude(wu => wu.User)
-                .FirstOrDefaultAsync(wf => wf.Id == dto.Id)
-                ?? throw new KeyNotFoundException($"Work flow with ID: {dto.Id} was not found");
-
-            return new GetAllWorkFlowsDtoResponse
+            try
             {
-                Id = workFlow.Id,
-                Name = workFlow.WorkFlowName,
-                Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto
+                var workFlow = await _context.WorkFlows
+                    .Include(wf => wf.Project)
+                    .Include(wf => wf.WorkFlowUsers)
+                        .ThenInclude(wu => wu.User)
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.Id);
+
+                if (workFlow == null)
                 {
-                    Id = p.Id,
-                    ProjectName = p.ProjectTitle
-                }).ToList(),
-                Users = workFlow.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto
+                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found.", dto.Id);
+                    return ServiceResult<GetAllWorkFlowsDtoResponse>.Failure($"Workflow with ID {dto.Id} was not found.");
+                }
+                var response = new GetAllWorkFlowsDtoResponse
                 {
-                    Id = wu.UserId,
-                    UserName = wu.User.UserName ?? ""
-                }).ToList()
-            }; 
+                    Id = workFlow.Id,
+                    Name = workFlow.WorkFlowName,
+                    Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto
+                    {
+                        Id = p.Id,
+                        ProjectName = p.ProjectTitle
+                    }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
+                    Users = workFlow.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto
+                    {
+                        Id = wu.UserId,
+                        UserName = wu.User.UserName ?? ""
+                    }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                };
+
+                _logger.LogInformation("Retrieved workflow '{WorkFlowName}' (ID: {WorkFlowId}) successfully.",
+                    workFlow.WorkFlowName, workFlow.Id);
+
+                return ServiceResult<GetAllWorkFlowsDtoResponse>.Success(response, "Workflow retrieved successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving workflow with ID {WorkFlowId}.", dto.Id);
+
+                return ServiceResult<GetAllWorkFlowsDtoResponse>.Failure(
+                    "An unexpected error occurred while retrieving the workflow.",
+                    new[] { ex.Message });
+            }
         }
 
 

@@ -13,7 +13,7 @@ namespace ADE_WFM.Services.WorkFlowService
 
         // GET services
         Task<ServiceResult<List<GetAllWorkFlowsDtoResponse>>> GetAllWorkFlows();
-        Task<GetAllWorkFlowsDtoResponse> GetWorkFlowById(GetWorkFlowByIdDto dto);
+        Task<ServiceResult<GetAllWorkFlowsDtoResponse>> GetWorkFlowById(GetWorkFlowByIdDto dto);
 
         // UPDATE services
         Task <ResponseUpdateWorkFlowNameDto> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);

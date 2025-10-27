@@ -1,4 +1,5 @@
-﻿using ADE_WFM.Models.DTOs.WorkFlowDtos;
+﻿using ADE_WFM.Models.DTOs;
+using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 using ADE_WFM.Services.WorkFlowService;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,7 @@ namespace ADE_WFM.Controllers
 
         // CREATE API's
         // Create a new workflow
-        [HttpPost("Create-new-work-flow")]
+        [HttpPost("Create-new")]
         public async Task<IActionResult> CreateWorkFlow([FromBody] CreateWorkFlowDto dto)
         {
             var result = await _workFlowService.AddWorkFlow(dto);
@@ -47,7 +48,7 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Return all workflows
-        [HttpGet("Get-all-work-flows")]
+        [HttpGet("Get-all")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _workFlowService.GetAllWorkFlows();
@@ -59,28 +60,32 @@ namespace ADE_WFM.Controllers
 
 
         // Return workflow by ID
-        [HttpGet("get-work-flow-by-id/{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpPost("Get-by-id")]
+        public async Task<IActionResult> GetWorkFlowById([FromBody] GetWorkFlowByIdDto dto)
         {
             try
             {
-                var dto = new GetWorkFlowByIdDto { Id = id };
-                var workflow = await _workFlowService.GetWorkFlowById(dto);
-                return Ok(workflow);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { Message = ex.Message });
+                var result = await _workFlowService.GetWorkFlowById(dto);
+
+                if (!result.Succeeded)
+                {
+                    return NotFound(result);
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = $"An unexpected error occurred. {ex.Message}" });
+                return StatusCode(500, ServiceResult<GetAllWorkFlowsDtoResponse>.Failure(
+                    "An unexpected error occurred while retrieving the workflow.",
+                    new[] { ex.Message }
+                ));
             }
         }
 
 
         // UPDATE API's
-        [HttpPut("update-name")]
+        [HttpPut("Update-name")]
         public async Task<IActionResult> UpdateWorkFlowName([FromBody] UpdateWorkFlowNameDto dto)
         {
             if (!ModelState.IsValid)
