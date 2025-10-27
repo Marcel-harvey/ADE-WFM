@@ -45,6 +45,29 @@ namespace ADE_WFM.Controllers
 
 
         // GET API's
+        // Get all projects
+        [HttpGet("Get-all")]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                var result = await _projectService.GetAllProjects();
+
+                if (!result.Succeeded)
+                    return NotFound(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ServiceResult<List<GetProjectResponseDto>>.Failure(
+                    "An unexpected error occurred while retrieving all projects.",
+                    new[] { ex.Message }
+                ));
+            }
+        }
+
+
         // Get project by Id
         [HttpGet("Get/{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -61,7 +84,7 @@ namespace ADE_WFM.Controllers
             }
             catch(Exception ex)
             {
-                return StatusCode(500, ServiceResult<GetProjectByIdResponseDto>.Failure(
+                return StatusCode(500, ServiceResult<GetProjectResponseDto>.Failure(
                     "An unexpected error occurred while retrieving the project.",
                     new[] { ex.Message }
                 ));

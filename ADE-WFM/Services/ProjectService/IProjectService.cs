@@ -11,8 +11,8 @@ namespace ADE_WFM.Services.ProjectService
         Task<ServiceResult<CreateProjectResponseDto>> CreateProject(CreateProjectDto dto);
 
         // GET services
-        Task<ServiceResult<List<GetProjectByIdResponseDto>>> GetProjectById(GetProjectByIdDto dto);
-        //Task<Project> GetAllProjects();
+        Task<ServiceResult<List<GetProjectResponseDto>>> GetAllProjects();
+        Task<ServiceResult<List<GetProjectResponseDto>>> GetProjectById(GetProjectByIdDto dto);
         Task<List<ApplicationUser>> GetUsersInProject(int projectId);
 
         // UPDATE services
