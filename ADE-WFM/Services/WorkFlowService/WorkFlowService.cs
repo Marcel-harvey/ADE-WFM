@@ -355,28 +355,56 @@ namespace ADE_WFM.Services.WorkFlowService
                     "An unexpected error occurred while updating the workflow name.",
                     new[] { ex.Message });
             }
-        }        
+        }
 
 
         // DELETE services
         // Delete workflow
-        public async Task <ResponseDeleteWorkFlowDto> DeleteWorkFlow(DeleteWorkFlowDto dto)
+        public async Task<ServiceResult<DeleteWorkFlowResponseDto>> DeleteWorkFlow(DeleteWorkFlowDto dto)
         {
-            var workFlow = await _context.WorkFlows
-                .Include(w => w.Comments)
-                .FirstOrDefaultAsync(w => w.Id == dto.Id)
-                ?? throw new KeyNotFoundException($"Workflow with ID {dto.Id} was not found.");
-
-            var workFlowName = workFlow.WorkFlowName;
-
-            _context.WorkFlows.Remove(workFlow);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDeleteWorkFlowDto
+            try
             {
-                Name = workFlowName,
-                Message = $"Work flow '{workFlowName}' deleted successfully."
-            };
+                if (dto.Id <= 0)
+                    return ServiceResult<DeleteWorkFlowResponseDto>.Failure("Invalid workflow ID.");
+
+                var workFlow = await _context.WorkFlows
+                    .Include(w => w.Comments)
+                    .FirstOrDefaultAsync(w => w.Id == dto.Id);
+
+                if (workFlow == null)
+                {
+                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found for deletion.", dto.Id);
+                    return ServiceResult<DeleteWorkFlowResponseDto>.Failure($"Workflow with ID {dto.Id} was not found.");
+                }
+
+                _context.WorkFlows.Remove(workFlow);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Workflow '{WorkFlowName}' (ID: {WorkFlowId}) deleted successfully.",
+                    workFlow.WorkFlowName, workFlow.Id);
+
+                return ServiceResult<DeleteWorkFlowResponseDto>.Success(
+                    new DeleteWorkFlowResponseDto
+                    {
+                        Name = workFlow.WorkFlowName,
+                    },
+                    "Workflow deleted successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating workflow name for ID {WorkFlowId}", dto.Id);
+                return ServiceResult<DeleteWorkFlowResponseDto>.Failure(
+                    "A database error occurred while updating the workflow name.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting workflow with ID {WorkFlowId}", dto.Id);
+                return ServiceResult<DeleteWorkFlowResponseDto>.Failure(
+                    "An unexpected error occurred while deleting the workflow.",
+                    new[] { ex.Message });
+            }
         }
 
 
