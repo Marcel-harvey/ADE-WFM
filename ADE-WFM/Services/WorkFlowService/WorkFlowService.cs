@@ -395,7 +395,7 @@ namespace ADE_WFM.Services.WorkFlowService
             {
                 _logger.LogError(ex, "Database error while updating workflow name for ID {WorkFlowId}", dto.Id);
                 return ServiceResult<DeleteWorkFlowResponseDto>.Failure(
-                    "A database error occurred while updating the workflow name.",
+                    "A database error occurred while deleting the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
@@ -409,23 +409,58 @@ namespace ADE_WFM.Services.WorkFlowService
 
 
         // Remove user from workflow
-        public async Task<ResponseRemoveUserFromWorkFlowDto> RemoveUserFromWorkFlow(RemoveUserFromWorkFlowDto dto)
+        public async Task<ServiceResult<RemoveUserFromWorkFlowResponseDto>> RemoveUserFromWorkFlow(RemoveUserFromWorkFlowDto dto)
         {
-            var workFlowUser = await _context.WorkFlowUsers
-                .FirstOrDefaultAsync(wfu => wfu.UserId == dto.UserId && wfu.WorkFlowId == dto.WorkFlowId)
-                ?? throw new KeyNotFoundException($"User with ID {dto.UserId} not found in any workflow.");
-
-            var userName = await _userManager
-                .FindByIdAsync(dto.UserId);
-
-            _context.WorkFlowUsers.Remove(workFlowUser);
-            await _context.SaveChangesAsync();
-
-            return new ResponseRemoveUserFromWorkFlowDto
+            try
             {
-                Name = userName?.UserName ?? "Unknown",
-                Message = $"User '{userName?.UserName ?? "Unknown"}' removed from workflow successfully."
-            };
+                if (dto.WorkFlowId <= 0 || string.IsNullOrEmpty(dto.UserId))
+                {
+                    return ServiceResult<RemoveUserFromWorkFlowResponseDto>.Failure("Invalid workflow ID or user ID provided.");
+                }
+
+                var workFlowUser = await _context.WorkFlowUsers
+                    .FirstOrDefaultAsync(wfu => wfu.UserId == dto.UserId && wfu.WorkFlowId == dto.WorkFlowId);
+
+                if (workFlowUser == null)
+                {
+                    _logger.LogWarning("User with ID {UserId} not found in workflow ID {WorkFlowId}.", dto.UserId, dto.WorkFlowId);
+                    return ServiceResult<RemoveUserFromWorkFlowResponseDto>.Failure($"User with ID {dto.UserId} not found in the specified workflow.");
+                }
+
+                var user = await _userManager
+                    .FindByIdAsync(dto.UserId);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("User with ID {UserId} not found in Identity.", dto.UserId);
+                    return ServiceResult<RemoveUserFromWorkFlowResponseDto>.Failure($"User with ID {dto.UserId} not found.");
+                }
+
+                _context.WorkFlowUsers.Remove(workFlowUser);
+                await _context.SaveChangesAsync();
+
+                return ServiceResult<RemoveUserFromWorkFlowResponseDto>.Success(
+                    new RemoveUserFromWorkFlowResponseDto
+                    {
+                        Name = user?.UserName ?? "Unknown",
+                    },
+                    "User removed from workflow successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while removing user from the workflow with ID user ID = {userId}", dto.UserId);
+                return ServiceResult<RemoveUserFromWorkFlowResponseDto>.Failure(
+                    "A database error occurred while removing the user from the workflow .",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing user from the workflow with ID user ID = {userId}", dto.UserId);
+                return ServiceResult<RemoveUserFromWorkFlowResponseDto>.Failure(
+                    "An unexpected error occurred while removing the user from the workflow.",
+                    new[] { ex.Message });
+            }
         }
 
 

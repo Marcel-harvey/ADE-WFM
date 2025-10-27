@@ -144,29 +144,26 @@ namespace ADE_WFM.Controllers
 
 
         // Remove a user from a workflow
-        [HttpDelete("Remove-user-from-work-flow")]
-        public async Task<IActionResult> RemoveUserFromWorkFlow([FromBody] RemoveUserFromWorkFlowDto dto)
+        [HttpDelete("Remove-user")]
+        public async Task<IActionResult> RemoveUser([FromBody] RemoveUserFromWorkFlowDto dto)
         {
-            if (dto == null || dto.WorkFlowId <= 0 || dto.UserId == null)
-                return BadRequest("Invalid workflow ID.");
+            if (dto == null || dto.WorkFlowId <= 0 || string.IsNullOrEmpty(dto.UserId))
+                return BadRequest(ServiceResult<object>.Failure(
+                    "Invalid workflow ID or user ID.",
+                    new[] { "WorkflowId must be greater than 0", "UserId cannot be null or empty" }
+                ));
 
-            try
+            var result = await _workFlowService.RemoveUserFromWorkFlow(dto);
+
+            if (!result.Succeeded)
             {
-                var result = await _workFlowService.RemoveUserFromWorkFlow(dto);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { error = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { error = "An unexpected error occurred while removing the user from your work flow." });
+                return BadRequest(result);
             }
 
+            return Ok(result);
         }
-
-
-
     }
+
+
+
 }
