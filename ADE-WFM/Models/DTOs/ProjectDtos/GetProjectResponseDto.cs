@@ -11,7 +11,7 @@ namespace ADE_WFM.Models.DTOs.ProjectDtos
         public DateOnly DueDate { get; set; }
 
         // Lists
-        public List<GetProjectUsersDto>? Users { get; set; }
+        public List<ProjectUsersDto>? Users { get; set; }
 
         // Counts
         public int UserCount => Users?.Count ?? 0;

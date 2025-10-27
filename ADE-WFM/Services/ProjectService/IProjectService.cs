@@ -13,7 +13,7 @@ namespace ADE_WFM.Services.ProjectService
         // GET services
         Task<ServiceResult<List<GetProjectResponseDto>>> GetAllProjects();
         Task<ServiceResult<List<GetProjectResponseDto>>> GetProjectById(GetProjectByIdDto dto);
-        Task<List<ApplicationUser>> GetUsersInProject(int projectId);
+        Task<ServiceResult<GetProjectUsersResponseDto>> GetUsersInProject(GetProjectUsersDto dto);
 
         // UPDATE services
 

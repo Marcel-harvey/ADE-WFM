@@ -128,7 +128,7 @@ namespace ADE_WFM.Services.ProjectService
                         Description = p.ProjectDescription,
                         DueDate = p.DueDate,
                         DateCreated = p.DateCreated,
-                        Users = p.ProjectUsers.Select(u => new GetProjectUsersDto
+                        Users = p.ProjectUsers.Select(u => new ProjectUsersDto
                         {
                             Id = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
@@ -183,7 +183,7 @@ namespace ADE_WFM.Services.ProjectService
                         Description = p.ProjectDescription,
                         DueDate = p.DueDate,
                         DateCreated = p.DateCreated,
-                        Users = p.ProjectUsers.Select(u => new GetProjectUsersDto
+                        Users = p.ProjectUsers.Select(u => new ProjectUsersDto
                         {
                             Id = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
@@ -203,19 +203,51 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // Get all users involved in project
-        public async Task<List<ApplicationUser>> GetUsersInProject(int projectId)
+        public async Task<ServiceResult<GetProjectUsersResponseDto>> GetUsersInProject(GetProjectUsersDto dto)
         {
-            var projectUsers = await _context.ProjectUsers
-                .Where(project => project.ProjectId == projectId)
-                .Select(user => user.User)
-                .ToListAsync();
+            if (dto == null)
+                return ServiceResult<GetProjectUsersResponseDto>.Failure("GetProjectUsersDto cannot be null");
 
-            return projectUsers;
+            if (dto.Id <= 0)
+                return ServiceResult<GetProjectUsersResponseDto>.Failure($"Invalid project ID provided: {dto.Id}");
+
+            try
+            {
+                var projectUsers = await _context.ProjectUsers
+                    .Where(pu => pu.ProjectId == dto.Id)
+                    .Include(u => u.User)
+                    .ToListAsync();
+
+                if (!projectUsers.Any())
+                {
+                    _logger.LogWarning("No users found for project ID {ProjectId}", dto.Id);
+                    return ServiceResult<GetProjectUsersResponseDto>.Failure("No users found for the specified project");
+                }
+
+                var response = new GetProjectUsersResponseDto
+                {
+                    Users = projectUsers.Select(u => new ProjectUsersDto
+                    {
+                        Id = u.UserId,
+                        UserName = u.User?.UserName ?? string.Empty
+                    }).ToList()
+                };
+
+                return ServiceResult<GetProjectUsersResponseDto>.Success(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving users for project ID {ProjectId}", dto.Id);
+                return ServiceResult<GetProjectUsersResponseDto>.Failure(
+                    "An unexpected error occurred while retrieving users in the project.",
+                    new[] { ex.Message });
+            }
         }
+
 
         // UPDATE services
 
-        
+
         // DELETE services
 
 

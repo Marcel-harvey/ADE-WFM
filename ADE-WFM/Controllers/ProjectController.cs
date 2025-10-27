@@ -91,6 +91,30 @@ namespace ADE_WFM.Controllers
             }
         }
 
+
+        // Get users in a project
+        [HttpGet("Get-users/{projectId}")]
+        public async Task<IActionResult> GetUsersInProject(int projectId)
+        {
+            try
+            {
+                var dto = new GetProjectUsersDto { Id = projectId };
+                var result = await _projectService.GetUsersInProject(dto);
+
+                if (!result.Succeeded)
+                    return NotFound(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ServiceResult<GetProjectUsersResponseDto>.Failure(
+                    "An unexpected error occurred while retrieving users in the project.",
+                    new[] { ex.Message }
+                ));
+            }
+        }
+
         // UPDATE API's
 
         // DELETE API's
