@@ -2,7 +2,7 @@
 
 namespace ADE_WFM.Models.DTOs.ProjectDtos
 {
-    public class GetProjectByIdResponseDto
+    public class GetProjectResponseDto
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
