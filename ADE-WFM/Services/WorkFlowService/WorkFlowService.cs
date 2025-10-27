@@ -306,24 +306,55 @@ namespace ADE_WFM.Services.WorkFlowService
 
         //UPDATE:
         // Update workflow's name
-        public async Task <ResponseUpdateWorkFlowNameDto> UpdateWorkFlowName(UpdateWorkFlowNameDto dto)
+        public async Task <ServiceResult<ResponseUpdateWorkFlowNameDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto)
         {
-            var workFlow = await _context.WorkFlows
-                .FirstOrDefaultAsync(wfId => wfId.Id == dto.WorkFlowId)
-                ?? throw new KeyNotFoundException($"Workflow with ID {dto.WorkFlowId} was not found.");
-
-            var oldName = workFlow.WorkFlowName;
-
-            workFlow.WorkFlowName = dto.WorkFlowName;
-
-            await _context.SaveChangesAsync();
-
-            return new ResponseUpdateWorkFlowNameDto
+            try
             {
-                OldName = oldName,
-                NewName = dto.WorkFlowName,
-                Message = $"Workflow name updated to '{dto.WorkFlowName}'."
-            };
+                var workFlow = await _context.WorkFlows
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
+
+                if (workFlow == null)
+                {
+                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found for update.", dto.WorkFlowId);
+                    return ServiceResult<ResponseUpdateWorkFlowNameDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
+                }
+
+                var oldName = workFlow.WorkFlowName;
+
+                if (string.IsNullOrWhiteSpace(dto.WorkFlowName))
+                    return ServiceResult<ResponseUpdateWorkFlowNameDto>.Failure("New workflow name cannot be empty.");
+
+                workFlow.WorkFlowName = dto.WorkFlowName.Trim();
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Workflow name updated from '{OldName}' to '{NewName}' for ID {WorkFlowId}",
+                    oldName, dto.WorkFlowName, dto.WorkFlowId);
+
+                return ServiceResult<ResponseUpdateWorkFlowNameDto>.Success(
+                    new ResponseUpdateWorkFlowNameDto
+                    {
+                        OldName = oldName,
+                        NewName = dto.WorkFlowName,
+                    },
+                    $"Workflow name updated successfully to {dto.WorkFlowName}."
+                );
+                
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating workflow name for ID {WorkFlowId}", dto.WorkFlowId);
+                return ServiceResult<ResponseUpdateWorkFlowNameDto>.Failure(
+                    "A database error occurred while updating the workflow name.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating workflow name for ID {WorkFlowId}", dto.WorkFlowId);
+                return ServiceResult<ResponseUpdateWorkFlowNameDto>.Failure(
+                    "An unexpected error occurred while updating the workflow name.",
+                    new[] { ex.Message });
+            }
         }        
 
 

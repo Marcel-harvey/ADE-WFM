@@ -89,30 +89,28 @@ namespace ADE_WFM.Controllers
         public async Task<IActionResult> UpdateWorkFlowName([FromBody] UpdateWorkFlowNameDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ServiceResult<object>.Failure(
+                    "Invalid data provided.",
+                    ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                ));
 
             try
             {
-                var response = await _workFlowService.UpdateWorkFlowName(dto);
-                return Ok(new
+                var result = await _workFlowService.UpdateWorkFlowName(dto);
+
+                if (!result.Succeeded)
                 {
-                    Data = response
-                });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                // Workflow not found
-                return NotFound(new { Message = ex.Message });
-            }
-            catch (DbUpdateException ex)
-            {
-                // Database save issues
-                return StatusCode(500, new { Message = "Database error occurred while updating workflow.", Details = ex.Message });
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                // Any other unhandled exceptions
-                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
+                return StatusCode(500, ServiceResult<object>.Failure(
+                    "An unexpected error occurred while updating the workflow name.",
+                    new[] { ex.Message }
+                ));
             }
         }
 

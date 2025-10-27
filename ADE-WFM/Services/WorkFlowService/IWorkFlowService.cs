@@ -16,7 +16,7 @@ namespace ADE_WFM.Services.WorkFlowService
         Task<ServiceResult<GetAllWorkFlowsDtoResponse>> GetWorkFlowById(GetWorkFlowByIdDto dto);
 
         // UPDATE services
-        Task <ResponseUpdateWorkFlowNameDto> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);
+        Task <ServiceResult<ResponseUpdateWorkFlowNameDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);
         
         // DELETE services
         Task <ResponseDeleteWorkFlowDto> DeleteWorkFlow(DeleteWorkFlowDto dto);
