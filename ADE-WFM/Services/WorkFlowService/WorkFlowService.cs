@@ -1,5 +1,6 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
+using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -12,59 +13,97 @@ namespace ADE_WFM.Services.WorkFlowService
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<WorkFlowService> _logger;
 
-        public WorkFlowService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public WorkFlowService(
+            ApplicationDbContext context, 
+            UserManager<ApplicationUser> userManager, 
+            ILogger<WorkFlowService> logger)
         {
             _context = context;
             _userManager = userManager;
+            _logger = logger;
         }
 
 
         // CREATE:
         // Add new workflow with user the created and extra list of users if selected
-        public async Task<ResponseCreateWorkFlowDto> AddWorkFlow(CreateWorkFlowDto dto)
+        public async Task<ServiceResult<CreateWorkFlowResponseDto>> AddWorkFlow(CreateWorkFlowDto dto)
         {
-            // Create the new workflow entity
-            var workFlow = new WorkFlow
+            try
             {
-                WorkFlowName = dto.WorkFlowName,
-                WorkFlowUsers = new List<WorkFlowUser>()
-            };
+                // Basic input validation
+                if (string.IsNullOrWhiteSpace(dto.WorkFlowName))
+                    return ServiceResult<CreateWorkFlowResponseDto>.Failure("Work flow name is required.");
 
-            // Add creator as admin
-            workFlow.WorkFlowUsers.Add(new WorkFlowUser
-            {
-                UserId = dto.CurrentUserId,
-                Role = "Admin"
-            });
+                if (string.IsNullOrEmpty(dto.CurrentUserId))
+                    return ServiceResult<CreateWorkFlowResponseDto>.Failure("Current user ID is required.");
 
-            // Add other assigned users
-            foreach (var userId in dto.UserIds)
-            {
-                if (userId != dto.CurrentUserId)
+                var workFlow = new WorkFlow
                 {
-                    workFlow.WorkFlowUsers.Add(new WorkFlowUser
+                    WorkFlowName = dto.WorkFlowName,
+                    WorkFlowUsers = new List<WorkFlowUser>()
+                };
+
+                // Add creator as admin
+                workFlow.WorkFlowUsers.Add(new WorkFlowUser
+                {
+                    UserId = dto.CurrentUserId,
+                    Role = "Admin"
+                });
+
+                // Add other assigned users
+                if (dto.UserIds != null && dto.UserIds.Any())
+                {
+                    foreach (var userId in dto.UserIds)
                     {
-                        UserId = userId,
-                        Role = "Standard"
-                    });
+                        if (userId != dto.CurrentUserId)
+                        {
+                            workFlow.WorkFlowUsers.Add(new WorkFlowUser
+                            {
+                                UserId = userId,
+                                Role = "Standard"
+                            });
+                        }
+                    }
                 }
+
+                // Save workflow to database
+                _context.WorkFlows.Add(workFlow);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Workflow '{WorkFlowName}' created successfully by user ID {UserId}",
+                    dto.WorkFlowName, dto.CurrentUserId);
+
+                // Return success
+                return ServiceResult<CreateWorkFlowResponseDto>.Success(
+                    new CreateWorkFlowResponseDto
+                    {
+                        Id = workFlow.Id,
+                        WorkFlowName = workFlow.WorkFlowName,
+                        CreatedByUserId = dto.CurrentUserId,
+                        AssignedUserIds = workFlow.WorkFlowUsers.Select(u => u.UserId).ToList(),
+                        CreatedAt = DateTime.UtcNow,
+                    },
+                    "Workflow created successfully."
+                );
             }
-
-            // Save workflow to database
-            _context.WorkFlows.Add(workFlow);
-            await _context.SaveChangesAsync();
-
-            return new ResponseCreateWorkFlowDto
+            catch (DbUpdateException ex)
             {
-                Id = workFlow.Id,
-                WorkFlowName = workFlow.WorkFlowName,
-                CreatedByUserId = dto.CurrentUserId,
-                AssignedUserIds = workFlow.WorkFlowUsers.Select(u => u.UserId).ToList(),
-                CreatedAt = DateTime.UtcNow,
-                Message = "Workflow created successfully"
-            };
+                _logger.LogError(ex, "Database error while creating workflow '{WorkFlowName}'", dto.WorkFlowName);
+                return ServiceResult<CreateWorkFlowResponseDto>.Failure(
+                    "A database error occurred while creating the workflow.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while creating workflow '{WorkFlowName}'", dto.WorkFlowName);
+                return ServiceResult<CreateWorkFlowResponseDto>.Failure(
+                    "An unexpected error occurred while creating the workflow.",
+                    new[] { ex.Message });
+            }
         }
+
 
 
 

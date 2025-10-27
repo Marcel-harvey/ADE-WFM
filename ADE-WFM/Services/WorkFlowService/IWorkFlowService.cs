@@ -1,4 +1,5 @@
 ﻿using ADE_WFM.Models;
+using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 
@@ -7,7 +8,7 @@ namespace ADE_WFM.Services.WorkFlowService
     public interface IWorkFlowService
     {
         // ADD services
-        Task <ResponseCreateWorkFlowDto> AddWorkFlow(CreateWorkFlowDto dto);
+        Task <ServiceResult<CreateWorkFlowResponseDto>> AddWorkFlow(CreateWorkFlowDto dto);
         Task <ResponseAddUserWorkFlowDto> AddUserToWorkFlow(AddUserWorkFlowDto dto);
 
         // GET services

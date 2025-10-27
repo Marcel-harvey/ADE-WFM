@@ -21,32 +21,14 @@ namespace ADE_WFM.Controllers
         // CREATE API's
         // Create a new workflow
         [HttpPost("Create-new-work-flow")]
-        public async Task<IActionResult> CreateNewWorkFlow([FromBody] CreateWorkFlowDto dto)
+        public async Task<IActionResult> CreateWorkFlow([FromBody] CreateWorkFlowDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var result = await _workFlowService.AddWorkFlow(dto);
 
-            try
-            {
-                var response = await _workFlowService.AddWorkFlow(dto);
-                return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
-            catch (DbUpdateException ex)
-            {
-                // Database update errors
-                return StatusCode(500, new { Message = "Database error occurred.", Details = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                // Catch-all for unexpected errors
-                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
-            }
+            if (!result.Succeeded)
+                return BadRequest(result.Message);
+
+            return Ok(result);
         }
 
 
