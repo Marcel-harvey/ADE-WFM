@@ -283,58 +283,53 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // Get project by id
-        public async Task<ServiceResult<List<GetProjectResponseDto>>> GetProjectById(GetProjectByIdDto dto)
+        public async Task<ServiceResult<GetProjectResponseDto>> GetProjectById(GetProjectByIdDto dto)
         {
             if (dto == null)
-            {
-                return ServiceResult<List<GetProjectResponseDto>>.Failure("GetAllProjectsDto cannot be null");
-            }
+                return ServiceResult<GetProjectResponseDto>.Failure("GetProjectByIdDto cannot be null");
 
-            if (dto.Id < 0)
-            {
-                return ServiceResult<List<GetProjectResponseDto>>.Failure("Invalid ID provided");
-            }
+            if (dto.Id <= 0)
+                return ServiceResult<GetProjectResponseDto>.Failure("Invalid project ID provided");
 
             try
             {
-                var projects = await _context.Projects
-                    .Include(pu => pu.ProjectUsers)
-                        .ThenInclude(u => u.User)
-                    .ToListAsync();
+                var project = await _context.Projects
+                    .Include(p => p.ProjectUsers)
+                        .ThenInclude(pu => pu.User)
+                    .FirstOrDefaultAsync(p => p.Id == dto.Id);
 
-                if (projects == null ||!projects.Any())
+                if (project == null)
                 {
-                    _logger.LogWarning("No projects found in the database.");
-                    return ServiceResult<List<GetProjectResponseDto>>.Failure("No projects found");
+                    _logger.LogWarning("Project with ID {ProjectId} not found.", dto.Id);
+                    return ServiceResult<GetProjectResponseDto>.Failure("Project not found");
                 }
 
-                _logger.LogInformation("Successfully retrieved all projects.");
-
-                return ServiceResult<List<GetProjectResponseDto>>.Success(
-                    projects.Select(p => new GetProjectResponseDto
+                var response = new GetProjectResponseDto
+                {
+                    Id = project.Id,
+                    Title = project.ProjectTitle,
+                    Description = project.ProjectDescription,
+                    DueDate = project.DueDate,
+                    DateCreated = project.DateCreated,
+                    Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto
                     {
-                        Id = p.Id,
-                        Title = p.ProjectTitle,
-                        Description = p.ProjectDescription,
-                        DueDate = p.DueDate,
-                        DateCreated = p.DateCreated,
-                        Users = p.ProjectUsers.Select(u => new ProjectUsersInfoDto
-                        {
-                            UserId = u.UserId,
-                            UserName = u.User.UserName ?? string.Empty,
-                        }).ToList()
+                        UserId = u.UserId,
+                        UserName = u.User?.UserName ?? string.Empty
                     }).ToList()
-                );
+                };
+
+                _logger.LogInformation("Successfully retrieved project ID {ProjectId}.", dto.Id);
+                return ServiceResult<GetProjectResponseDto>.Success(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving the project.");
-
-                return ServiceResult<List<GetProjectResponseDto>>.Failure(
+                _logger.LogError(ex, "Error retrieving project ID {ProjectId}", dto.Id);
+                return ServiceResult<GetProjectResponseDto>.Failure(
                     "An unexpected error occurred while retrieving the project.",
                     new[] { ex.Message });
             }
         }
+
 
 
         // Get all users involved in project
