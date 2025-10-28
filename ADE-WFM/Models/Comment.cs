@@ -22,8 +22,8 @@ namespace ADE_WFM.Models
         public ApplicationUser User { get; set; } = null!;
 
         [Required]
-        public int WorkFlowId { get; set; }
+        public int? WorkFlowId { get; set; }
         [ForeignKey(nameof(WorkFlowId))]
-        public WorkFlow WorkFlow { get; set;} = null!;
+        public WorkFlow? WorkFlow { get; set;}
     }
 }
