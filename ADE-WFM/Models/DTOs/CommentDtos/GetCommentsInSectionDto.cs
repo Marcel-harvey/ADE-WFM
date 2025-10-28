@@ -2,6 +2,6 @@
 {
     public class GetCommentsInSectionDto
     {
-        public int WorkFlowId { get; set; }
+        public int Id { get; set; }
     }
 }
