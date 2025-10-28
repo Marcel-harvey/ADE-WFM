@@ -24,7 +24,7 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all comments in selected work flow
-        [HttpGet("Get-workflow-comments/{id}")]
+        [HttpGet("workflow/{id}")]
         public async Task<IActionResult> GetWorkFlowComments(int id)
         {
             var dto = new GetCommentsInSectionDto { Id = id };
@@ -38,7 +38,7 @@ namespace ADE_WFM.Controllers
 
 
         // Get all comments in selected project
-        [HttpGet("Get-project-comments/{id}")]
+        [HttpGet("project/{id}")]
         public async Task<IActionResult> GetProjectComments(int id)
         {
             var dto = new GetCommentsInSectionDto { Id = id };
