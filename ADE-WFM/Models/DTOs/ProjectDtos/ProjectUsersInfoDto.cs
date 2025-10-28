@@ -2,7 +2,8 @@
 {
     public class ProjectUsersInfoDto
     {
-        public string Id { get; set; } = string.Empty;
+        public int? ProjectId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
     }
 }
