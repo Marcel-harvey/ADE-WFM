@@ -126,7 +126,9 @@ namespace ADE_WFM.Services.ProjectService
                     DueDate = project.DueDate.ToDateTime(TimeOnly.MinValue),
                     AddedUsers = addedUsers,
                     SkippedUsers = skippedUsers
-                });
+                },
+                $"Created project {project.ProjectTitle} successfully"
+                );
             }
 
             // Database exceptions
@@ -216,7 +218,9 @@ namespace ADE_WFM.Services.ProjectService
                     ProjectId = dto.ProjectId,
                     UserId = dto.UserId,
                     UserName = user?.UserName ?? "Unknown"
-                });
+                },
+                $"Added user {user?.UserName ?? "Unknown"} to project successfully"
+                );
             }
             catch (DbUpdateException ex)
             {
@@ -268,7 +272,8 @@ namespace ADE_WFM.Services.ProjectService
                             UserId = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
                         }).ToList()
-                    }).ToList()
+                    }).ToList(),
+                    $"Retrieved {projects.Count} projects successfully"
                 );
             }
             catch (Exception ex)
@@ -319,7 +324,10 @@ namespace ADE_WFM.Services.ProjectService
                 };
 
                 _logger.LogInformation("Successfully retrieved project ID {ProjectId}.", dto.Id);
-                return ServiceResult<GetProjectResponseDto>.Success(response);
+                return ServiceResult<GetProjectResponseDto>.Success(
+                    response,
+                    $"Retrieved project {project.ProjectTitle} successfully"
+                );
             }
             catch (Exception ex)
             {
@@ -363,7 +371,10 @@ namespace ADE_WFM.Services.ProjectService
                     }).ToList()
                 };
 
-                return ServiceResult<GetProjectUsersResponseDto>.Success(response);
+                return ServiceResult<GetProjectUsersResponseDto>.Success(
+                    response,
+                    $"Retrieved {response.Users.Count} users for project ID {dto.Id} successfully"
+                );
             }
             catch (Exception ex)
             {
@@ -407,13 +418,16 @@ namespace ADE_WFM.Services.ProjectService
 
                 _logger.LogInformation("Project ID {ProjectId} updated successfully", dto.ProjectId);
 
-                return ServiceResult<UpdateProjectInfoResponseDto>.Success(new UpdateProjectInfoResponseDto
-                {
-                    ProjectId = project.Id,
-                    Title = project.ProjectTitle,
-                    Description = project.ProjectDescription,
-                    DueDate = project.DueDate
-                });
+                return ServiceResult<UpdateProjectInfoResponseDto>.Success(
+                    new UpdateProjectInfoResponseDto
+                    {
+                        ProjectId = project.Id,
+                        Title = project.ProjectTitle,
+                        Description = project.ProjectDescription,
+                        DueDate = project.DueDate
+                    },
+                    $"Updated project successfully"
+                );
             }
             catch (DbUpdateException ex)
             {
@@ -454,10 +468,12 @@ namespace ADE_WFM.Services.ProjectService
 
                 _logger.LogInformation("Project ID {ProjectId} deleted successfully", dto.ProjectId);
 
-                return ServiceResult<DeleteProjectResponseDto>.Success(new DeleteProjectResponseDto
-                {
-                    ProjectTitle = project.ProjectTitle
-                });
+                return ServiceResult<DeleteProjectResponseDto>.Success(
+                    new DeleteProjectResponseDto
+                    {
+                        ProjectTitle = project.ProjectTitle
+                    }, $"Deleted project {project.ProjectTitle} successfully"
+                );
             }
             catch (DbUpdateException ex)
             {
@@ -510,12 +526,15 @@ namespace ADE_WFM.Services.ProjectService
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("User ID {UserId} removed from project ID {ProjectId} successfully", dto.UserId, dto.ProjectId);
-                return ServiceResult<ProjectUsersInfoDto>.Success(new ProjectUsersInfoDto
-                {
-                    ProjectId = dto.ProjectId,
-                    UserId = user.Id,
-                    UserName = user.UserName ?? "Unknown"
-                });
+                return ServiceResult<ProjectUsersInfoDto>.Success(
+                    new ProjectUsersInfoDto
+                    {
+                        ProjectId = dto.ProjectId,
+                        UserId = user.Id,
+                        UserName = user.UserName ?? "Unknown"
+                    },
+                    $"Removed user {user.UserName ?? "Unknown"} from project successfully"
+                );
             }
             catch (DbUpdateException ex)
             {
