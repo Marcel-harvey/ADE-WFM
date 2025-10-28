@@ -9,6 +9,7 @@ namespace ADE_WFM.Services.ProjectService
 
         // ADD services
         Task<ServiceResult<CreateProjectResponseDto>> CreateProject(CreateProjectDto dto);
+        Task<ServiceResult<ProjectUsersInfoDto>> AddUserToProject(AddUserToProjectDto dto);
 
         // GET services
         Task<ServiceResult<List<GetProjectResponseDto>>> GetAllProjects();
@@ -27,7 +28,7 @@ namespace ADE_WFM.Services.ProjectService
         Task<Project> UpdateProjectDueDate(UpdateProjectDueDateDto model);
 
         // ADD API services
-        Task<ApplicationUser> AddUserToProject(AddUserProjectDto model);
+        
 
         // DELETE API services
         Task DeleteProject(DeleteProjectDto dto);

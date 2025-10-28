@@ -27,6 +27,7 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // ADD services
+        // Create a new project
         public async Task<ServiceResult<CreateProjectResponseDto>> CreateProject(CreateProjectDto dto)
         {
             if (dto == null)
@@ -73,7 +74,7 @@ namespace ADE_WFM.Services.ProjectService
                 var creator = await _context.Users.FindAsync(dto.CurrentUserId);
                 addedUsers.Add(new ProjectUsersInfoDto
                 {
-                    Id = dto.CurrentUserId,
+                    UserId = dto.CurrentUserId,
                     UserName = creator?.UserName ?? "Unknown"
                 });
 
@@ -94,7 +95,7 @@ namespace ADE_WFM.Services.ProjectService
                         project.ProjectUsers.Add(new ProjectUser { UserId = userId });
                         addedUsers.Add(new ProjectUsersInfoDto
                         {
-                            Id = userId,
+                            UserId = userId,
                             UserName = userName
                         });
                     }
@@ -102,7 +103,7 @@ namespace ADE_WFM.Services.ProjectService
                     {
                         skippedUsers.Add(new ProjectUsersInfoDto
                         {
-                            Id = userId,
+                            UserId = userId,
                             UserName = userName
                         });
                     }
@@ -130,16 +131,106 @@ namespace ADE_WFM.Services.ProjectService
             // Database exceptions
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error while creating workflow '{WorkFlowName}'", dto.ProjectTitle);
+                _logger.LogError(ex, "Database error while creating project '{projectName}'", dto.ProjectTitle);
                 return ServiceResult<CreateProjectResponseDto>.Failure(
-                    "A database error occurred while creating the workflow.",
+                    "A database error occurred while creating the project.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while creating workflow '{WorkFlowName}'", dto.ProjectTitle);
+                _logger.LogError(ex, "Unexpected error while creating project '{projectName}'", dto.ProjectTitle);
                 return ServiceResult<CreateProjectResponseDto>.Failure(
-                    "An unexpected error occurred while creating the workflow.",
+                    "An unexpected error occurred while creating the project.",
+                    new[] { ex.Message });
+            }
+        }
+
+
+        // Add new user to project
+        public async Task<ServiceResult<ProjectUsersInfoDto>> AddUserToProject(AddUserToProjectDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<ProjectUsersInfoDto>.Failure("AddUserToProjectDto cannot be null");
+
+            if (dto.ProjectId <= 0)
+                return ServiceResult<ProjectUsersInfoDto>.Failure("Invalid Project ID provided");
+
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                return ServiceResult<ProjectUsersInfoDto>.Failure("User ID cannot be empty");
+
+            var project = await _context.Projects
+                .Include(p => p.ProjectUsers)
+                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
+
+            if (project == null)
+                return ServiceResult<ProjectUsersInfoDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == dto.UserId);
+
+            if (user == null)
+                return ServiceResult<ProjectUsersInfoDto>.Failure($"User with ID: {dto.UserId} was not found");
+
+            // Get users in workflow - cannot add users outside of workflow
+            var workFlow = await _context.WorkFlows
+                .Include(wf => wf.WorkFlowUsers)
+                .FirstOrDefaultAsync(wf => wf.Id == project.WorkFlowId);
+
+            if (workFlow == null)
+                return ServiceResult<ProjectUsersInfoDto>.Failure($"Workflow with ID {project.WorkFlowId} does not exist");
+
+            try
+            {
+                // Ensure user is part of the project's workflow
+                var workflowUserIds = workFlow.WorkFlowUsers.Select(wfu => wfu.UserId).ToHashSet();
+
+                if (!workflowUserIds.Contains(dto.UserId))
+                {
+                    return ServiceResult<ProjectUsersInfoDto>.Failure($"User '{user.UserName}' cannot be added because they are not part of the workflow '{workFlow.WorkFlowName}'.");
+                }
+
+                // Prevent duplicate users
+                if (project.ProjectUsers.Any(pu => pu.UserId == dto.UserId))
+                {
+                    return ServiceResult<ProjectUsersInfoDto>.Failure(
+                        $"User '{user.UserName}' is already part of this project."
+                    );
+                }
+
+                // Add new user to project
+                var projectUser = new ProjectUser
+                {
+                    ProjectId = dto.ProjectId,
+                    UserId = dto.UserId
+                };
+
+                await _context.ProjectUsers.AddAsync(projectUser);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("User '{UserName}' added to project '{ProjectTitle}' (ProjectId: {ProjectId})",
+                    user.UserName, project.ProjectTitle, project.Id);
+
+                return ServiceResult<ProjectUsersInfoDto>.Success(new ProjectUsersInfoDto
+                {
+                    ProjectId = dto.ProjectId,
+                    UserId = dto.UserId,
+                    UserName = user?.UserName ?? "Unknown"
+                });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while adding user '{UserName}' to project '{ProjectTitle}'",
+                    user.UserName, project.ProjectTitle);
+                return ServiceResult<ProjectUsersInfoDto>.Failure(
+                    "A database error occurred while adding the user.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while adding user '{UserName}' to project '{ProjectTitle}'",
+                    user.UserName, project.ProjectTitle);
+                return ServiceResult<ProjectUsersInfoDto>.Failure(
+                    "An unexpected error occurred while adding the user.",
                     new[] { ex.Message });
             }
         }
@@ -173,7 +264,7 @@ namespace ADE_WFM.Services.ProjectService
                         DateCreated = p.DateCreated,
                         Users = p.ProjectUsers.Select(u => new ProjectUsersInfoDto
                         {
-                            Id = u.UserId,
+                            UserId = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
                         }).ToList()
                     }).ToList()
@@ -228,7 +319,7 @@ namespace ADE_WFM.Services.ProjectService
                         DateCreated = p.DateCreated,
                         Users = p.ProjectUsers.Select(u => new ProjectUsersInfoDto
                         {
-                            Id = u.UserId,
+                            UserId = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
                         }).ToList()
                     }).ToList()
@@ -271,7 +362,7 @@ namespace ADE_WFM.Services.ProjectService
                 {
                     Users = projectUsers.Select(u => new ProjectUsersInfoDto
                     {
-                        Id = u.UserId,
+                        UserId = u.UserId,
                         UserName = u.User?.UserName ?? string.Empty
                     }).ToList()
                 };
@@ -356,35 +447,7 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // ADD API services
-        // Add new user to project
-        public async Task<ApplicationUser> AddUserToProject(AddUserProjectDto model)
-        {
-            var project = await _context.Projects
-                .Include(p => p.ProjectUsers)
-                .FirstOrDefaultAsync(p => p.Id == model.ProjectId)
-                ?? throw new KeyNotFoundException($"Project with ID: {model.ProjectId} was not found");
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == model.UserId)
-                ?? throw new KeyNotFoundException($"User with ID: {model.UserId} was not found");
-
-            // Check if the user is already in the project
-            if (project.ProjectUsers.Any(pu => pu.UserId == model.UserId))
-            {
-                throw new InvalidOperationException($"User with ID: {model.UserId} is already in the project");
-            }
-
-            var projectUser = new ProjectUser
-            {
-                ProjectId = model.ProjectId,
-                UserId = model.UserId
-            };
-
-            await _context.ProjectUsers.AddAsync(projectUser);
-            await _context.SaveChangesAsync();
-
-            return user;
-        }
+        
 
 
         // DELETE API services

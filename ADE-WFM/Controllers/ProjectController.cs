@@ -44,6 +44,29 @@ namespace ADE_WFM.Controllers
         }
 
 
+        // Add user to a project
+        [HttpPost("Add-user")]
+        public async Task<IActionResult> AddUserToProject([FromBody] AddUserToProjectDto dto)
+        {
+            try
+            {
+                var result = await _projectService.AddUserToProject(dto);
+
+                if (!result.Succeeded)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ServiceResult<ProjectUsersInfoDto>.Failure(
+                    "An unexpected error occurred while adding the user to the project.",
+                    new[] { ex.Message }
+                ));
+            }
+        }
+
+
         // GET API's
         // Get all projects
         [HttpGet("Get-all")]
