@@ -139,6 +139,27 @@ namespace ADE_WFM.Controllers
         }
 
         // UPDATE API's
+        // Update project info
+        [HttpPut("Update-info")]
+        public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto)
+        {
+            try
+            {
+                var result = await _projectService.UpdateProjectInfo(dto);
+
+                if (!result.Succeeded)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ServiceResult<UpdateProjectInfoResponseDto>.Failure(
+                    "An unexpected error occurred while updating the project info.",
+                    new[] { ex.Message }
+                ));
+            }
+        }
 
         // DELETE API's
 

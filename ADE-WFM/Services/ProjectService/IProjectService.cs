@@ -17,6 +17,7 @@ namespace ADE_WFM.Services.ProjectService
         Task<ServiceResult<GetProjectUsersResponseDto>> GetUsersInProject(GetProjectUsersDto dto);
 
         // UPDATE services
+        Task<ServiceResult<UpdateProjectInfoResponseDto>> UpdateProjectInfo(UpdateProjectInfoDto dto);
 
         // DELETE services
 

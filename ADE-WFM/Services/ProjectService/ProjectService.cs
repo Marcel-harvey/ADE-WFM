@@ -5,6 +5,7 @@ using ADE_WFM.Models.DTOs.ProjectDtos;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using System.Numerics;
 
 namespace ADE_WFM.Services.ProjectService
@@ -380,6 +381,60 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // UPDATE services
+        // Update project info
+        public async Task<ServiceResult<UpdateProjectInfoResponseDto>> UpdateProjectInfo(UpdateProjectInfoDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<UpdateProjectInfoResponseDto>.Failure("UpdateProjectInfoDto cannot be null");
+
+            if (dto.ProjectId <= 0)
+                return ServiceResult<UpdateProjectInfoResponseDto>.Failure("Invalid Project ID provided");
+
+
+            var project = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
+            if (project == null)
+                return ServiceResult<UpdateProjectInfoResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
+
+            try
+            {
+                // Update fields if provided
+                if (!string.IsNullOrWhiteSpace(dto.Title))
+                    project.ProjectTitle = dto.Title;
+
+                if (dto.Description != null)
+                    project.ProjectDescription = dto.Description;
+
+                if (dto.DueDate.HasValue)
+                    project.DueDate = dto.DueDate.Value;
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Project ID {ProjectId} updated successfully", dto.ProjectId);
+
+                return ServiceResult<UpdateProjectInfoResponseDto>.Success(new UpdateProjectInfoResponseDto
+                {
+                    ProjectId = project.Id,
+                    Title = project.ProjectTitle,
+                    Description = project.ProjectDescription,
+                    DueDate = project.DueDate
+                });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating project ID {ProjectId}", dto.ProjectId);
+                return ServiceResult<UpdateProjectInfoResponseDto>.Failure(
+                    "A database error occurred while updating the project.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating project ID {ProjectId}", dto.ProjectId);
+                return ServiceResult<UpdateProjectInfoResponseDto>.Failure(
+                    "An unexpected error occurred while updating the project.",
+                    new[] { ex.Message });
+            }
+        }
 
 
         // DELETE services
