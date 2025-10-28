@@ -27,8 +27,22 @@ namespace ADE_WFM.Controllers
         [HttpGet("Get-workflow-comments/{id}")]
         public async Task<IActionResult> GetWorkFlowComments(int id)
         {
-            var dto = new GetCommentsInSectionDto { WorkFlowId = id };
+            var dto = new GetCommentsInSectionDto { Id = id };
             var result = await _commentService.GetWorkFlowComments(dto);
+
+            if (!result.Succeeded)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+
+        // Get all comments in selected project
+        [HttpGet("Get-project-comments/{id}")]
+        public async Task<IActionResult> GetProjectComments(int id)
+        {
+            var dto = new GetCommentsInSectionDto { Id = id };
+            var result = await _commentService.GetProjectComments(dto);
 
             if (!result.Succeeded)
                 return NotFound(result);

@@ -13,8 +13,8 @@ namespace ADE_WFM.Services.CommentService
 
         // GET serivces
         Task<ServiceResult<List<GetCommentsResponseDto>>> GetWorkFlowComments(GetCommentsInSectionDto dto);
-        Task <List<Comment>> GetProjectComments(int projectId);
-        Task<List<Comment>> GetUserComments(string userId);
+        Task <ServiceResult<List<GetCommentsResponseDto>>> GetProjectComments(GetCommentsInSectionDto dto);
+        Task<ServiceResult<List<GetCommentsResponseDto>>> GetUserComments(GetCommentsInSectionDto dto);
 
         // UPDATE services
         Task MarkCommentAsViewed(int commentId);
