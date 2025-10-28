@@ -23,7 +23,7 @@ namespace ADE_WFM.Controllers
         // CREATE API's
         // Create a new projects
         [HttpPost("Create-new")]
-        public async Task<IActionResult> CreatePorject([FromBody] CreateProjectDto dto)
+        public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
         {
             try
             {
