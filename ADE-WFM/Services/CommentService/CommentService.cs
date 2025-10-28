@@ -134,6 +134,7 @@ namespace ADE_WFM.Services.CommentService
         }
 
 
+        // Get all comments a user made
         public async Task<ServiceResult<List<GetCommentsResponseDto>>> GetUserComments(GetUserCommentsDto dto)
         {
             if (dto == null)
@@ -186,18 +187,69 @@ namespace ADE_WFM.Services.CommentService
 
 
         // UPDATE services
-        public async Task MarkCommentAsViewed(int commentId)
+        public async Task<ServiceResult<UpdateCommentViewedResponseDto>> MarkCommentAsViewed(UpdateCommentViewedDto dto)
         {
-            var comment = await _context.Comments.FindAsync(commentId);
+            if (dto == null)
+                return ServiceResult<UpdateCommentViewedResponseDto>.Failure("Invalid request data.");
 
-            if (comment == null)
+            if (dto.CommentId <= 0)
+                return ServiceResult<UpdateCommentViewedResponseDto>.Failure("Invalid Comment ID.");
+
+            try
             {
-                throw new KeyNotFoundException($"Comment with ID {commentId} not found.");
-            }
+                var comment = await _context.Comments
+                    .FindAsync(dto.CommentId);
+                if (comment == null)
+                {
+                    _logger.LogInformation("Comment not found for Comment ID: {CommentId}", dto.CommentId);
+                    return ServiceResult<UpdateCommentViewedResponseDto>.Failure("Comment not found.");
+                }
 
-            comment.IsViewed = true;
-            await _context.SaveChangesAsync();
+                if (comment.IsViewed)
+                {
+                    _logger.LogInformation("Comment ID {CommentId} is already marked as viewed.", dto.CommentId);
+                    return ServiceResult<UpdateCommentViewedResponseDto>.Success(
+                        new UpdateCommentViewedResponseDto
+                        {
+                            CommentId = comment.Id,
+                            IsViewed = true
+                        },
+                        "Comment was already marked as viewed."
+                    );
+                }
+
+                comment.IsViewed = dto.IsViewed;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Comment ID {CommentId} marked as viewed successfully.", comment.Id);
+
+                return ServiceResult<UpdateCommentViewedResponseDto>.Success(
+                    new UpdateCommentViewedResponseDto
+                    {
+                        CommentId = comment.Id,
+                        IsViewed = comment.IsViewed
+                    },
+                    $"Comment ID {comment.Id} marked as viewed successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while marking comment as viewed (ID: {CommentId})", dto.CommentId);
+                return ServiceResult<UpdateCommentViewedResponseDto>.Failure(
+                    "A database error occurred while marking comment as viewed.",
+                    new[] { ex.Message }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while marking comment as viewed (ID: {CommentId})", dto.CommentId);
+                return ServiceResult<UpdateCommentViewedResponseDto>.Failure(
+                    "An unexpected error occurred while marking comment as viewed.",
+                    new[] { ex.Message }
+                );
+            }
         }
+
 
 
         // ADD services

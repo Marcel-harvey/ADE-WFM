@@ -17,7 +17,7 @@ namespace ADE_WFM.Services.CommentService
         Task<ServiceResult<List<GetCommentsResponseDto>>> GetUserComments(GetUserCommentsDto dto);
 
         // UPDATE services
-        Task MarkCommentAsViewed(int commentId);
+        Task<ServiceResult<UpdateCommentViewedResponseDto>> MarkCommentAsViewed(UpdateCommentViewedDto dto);
 
         // DELETE services
         Task DeleteComment(int commentId);

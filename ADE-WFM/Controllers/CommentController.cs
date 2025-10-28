@@ -64,7 +64,19 @@ namespace ADE_WFM.Controllers
             return Ok(result);
         }
 
+
         // UPDATE API's
+        // Mark comment as viewed/unviewed
+        [HttpPut("Update/Viewed")]
+        public async Task<IActionResult> MarkCommentAsViewed([FromBody] UpdateCommentViewedDto dto)
+        {
+            var result = await _commentService.MarkCommentAsViewed(dto);
+
+            if (!result.Succeeded)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
 
         // DELETE API's
     }
