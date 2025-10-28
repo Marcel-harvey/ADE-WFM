@@ -38,6 +38,20 @@ namespace ADE_WFM.Services.ProjectService
             if (string.IsNullOrWhiteSpace(dto.CurrentUserId))
                 return ServiceResult<CreateProjectResponseDto>.Failure("Current user ID cannot be empty");
 
+            if (string.IsNullOrWhiteSpace(dto.WorkFlowId.ToString()))
+                return ServiceResult<CreateProjectResponseDto>.Failure("Workflow ID cannot be empty");
+
+            // Get users in work flow - can not add users outside of work flow
+            var workFlow = await _context.WorkFlows
+                .Include(u => u.WorkFlowUsers)
+                    .ThenInclude(wfu => wfu.User)
+                .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
+
+            if (workFlow == null)
+            {
+                return ServiceResult<CreateProjectResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} does not exist");
+            }
+
             try
             {
                 var project = new Project
@@ -48,22 +62,48 @@ namespace ADE_WFM.Services.ProjectService
                     WorkFlowId = dto.WorkFlowId,
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                     ProjectUsers = new List<ProjectUser>(),
-               };
+                };
 
-                // Add user that created project
-                project.ProjectUsers.Add(new ProjectUser
+                var addedUsers = new List<ProjectUserInfoDto>();
+                var skippedUsers = new List<ProjectUserInfoDto>();
+
+                // Add creator of project
+                project.ProjectUsers.Add(new ProjectUser { UserId = dto.CurrentUserId });
+
+                var creator = await _context.Users.FindAsync(dto.CurrentUserId);
+                addedUsers.Add(new ProjectUserInfoDto
                 {
                     UserId = dto.CurrentUserId,
+                    UserName = creator?.UserName ?? "Unknown"
                 });
 
-                // Add list of selected user after checking if already exists
+                // Prepare lookup of all users in workflow
+                var workflowUserIds = workFlow.WorkFlowUsers.Select(wfu => wfu.UserId).ToHashSet();
+
+                // Add valid users and collect skipped ones
                 foreach (var userId in dto.UserIds)
                 {
-                    if (userId != dto.CurrentUserId)
+                    if (userId == dto.CurrentUserId)
+                        continue;
+
+                    var user = await _context.Users.FindAsync(userId);
+                    var userName = user?.UserName ?? "Unknown";
+
+                    if (workflowUserIds.Contains(userId))
                     {
-                        project.ProjectUsers.Add(new ProjectUser
+                        project.ProjectUsers.Add(new ProjectUser { UserId = userId });
+                        addedUsers.Add(new ProjectUserInfoDto
                         {
                             UserId = userId,
+                            UserName = userName
+                        });
+                    }
+                    else
+                    {
+                        skippedUsers.Add(new ProjectUserInfoDto
+                        {
+                            UserId = userId,
+                            UserName = userName
                         });
                     }
                 }
@@ -71,19 +111,22 @@ namespace ADE_WFM.Services.ProjectService
                 _context.Projects.Add(project);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Project {ProjectTitle} was created successfully by {UserId} ", project.ProjectTitle, dto.CurrentUserId);
-
-                return ServiceResult<CreateProjectResponseDto>.Success(
-                    new CreateProjectResponseDto
-                    {
-                        Title = project.ProjectTitle,
-                        Description = project.ProjectDescription ?? null,
-                        DateCreated = project.DateCreated.ToDateTime(TimeOnly.MinValue),
-                        DueDate = project.DueDate.ToDateTime(TimeOnly.MinValue),
-                        AssignedUserIds = project.ProjectUsers.Select(pu => pu.UserId).ToList()
-                    }
+                _logger.LogInformation(
+                    "Project {ProjectTitle} created successfully by {UserId}. Added {AddedCount} users, skipped {SkippedCount}",
+                    project.ProjectTitle, dto.CurrentUserId, addedUsers.Count, skippedUsers.Count
                 );
+
+                return ServiceResult<CreateProjectResponseDto>.Success(new CreateProjectResponseDto
+                {
+                    Title = project.ProjectTitle,
+                    Description = project.ProjectDescription ?? null,
+                    DateCreated = project.DateCreated.ToDateTime(TimeOnly.MinValue),
+                    DueDate = project.DueDate.ToDateTime(TimeOnly.MinValue),
+                    AddedUsers = addedUsers,
+                    SkippedUsers = skippedUsers
+                });
             }
+
             // Database exceptions
             catch (DbUpdateException ex)
             {

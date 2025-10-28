@@ -6,6 +6,10 @@
         public string? Description { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DueDate { get; set; }
-        public List<string> AssignedUserIds { get; set; } = new();
+
+        // Lists of User IDs
+        public List<ProjectUserInfoDto> AddedUsers { get; set; } = new();
+        public List<ProjectUserInfoDto> SkippedUsers { get; set; } = new();
+
     }
 }
