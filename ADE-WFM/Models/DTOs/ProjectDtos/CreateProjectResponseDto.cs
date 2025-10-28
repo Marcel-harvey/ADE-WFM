@@ -8,8 +8,8 @@
         public DateTime DueDate { get; set; }
 
         // Lists of User IDs
-        public List<ProjectUserInfoDto> AddedUsers { get; set; } = new();
-        public List<ProjectUserInfoDto> SkippedUsers { get; set; } = new();
+        public List<ProjectUsersInfoDto> AddedUsers { get; set; } = new();
+        public List<ProjectUsersInfoDto> SkippedUsers { get; set; } = new();
 
     }
 }

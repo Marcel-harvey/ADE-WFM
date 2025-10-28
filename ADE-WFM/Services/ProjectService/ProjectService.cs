@@ -64,16 +64,16 @@ namespace ADE_WFM.Services.ProjectService
                     ProjectUsers = new List<ProjectUser>(),
                 };
 
-                var addedUsers = new List<ProjectUserInfoDto>();
-                var skippedUsers = new List<ProjectUserInfoDto>();
+                var addedUsers = new List<ProjectUsersInfoDto>();
+                var skippedUsers = new List<ProjectUsersInfoDto>();
 
                 // Add creator of project
                 project.ProjectUsers.Add(new ProjectUser { UserId = dto.CurrentUserId });
 
                 var creator = await _context.Users.FindAsync(dto.CurrentUserId);
-                addedUsers.Add(new ProjectUserInfoDto
+                addedUsers.Add(new ProjectUsersInfoDto
                 {
-                    UserId = dto.CurrentUserId,
+                    Id = dto.CurrentUserId,
                     UserName = creator?.UserName ?? "Unknown"
                 });
 
@@ -92,17 +92,17 @@ namespace ADE_WFM.Services.ProjectService
                     if (workflowUserIds.Contains(userId))
                     {
                         project.ProjectUsers.Add(new ProjectUser { UserId = userId });
-                        addedUsers.Add(new ProjectUserInfoDto
+                        addedUsers.Add(new ProjectUsersInfoDto
                         {
-                            UserId = userId,
+                            Id = userId,
                             UserName = userName
                         });
                     }
                     else
                     {
-                        skippedUsers.Add(new ProjectUserInfoDto
+                        skippedUsers.Add(new ProjectUsersInfoDto
                         {
-                            UserId = userId,
+                            Id = userId,
                             UserName = userName
                         });
                     }
@@ -171,7 +171,7 @@ namespace ADE_WFM.Services.ProjectService
                         Description = p.ProjectDescription,
                         DueDate = p.DueDate,
                         DateCreated = p.DateCreated,
-                        Users = p.ProjectUsers.Select(u => new ProjectUsersDto
+                        Users = p.ProjectUsers.Select(u => new ProjectUsersInfoDto
                         {
                             Id = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
@@ -226,7 +226,7 @@ namespace ADE_WFM.Services.ProjectService
                         Description = p.ProjectDescription,
                         DueDate = p.DueDate,
                         DateCreated = p.DateCreated,
-                        Users = p.ProjectUsers.Select(u => new ProjectUsersDto
+                        Users = p.ProjectUsers.Select(u => new ProjectUsersInfoDto
                         {
                             Id = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
@@ -269,7 +269,7 @@ namespace ADE_WFM.Services.ProjectService
 
                 var response = new GetProjectUsersResponseDto
                 {
-                    Users = projectUsers.Select(u => new ProjectUsersDto
+                    Users = projectUsers.Select(u => new ProjectUsersInfoDto
                     {
                         Id = u.UserId,
                         UserName = u.User?.UserName ?? string.Empty

@@ -2,6 +2,6 @@
 {
     public class GetProjectUsersResponseDto
     {
-        public List<ProjectUsersDto>? Users { get; set; }
+        public List<ProjectUsersInfoDto>? Users { get; set; }
     }
 }
