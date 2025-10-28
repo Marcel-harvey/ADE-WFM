@@ -21,13 +21,6 @@ namespace ADE_WFM.Services.ProjectService
 
         // DELETE services
 
-
-        // API services
-        // UPDATE API services
-        Task<Project> UpdateProjectTitle(UpdateProjectTitleDto model);
-        Task<Project> UpdateProjectDescription(UpdateProjectDescriptionDto model);
-        Task<Project> UpdateProjectDueDate(UpdateProjectDueDateDto model);
-
         // ADD API services
         
 
