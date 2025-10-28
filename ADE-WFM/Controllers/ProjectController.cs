@@ -105,7 +105,7 @@ namespace ADE_WFM.Controllers
 
                 return Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, ServiceResult<GetProjectResponseDto>.Failure(
                     "An unexpected error occurred while retrieving the project.",
@@ -162,6 +162,26 @@ namespace ADE_WFM.Controllers
         }
 
         // DELETE API's
+        // Delete a project
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteProject([FromBody] DeleteProjectDto dto)
+        {
+            try
+            {
+                var result = await _projectService.DeleteProject(dto);
 
+                if (!result.Succeeded)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ServiceResult<DeleteProjectResponseDto>.Failure(
+                    "An unexpected error occurred while deleting the project.",
+                    new[] { ex.Message }
+                ));
+            }
+        }
     }
 }

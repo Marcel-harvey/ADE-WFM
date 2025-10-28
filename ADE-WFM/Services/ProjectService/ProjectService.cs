@@ -438,26 +438,50 @@ namespace ADE_WFM.Services.ProjectService
 
 
         // DELETE services
+        // Delete project
+        public async Task<ServiceResult<DeleteProjectResponseDto>> DeleteProject(DeleteProjectDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<DeleteProjectResponseDto>.Failure("DeleteProjectDto cannot be null");
+
+            if (dto.ProjectId <= 0)
+                return ServiceResult<DeleteProjectResponseDto>.Failure("Invalid Project ID provided");
+
+            var project = await _context.Projects
+                .FindAsync(dto.ProjectId);
+            if (project == null)
+                return ServiceResult<DeleteProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
+
+            try
+            {
+                _context.Projects.Remove(project);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Project ID {ProjectId} deleted successfully", dto.ProjectId);
+
+                return ServiceResult<DeleteProjectResponseDto>.Success(new DeleteProjectResponseDto
+                {
+                    ProjectTitle = project.ProjectTitle
+                });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while deleting project ID {ProjectId}", dto.ProjectId);
+                return ServiceResult<DeleteProjectResponseDto>.Failure(
+                    "A database error occurred while deleting the project.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while deleting project ID {ProjectId}", dto.ProjectId);
+                return ServiceResult<DeleteProjectResponseDto>.Failure(
+                    "An unexpected error occurred while deleting the project.",
+                    new[] { ex.Message });
+            }
+        }
 
 
         // DELETE API services
-        // Delete project
-        public async Task DeleteProject(DeleteProjectDto dto)
-        {
-            // Check if the dto is null
-            if (dto == null)
-            {
-                throw new ArgumentNullException(nameof(dto), "DeleteProjectDto cannot be null");
-            }
-
-            // Find the project to be deleted
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId)
-                ?? throw new KeyNotFoundException($"Project with ID: {dto.ProjectId} was not found");
-
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
-        }
 
         // Remove user from project
         public async Task RemoveUserFromProject(RemoveUserFromProjectDto dto)
