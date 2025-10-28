@@ -183,5 +183,28 @@ namespace ADE_WFM.Controllers
                 ));
             }
         }
+
+
+        // Remove user from a project
+        [HttpDelete("Remove-user")]
+        public async Task<IActionResult> RemoveUserFromProject([FromBody] RemoveUserFromProjectDto dto)
+        {
+            try
+            {
+                var result = await _projectService.RemoveUserFromProject(dto);
+
+                if (!result.Succeeded)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ServiceResult<ProjectUsersInfoDto>.Failure(
+                    "An unexpected error occurred while removing the user from the project.",
+                    new[] { ex.Message }
+                ));
+            }
+        }
     }
 }

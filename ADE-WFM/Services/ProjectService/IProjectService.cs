@@ -21,11 +21,11 @@ namespace ADE_WFM.Services.ProjectService
 
         // DELETE services
         Task<ServiceResult<DeleteProjectResponseDto>> DeleteProject(DeleteProjectDto dto);
+        Task<ServiceResult<ProjectUsersInfoDto>> RemoveUserFromProject(RemoveUserFromProjectDto dto);
 
         // ADD API services
 
 
         // DELETE API services
-        Task RemoveUserFromProject(RemoveUserFromProjectDto dto);
     }
 }

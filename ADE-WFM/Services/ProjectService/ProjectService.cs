@@ -481,29 +481,61 @@ namespace ADE_WFM.Services.ProjectService
         }
 
 
-        // DELETE API services
-
         // Remove user from project
-        public async Task RemoveUserFromProject(RemoveUserFromProjectDto dto)
+        public async Task<ServiceResult<ProjectUsersInfoDto>> RemoveUserFromProject(RemoveUserFromProjectDto dto)
         {
-            // Check if the dto is null
             if (dto == null)
-            {
-                throw new ArgumentNullException(nameof(dto), "RemoveUserFromProjectDto cannot be null");
-            }
+                return ServiceResult<ProjectUsersInfoDto>.Failure("RemoveUserFromProjectDto cannot be null");
 
-            // Find the project user association
+            if (dto.ProjectId <= 0)
+                return ServiceResult<ProjectUsersInfoDto>.Failure("Invalid Project ID provided");
+
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                return ServiceResult<ProjectUsersInfoDto>.Failure("User ID cannot be empty");
+
             var projectUser = await _context.ProjectUsers
-                .FirstOrDefaultAsync(pu => pu.ProjectId == dto.ProjectId && pu.UserId == dto.UserId)
-                ?? throw new KeyNotFoundException($"User with ID: {dto.UserId} is not associated with Project ID: {dto.ProjectId}");
+                .FirstOrDefaultAsync(pu => pu.ProjectId == dto.ProjectId && pu.UserId == dto.UserId);
+            if (projectUser == null)
+                return ServiceResult<ProjectUsersInfoDto>.Failure($"User with ID: {dto.UserId} is not part of project ID: {dto.ProjectId}");
 
-            // Find the user to be removed
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == dto.UserId)
-                ?? throw new KeyNotFoundException($"User with ID: {dto.UserId} was not found");
+                .FirstOrDefaultAsync(u => u.Id == dto.UserId);
+            if (user == null)
+                return ServiceResult<ProjectUsersInfoDto>.Failure($"User with ID: {dto.UserId} was not found");
 
-            _context.ProjectUsers.Remove(projectUser);
-            await _context.SaveChangesAsync();                  
+            try
+            {
+                // Check if user is last user in project
+                var projectUsersCount = await _context.ProjectUsers.CountAsync(pu => pu.ProjectId == dto.ProjectId);
+                if (projectUsersCount <= 1)
+                    return ServiceResult<ProjectUsersInfoDto>.Failure("Cannot remove the last user from the project");
+
+
+                _context.ProjectUsers.Remove(projectUser);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("User ID {UserId} removed from project ID {ProjectId} successfully", dto.UserId, dto.ProjectId);
+                return ServiceResult<ProjectUsersInfoDto>.Success(new ProjectUsersInfoDto
+                {
+                    ProjectId = dto.ProjectId,
+                    UserId = user.Id,
+                    UserName = user.UserName ?? "Unknown"
+                });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while deleting user ID {userId} from project ID {projectId}", dto.UserId, dto.ProjectId);
+                return ServiceResult<ProjectUsersInfoDto>.Failure(
+                    "A database error occurred while deleting the the user from the project.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while deleting user ID {userId} from project ID {projectId}", dto.UserId, dto.ProjectId);
+                return ServiceResult<ProjectUsersInfoDto>.Failure(
+                    "An unexpected error occurred while deleting the the user from the project.",
+                    new[] { ex.Message });
+            }
         }
     }
 }
