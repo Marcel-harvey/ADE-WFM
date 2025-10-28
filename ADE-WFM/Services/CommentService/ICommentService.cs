@@ -14,8 +14,7 @@ namespace ADE_WFM.Services.CommentService
         // GET serivces
         Task<ServiceResult<List<GetCommentsResponseDto>>> GetWorkFlowComments(GetCommentsInSectionDto dto);
         Task <ServiceResult<List<GetCommentsResponseDto>>> GetProjectComments(GetCommentsInSectionDto dto);
-        // TODO: implement user comments retrieval if needed
-        // Task<ServiceResult<List<GetCommentsResponseDto>>> GetUserComments(GetCommentsInSectionDto dto);
+        Task<ServiceResult<List<GetCommentsResponseDto>>> GetUserComments(GetUserCommentsDto dto);
 
         // UPDATE services
         Task MarkCommentAsViewed(int commentId);

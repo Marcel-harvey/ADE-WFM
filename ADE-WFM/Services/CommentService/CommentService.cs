@@ -44,7 +44,14 @@ namespace ADE_WFM.Services.CommentService
                         .ThenInclude(c => c.User)
                     .FirstOrDefaultAsync(wf => wf.Id == dto.Id);
 
-                if (workflow == null || workflow.Comments == null || !workflow.Comments.Any())
+                // Check if workflow exists first before accessing comments
+                if (workflow == null)
+                {
+                    _logger.LogInformation("WorkFlow not found for WorkFlow ID: {WorkFlowId}", dto.Id);
+                    return ServiceResult<List<GetCommentsResponseDto>>.Failure("WorkFlow not found.");
+                }
+
+                if (workflow.Comments == null || !workflow.Comments.Any())
                 {
                     _logger.LogInformation("No comments found for WorkFlow ID: {WorkFlowId}", dto.Id);
                     return ServiceResult<List<GetCommentsResponseDto>>.Success(new List<GetCommentsResponseDto>(), "No comments found for the specified workflow.");
@@ -86,11 +93,18 @@ namespace ADE_WFM.Services.CommentService
             try
             {
                 var project = await _context.Projects
-                    .Include(wf => wf.Comment!)
+                    .Include(p => p.Comment!)
                         .ThenInclude(c => c.User)
                     .FirstOrDefaultAsync(wf => wf.Id == dto.Id);
 
-                if (project == null || project.Comment == null || !project.Comment.Any())
+                // Check if project exists first before accessing comments
+                if (project == null)
+                {
+                    _logger.LogInformation("Project not found for project ID: {ProjectId}", dto.Id);
+                    return ServiceResult<List<GetCommentsResponseDto>>.Failure("Project not found.");
+                }
+
+                    if (project.Comment == null || !project.Comment.Any())
                 {
                     _logger.LogInformation("No comments found for project ID: {ProjectId}", dto.Id);
                     return ServiceResult<List<GetCommentsResponseDto>>.Success(new List<GetCommentsResponseDto>(), "No comments found for the specified Project.");
@@ -120,14 +134,54 @@ namespace ADE_WFM.Services.CommentService
         }
 
 
-        public async Task<List<Comment>> GetUserComments(string userId)
+        public async Task<ServiceResult<List<GetCommentsResponseDto>>> GetUserComments(GetUserCommentsDto dto)
         {
-            var userComments = await _context.Comments
-                .Where(user => user.UserId == userId)
-                .Include(user => user.User)
-                .ToListAsync();
+            if (dto == null)
+                return ServiceResult<List<GetCommentsResponseDto>>.Failure("Invalid request data.");
 
-            return userComments;
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                return ServiceResult<List<GetCommentsResponseDto>>.Failure("Invalid User ID.");
+
+            try
+            {
+                var user = await _context.Users
+                    .Include(u => u.Comment!)
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.UserId);
+
+                // Check if user exists first before accessing comments
+                if (user == null)
+                {
+                    _logger.LogInformation("User not found for user ID: {UserId}", dto.UserId);
+                    return ServiceResult<List<GetCommentsResponseDto>>.Failure("User not found.");
+                }
+
+
+                if (user.Comment == null || !user.Comment.Any())
+                {
+                    _logger.LogInformation("No comments found for user ID: {UserId}", dto.UserId);
+                    return ServiceResult<List<GetCommentsResponseDto>>.Success(new List<GetCommentsResponseDto>(), "No comments found for the specified User.");
+                }
+
+                _logger.LogInformation("Successfully retrieved all comments for user {UserName}", user.UserName);
+                return ServiceResult<List<GetCommentsResponseDto>>.Success(
+                    user.Comment
+                        .Select(c => new GetCommentsResponseDto
+                        {
+                            CommentId = c.Id,
+                            CommentContent = c.CommentContent,
+                            DateCreated = c.DateCreated,
+                            UserName = user.UserName ?? "Unknown",
+                        }).ToList(),
+                        $"User'{user.UserName}' comments retrieved successfully."
+                    );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving user comments for user ID {UserId}", dto.UserId);
+                return ServiceResult<List<GetCommentsResponseDto>>.Failure(
+                    "An unexpected error occurred while retrieving project comments.",
+                    new[] { ex.Message });
+            }
         }
 
 
