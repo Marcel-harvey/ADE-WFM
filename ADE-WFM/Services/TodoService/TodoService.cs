@@ -96,6 +96,14 @@ namespace ADE_WFM.Services.TodoService
             if (dto.ProjectId <= 0)
                 return ServiceResult<List<ToDoResponseDto>>.Failure("Valid Project id required.");
 
+            var project = await _context.Projects
+                .FindAsync(dto.ProjectId);
+            if (project == null)
+            {
+                _logger.LogWarning("Project with ID {ProjectId} does not exist.", dto.ProjectId);
+                return ServiceResult<List<ToDoResponseDto>>.Failure("Project does not exist.");
+            }                
+
             try
             {
                 var todos = await _context.Todos
