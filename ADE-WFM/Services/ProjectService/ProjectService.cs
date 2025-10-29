@@ -303,6 +303,7 @@ namespace ADE_WFM.Services.ProjectService
             try
             {
                 var project = await _context.Projects
+                    .Include(p => p.WorkFlows)
                     .Include(p => p.ProjectUsers)
                         .ThenInclude(pu => pu.User)
                     .FirstOrDefaultAsync(p => p.Id == dto.Id);
@@ -315,6 +316,7 @@ namespace ADE_WFM.Services.ProjectService
 
                 var response = new GetProjectResponseDto
                 {
+                    WorkFlowName = project.WorkFlows.WorkFlowName,
                     ProjectTitle = project.ProjectTitle,
                     Description = project.ProjectDescription,
                     DueDate = project.DueDate,
@@ -425,7 +427,6 @@ namespace ADE_WFM.Services.ProjectService
                 return ServiceResult<UpdateProjectInfoResponseDto>.Success(
                     new UpdateProjectInfoResponseDto
                     {
-                        ProjectId = project.Id,
                         Title = project.ProjectTitle,
                         Description = project.ProjectDescription,
                         DueDate = project.DueDate
