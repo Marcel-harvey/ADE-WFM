@@ -86,6 +86,56 @@ namespace ADE_WFM.Services.TodoService
         }
 
 
+        // Get all todos for a project
+        public async Task<ServiceResult<List<ToDoResponseDto>>> GetAllProjectTodos(GetToDoDto dto)
+        {
+            // General validation
+            if (dto == null)
+                return ServiceResult<List<ToDoResponseDto>>.Failure("Input data is null.");
+
+            if (dto.ProjectId <= 0)
+                return ServiceResult<List<ToDoResponseDto>>.Failure("Valid Project id required.");
+
+            try
+            {
+                var todos = await _context.Todos
+                    .Where(t => t.ProjectId == dto.ProjectId)
+                    .Include(t => t.User)
+                    .Include(t => t.SubTasks)
+                    .ToListAsync();
+
+                if (!todos.Any())
+                {
+                    _logger.LogInformation("No todo's found for project {ProjectId}.", dto.ProjectId);
+                    return ServiceResult<List<ToDoResponseDto>>.Failure("No todo's found for the given project.");
+                }
+
+                return ServiceResult<List<ToDoResponseDto>>.Success(
+                    todos.Select(t => new ToDoResponseDto
+                    {
+                        Id = t.Id,
+                        IsComplete = t.IsComplete,
+                        Title = t.Title,
+                        Description = t.Description,
+                        DateCreated = t.DateCreated,
+                        DueDate = t.DueDate,
+                        UserId = t.UserId,
+                        ProjectId = t.ProjectId
+                    }).ToList(),
+                    "Project todo's retrieved successfully."
+                    );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving todo's for project {ProjectId}.", dto.ProjectId);
+
+                return ServiceResult<List<ToDoResponseDto>>.Failure(
+                    "An unexpected error occurred while retrieving todo's.",
+                    new[] { ex.Message });
+            }
+        }
+
+
         // Get todo by id
         public async Task<Todo> GetTodoById(GetTodoByIdDto dto)
         {

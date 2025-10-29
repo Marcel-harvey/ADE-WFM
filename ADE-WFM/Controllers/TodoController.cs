@@ -36,6 +36,19 @@ namespace ADE_WFM.Controllers
         }
 
 
+        // Get all todos for a project
+        [HttpPost("Project/Get/All")]
+        public async Task<IActionResult> GetAllProjectTodos([FromBody] GetToDoDto dto)
+        {
+            var result = await _todoService.GetAllProjectTodos(dto);
+
+            if (!result.Succeeded)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+
         // UPDATE API's
 
 
