@@ -1,5 +1,4 @@
-﻿using ADE_WFM.Models.ViewModels.CommentViewModels;
-using ADE_WFM.Models;
+﻿using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs;
 using Microsoft.EntityFrameworkCore;
 using ADE_WFM.Data;

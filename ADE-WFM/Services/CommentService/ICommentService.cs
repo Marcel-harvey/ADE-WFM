@@ -1,7 +1,6 @@
 ﻿using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.CommentDtos;
-using ADE_WFM.Models.ViewModels.CommentViewModels;
 
 namespace ADE_WFM.Services.CommentService
 {
