@@ -8,7 +8,7 @@ namespace ADE_WFM.Services.CommentService
     public interface ICommentService
     {
         // CREATE services
-        Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model);
+        Task<ServiceResult<AddCommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto);
         Task AddCommentToProject(AddCommentProjectViewModel model);
 
         // GET serivces

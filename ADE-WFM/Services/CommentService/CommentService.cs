@@ -27,6 +27,96 @@ namespace ADE_WFM.Services.CommentService
             _logger = logger;
         }
 
+
+        // ADD services
+        // Add comment to workflow
+        public async Task<ServiceResult<AddCommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<AddCommentResponseDto>.Failure("Invalid request data.");
+
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                return ServiceResult<AddCommentResponseDto>.Failure("User ID is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.CommentContent))
+                return ServiceResult<AddCommentResponseDto>.Failure("Comment content cannot be empty.");
+
+            if (dto.WorkFlowId <= 0)
+                return ServiceResult<AddCommentResponseDto>.Failure("Valid WorkFlow ID is required.");
+
+
+            var user = await _userManager
+                .FindByIdAsync(dto.UserId);
+            if (user == null)
+                return ServiceResult<AddCommentResponseDto>.Failure("User not found.");
+
+            var workFlow = await _context.WorkFlows
+                .FindAsync(dto.WorkFlowId);
+            if (workFlow == null)
+                return ServiceResult<AddCommentResponseDto>.Failure("WorkFlow not found.");
+
+            try
+            {
+                var comment = new Comment
+                {
+                    DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
+                    CommentContent = dto.CommentContent,
+                    UserId = dto.UserId,
+                    WorkFlowId = dto.WorkFlowId,
+                    IsViewed = false,
+                };
+
+                _context.Comments.Add(comment);
+                await _context.SaveChangesAsync();
+
+                return ServiceResult<AddCommentResponseDto>.Success(
+                    new AddCommentResponseDto
+                    {
+                        Id = comment.Id,
+                        DateCreated = comment.DateCreated,
+                        CommentContent = comment.CommentContent,
+                        UserName = user.UserName ?? "Unknown",
+                        WorkFlowId = comment.WorkFlowId,
+                    },
+                    "Comment added to workflow successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error adding comment to work flow");
+                return ServiceResult<AddCommentResponseDto>.Failure(
+                    "A database error occurred while adding new comment to work flow.",
+                    new[] { ex.Message }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error adding comment to work flow");
+                return ServiceResult<AddCommentResponseDto>.Failure(
+                    "An unexpected error occurred while adding new comment to work flow.",
+                    new[] { ex.Message }
+                );
+            }
+        }
+
+
+        // Add comment to project
+        public async Task AddCommentToProject(AddCommentProjectViewModel model)
+        {
+            var comment = new Comment
+            {
+                DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
+                CommentContent = model.Comment.CommentContent,
+                UserId = model.UserId,
+                ProjectId = model.Comment.ProjectId,
+                IsViewed = false,
+            };
+
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+        }
+
+
         // GET serivces
         // Get all comments on a workflow
         public async Task<ServiceResult<List<GetCommentsResponseDto>>> GetWorkFlowComments(GetCommentsInSectionDto dto)
@@ -248,42 +338,6 @@ namespace ADE_WFM.Services.CommentService
                     new[] { ex.Message }
                 );
             }
-        }
-
-
-
-        // ADD services
-        // Add comment to workflow
-        public async Task AddCommentToWorkFlow(AddCommentWorkFlowViewModel model)
-        {
-            var comment = new Comment
-            {
-                DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
-                CommentContent = model.Comment.CommentContent,
-                UserId = model.UserId,
-                WorkFlowId = model.Comment.WorkFlowId,
-                IsViewed = false,
-            };
-
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-        }
-
-
-        // Add comment to project
-        public async Task AddCommentToProject(AddCommentProjectViewModel model)
-        {
-            var comment = new Comment
-            {
-                DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
-                CommentContent = model.Comment.CommentContent,
-                UserId = model.UserId,
-                ProjectId = model.Comment.ProjectId,
-                IsViewed = false,
-            };
-
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
         }
 
 
