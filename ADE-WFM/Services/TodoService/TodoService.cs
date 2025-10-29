@@ -156,20 +156,6 @@ namespace ADE_WFM.Services.TodoService
             return todo;
         }
 
-
-        // Get all todos for a specific user
-        public async Task<List<Todo>> GetAllUserTodos(GetAllUserTodoDto dto)
-        {
-            var todos = await _context.Todos
-                .Where(t => t.UserId == dto.UserId)
-                .Include(t => t.User)
-                .Include(t => t.SubTasks)
-                .Include(t => t.Project)
-                .ToListAsync();
-
-            return todos;
-        }
-
                 
         // UPDATE service
         // Update the title of todo

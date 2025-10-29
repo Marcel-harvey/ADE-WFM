@@ -10,7 +10,6 @@ namespace ADE_WFM.Services.TodoService
         Task<ServiceResult<List<ToDoResponseDto>>> GetAllUserTodos(GetToDoDto dto);
         Task<ServiceResult<List<ToDoResponseDto>>> GetAllProjectTodos(GetToDoDto dto);
         Task<Todo> GetTodoById(GetTodoByIdDto dto);
-        Task<List<Todo>> GetAllUserTodos(GetAllUserTodoDto dto);
 
 
         // ADD service
