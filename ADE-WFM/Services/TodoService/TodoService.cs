@@ -143,19 +143,6 @@ namespace ADE_WFM.Services.TodoService
             }
         }
 
-
-        // Get todo by id
-        public async Task<Todo> GetTodoById(GetTodoByIdDto dto)
-        {
-            var todo = await _context.Todos
-                .Include(t => t.User)
-                .Include(t => t.SubTasks)
-                .FirstOrDefaultAsync(t => t.Id == dto.TodoId)
-                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
-
-            return todo;
-        }
-
                 
         // UPDATE service
         // Update the title of todo
