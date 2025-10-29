@@ -16,6 +16,6 @@ namespace ADE_WFM.Services.StickyNoteService
         Task<ServiceResult<StickyNoteResponseDto>> UpdateStickyNote(GetStickyNoteInfoDto dto);
 
         // DELETE services
-        Task DeleteStickyNote(DeleteStickyNoteDto dto);
+        Task<ServiceResult<StickyNoteResponseDto>> DeleteStickyNote(GetStickyNoteInfoDto dto);
     }
 }

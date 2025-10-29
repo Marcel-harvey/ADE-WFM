@@ -183,14 +183,59 @@ namespace ADE_WFM.Services.StickyNoteService
         }
 
         // DELETE services
-        public async Task DeleteStickyNote(DeleteStickyNoteDto dto)
+        public async Task<ServiceResult<StickyNoteResponseDto>> DeleteStickyNote(GetStickyNoteInfoDto dto)
         {
-            var stickyNote = await _context.StickyNotes
-                .FirstOrDefaultAsync(snId => snId.Id == dto.StickyNoteId)
-                ?? throw new KeyNotFoundException($"Sticky Note with Id {dto.StickyNoteId} not found.");
+            // General validations
+            if (dto == null)
+                return ServiceResult<StickyNoteResponseDto>.Failure("Input data is null.");
 
-            _context.StickyNotes.Remove(stickyNote);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrEmpty(dto.NewContent))
+                return ServiceResult<StickyNoteResponseDto>.Failure("Updated content is required.");
+
+            if (dto.StickyNoteId <= 0)
+                return ServiceResult<StickyNoteResponseDto>.Failure("Valid StickyNoteId is required.");
+
+            if (string.IsNullOrEmpty(dto.UserId))
+                return ServiceResult<StickyNoteResponseDto>.Failure("UserId is required.");
+
+            try
+            {
+                var stickyNote = await _context.StickyNotes
+                    .Include(sn => sn.User)
+                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == dto.UserId);
+                if (stickyNote == null)
+                {
+                    _logger.LogWarning("Sticky note with ID {StickyNoteId} not found for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
+                    return ServiceResult<StickyNoteResponseDto>.Failure("Sticky note not found.");
+                }
+
+                _context.StickyNotes.Remove(stickyNote);
+                await _context.SaveChangesAsync();
+
+                return ServiceResult<StickyNoteResponseDto>.Success(
+                    new StickyNoteResponseDto
+                    {
+                        Id = stickyNote.Id,
+                        Content = stickyNote.Content
+                    },
+                    "Sticky note deleted successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while deleting sticky note");
+                return ServiceResult<StickyNoteResponseDto>.Failure(
+                    "A database error occurred while deleting the sticky note.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while deleting sticky not");
+                return ServiceResult<StickyNoteResponseDto>.Failure(
+                    "An unexpected error occurred while deleting the sticky note.",
+                    new[] { ex.Message });
+            }
+
         }
     }
 }

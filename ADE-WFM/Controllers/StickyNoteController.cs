@@ -31,6 +31,7 @@ namespace ADE_WFM.Controllers
 
 
         // GET API's
+        // Get all users sticky notes
         [HttpPost("User/All")]
         public async Task<IActionResult> GetAllUserStickyNotes([FromBody] GetAllUserStickyNotesDto dto)
         {
@@ -44,6 +45,7 @@ namespace ADE_WFM.Controllers
 
 
         // UPDATE API's
+        // Update selected sticky note
         [HttpPut("User/Update")]
         public async Task<IActionResult> UpdateStickyNote([FromBody] GetStickyNoteInfoDto dto)
         {
@@ -55,7 +57,18 @@ namespace ADE_WFM.Controllers
             return Ok(result);
         }
 
-        // DELETE API's
 
+        // DELETE API's
+        // Delete selected sticky note
+        [HttpDelete("User/Delete")]
+        public async Task<IActionResult> DeleteStickyNote([FromBody] GetStickyNoteInfoDto dto)
+        {
+            var result = await _stickyNoteService.DeleteStickyNote(dto);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
     }
 }
