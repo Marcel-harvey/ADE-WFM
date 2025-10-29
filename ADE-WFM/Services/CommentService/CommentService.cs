@@ -288,17 +288,58 @@ namespace ADE_WFM.Services.CommentService
 
 
         // DELETE services
-        public async Task DeleteComment(int commentId)
+        public async Task<ServiceResult<DeleteCommentResponseDto>> DeleteComment(DeleteCommentDto dto)
         {
-            var comment = await _context.Comments.FindAsync(commentId);
+            if (dto == null)
+                return ServiceResult<DeleteCommentResponseDto>.Failure("Invalid request data.");
 
-            if (comment == null)
+            if (dto.CommentId <= 0)
+                return ServiceResult<DeleteCommentResponseDto>.Failure("Invalid Comment ID.");
+
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                return ServiceResult<DeleteCommentResponseDto>.Failure("Invalid User ID.");
+
+            try
             {
-                throw new KeyNotFoundException($"Comment with ID {commentId} not found.");
+                var comment = await _context.Comments
+                    .FirstOrDefaultAsync(c => c.Id == dto.CommentId && c.UserId == dto.UserId);
+
+                if (comment == null)
+                {
+                    _logger.LogInformation("Comment not found or user unauthorized for Comment ID: {CommentId}", dto.CommentId);
+                    return ServiceResult<DeleteCommentResponseDto>.Failure("Comment not found or user unauthorized, user can only delete own comments.");
+                }
+
+                _context.Comments.Remove(comment);
+                await _context.SaveChangesAsync();
+
+                return ServiceResult<DeleteCommentResponseDto>.Success(
+                    new DeleteCommentResponseDto
+                    {
+                        CommentId = comment.Id,
+                    },
+                    "Comment deleted successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while deleting comment ID: {CommentId}", dto.CommentId);
+                return ServiceResult<DeleteCommentResponseDto>.Failure(
+                    "A database error occurred while deleting comment.",
+                    new[] { ex.Message }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while deleting comment ID: {CommentId}", dto.CommentId);
+                return ServiceResult<DeleteCommentResponseDto>.Failure(
+                    "An unexpected error occurred while deleting comment.",
+                    new[] { ex.Message }
+                );
             }
 
-            _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync();
+
+
         }
     }
 }

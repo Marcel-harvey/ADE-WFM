@@ -20,7 +20,7 @@ namespace ADE_WFM.Services.CommentService
         Task<ServiceResult<UpdateCommentViewedResponseDto>> MarkCommentAsViewed(UpdateCommentViewedDto dto);
 
         // DELETE services
-        Task DeleteComment(int commentId);
+        Task<ServiceResult<DeleteCommentResponseDto>> DeleteComment(DeleteCommentDto dto);
     }
 }
 

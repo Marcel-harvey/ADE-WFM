@@ -79,5 +79,16 @@ namespace ADE_WFM.Controllers
         }
 
         // DELETE API's
+        // Delete a users comment
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteComment([FromBody] DeleteCommentDto dto)
+        {
+            var result = await _commentService.DeleteComment(dto);
+
+            if (!result.Succeeded)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
     }
 }
