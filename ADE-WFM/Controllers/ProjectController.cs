@@ -1,8 +1,6 @@
 ﻿using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.ProjectDtos;
-using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Services.ProjectService;
-using ADE_WFM.Services.WorkFlowService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
