@@ -127,7 +127,7 @@ namespace ADE_WFM.Services.StickyNoteService
 
 
         // UPDATE services
-        public async Task<ServiceResult<StickyNoteResponseDto>> UpdateStickyNote(UpdateStickyNoteDto dto)
+        public async Task<ServiceResult<StickyNoteResponseDto>> UpdateStickyNote(GetStickyNoteInfoDto dto)
         {
             // General validations
             if (dto == null)

@@ -45,7 +45,7 @@ namespace ADE_WFM.Controllers
 
         // UPDATE API's
         [HttpPut("User/Update")]
-        public async Task<IActionResult> UpdateStickyNote([FromBody] UpdateStickyNoteDto dto)
+        public async Task<IActionResult> UpdateStickyNote([FromBody] GetStickyNoteInfoDto dto)
         {
             var result = await _stickyNoteService.UpdateStickyNote(dto);
             if (!result.Succeeded)
