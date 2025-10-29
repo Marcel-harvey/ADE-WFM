@@ -18,6 +18,16 @@ namespace ADE_WFM.Controllers
         }
 
         // CREATE API's
+        [HttpPost("User/Create")]
+        public async Task<IActionResult> CreateStickyNote([FromBody] CreateStickyNoteDto dto)
+        {
+            var result = await _stickyNoteService.AddStickyNote(dto);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
 
 
         // GET API's
@@ -29,10 +39,21 @@ namespace ADE_WFM.Controllers
             {
                 return BadRequest(result);
             }
-            return Ok(result.Data);
+            return Ok(result);
         }
 
+
         // UPDATE API's
+        [HttpPut("User/Update")]
+        public async Task<IActionResult> UpdateStickyNote([FromBody] UpdateStickyNoteDto dto)
+        {
+            var result = await _stickyNoteService.UpdateStickyNote(dto);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
 
         // DELETE API's
 

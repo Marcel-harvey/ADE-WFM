@@ -7,13 +7,13 @@ namespace ADE_WFM.Services.StickyNoteService
     public interface IStickyNoteService
     {
         // GET services
-        Task <ServiceResult<List<GetStickyNoteResponseDto>>> GetAllStickyNotes(GetAllUserStickyNotesDto dto);
+        Task<ServiceResult<List<GetStickyNoteResponseDto>>> GetAllStickyNotes(GetAllUserStickyNotesDto dto);
 
         // ADD services
-        Task AddStickyNote(CreateStickyNoteDto dto);
+        Task<ServiceResult<StickyNoteResponseDto>> AddStickyNote(CreateStickyNoteDto dto);
 
         // UPDATE services
-        Task UpdateStickyNote(UpdateStickyNoteDto dto);
+        Task<ServiceResult<StickyNoteResponseDto>> UpdateStickyNote(UpdateStickyNoteDto dto);
 
         // DELETE services
         Task DeleteStickyNote(DeleteStickyNoteDto dto);

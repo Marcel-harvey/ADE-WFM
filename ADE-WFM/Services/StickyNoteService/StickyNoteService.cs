@@ -26,16 +26,59 @@ namespace ADE_WFM.Services.StickyNoteService
 
 
         // ADD services
-        public async Task AddStickyNote(CreateStickyNoteDto dto)
+        public async Task<ServiceResult<StickyNoteResponseDto>> AddStickyNote(CreateStickyNoteDto dto)
         {
-            var newStickyNote = new StickyNote
-            {
-                Content = dto.Content,
-                UserId = dto.UserId
-            };
+            // General validations
+            if (dto == null)
+                return ServiceResult<StickyNoteResponseDto>.Failure("Input data is null.");
 
-            _context.StickyNotes.Add(newStickyNote);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrEmpty(dto.UserId))
+                return ServiceResult<StickyNoteResponseDto>.Failure("UserId is required.");
+
+            if (string.IsNullOrEmpty(dto.Content))
+                return ServiceResult<StickyNoteResponseDto>.Failure("Content is required.");
+
+            var user = await _userManager
+                .FindByIdAsync(dto.UserId);
+            if (user == null)
+                return ServiceResult<StickyNoteResponseDto>.Failure($"User with Id {dto.UserId} not found.");
+
+            try
+            {
+                var stickyNote = new StickyNote
+                {
+                    Content = dto.Content,
+                    UserId = dto.UserId
+                };
+
+                _context.StickyNotes.Add(stickyNote);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Sticky note created successfully for user with ID: {UserId}", dto.UserId);
+
+                return ServiceResult<StickyNoteResponseDto>.Success(
+                    new StickyNoteResponseDto
+                    {
+                        Id = stickyNote.Id,
+                        Content = stickyNote.Content
+                    },
+                    "Sticky note created successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while adding sticky note to user '{UserName}'", user.UserName);
+                return ServiceResult<StickyNoteResponseDto>.Failure(
+                    "A database error occurred while adding the sticky note.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while adding sticky note to user '{UserName}'", user.UserName);
+                return ServiceResult<StickyNoteResponseDto>.Failure(
+                    "An unexpected error occurred while adding the sticky note.",
+                    new[] { ex.Message });
+            }
         }
 
 
@@ -43,6 +86,7 @@ namespace ADE_WFM.Services.StickyNoteService
         // Get all sticky notes related to user
         public async Task<ServiceResult<List<GetStickyNoteResponseDto>>> GetAllStickyNotes(GetAllUserStickyNotesDto dto)
         {
+            // General validations
             if (dto == null)
                 return ServiceResult<List<GetStickyNoteResponseDto>>.Failure("Input data is null.");
 
@@ -61,6 +105,7 @@ namespace ADE_WFM.Services.StickyNoteService
                     _logger.LogWarning("No sticky notes found for user with ID: {UserId}", dto.UserId);
                     return ServiceResult<List<GetStickyNoteResponseDto>>.Failure("No sticky notes found for user");
                 }
+                _logger.LogInformation("Retrieved {Count} sticky notes for user with ID: {UserId}", stickyNotes.Count, dto.UserId);
 
                 return ServiceResult<List<GetStickyNoteResponseDto>>.Success(
                     stickyNotes.Select(sn => new GetStickyNoteResponseDto
@@ -82,14 +127,59 @@ namespace ADE_WFM.Services.StickyNoteService
 
 
         // UPDATE services
-        public async Task UpdateStickyNote(UpdateStickyNoteDto dto)
+        public async Task<ServiceResult<StickyNoteResponseDto>> UpdateStickyNote(UpdateStickyNoteDto dto)
         {
-            var stickyNote = await _context.StickyNotes
-                .FirstOrDefaultAsync(snId => snId.Id == dto.StickyNoteId)
-                ?? throw new KeyNotFoundException($"Sticky Note with Id {dto.StickyNoteId} not found.");
+            // General validations
+            if (dto == null)
+                return ServiceResult<StickyNoteResponseDto>.Failure("Input data is null.");
 
-            stickyNote.Content = dto.NewContent;
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrEmpty(dto.NewContent))
+                return ServiceResult<StickyNoteResponseDto>.Failure("Updated content is required.");
+
+            if (dto.StickyNoteId <= 0)
+                return ServiceResult<StickyNoteResponseDto>.Failure("Valid StickyNoteId is required.");
+
+            if (string.IsNullOrEmpty(dto.UserId))
+                return ServiceResult<StickyNoteResponseDto>.Failure("UserId is required.");
+
+            try
+            {
+                var stickyNote = await _context.StickyNotes
+                    .Include(sn => sn.User)
+                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == dto.UserId);
+
+                if (stickyNote == null)
+                {
+                    _logger.LogWarning("Sticky note with ID {StickyNoteId} not found for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
+                    return ServiceResult<StickyNoteResponseDto>.Failure("Sticky note not found.");
+                }
+
+                stickyNote.Content = dto.NewContent;
+                await _context.SaveChangesAsync();
+
+                return ServiceResult<StickyNoteResponseDto>.Success(
+                    new StickyNoteResponseDto
+                    {
+                        Id = stickyNote.Id,
+                        Content = stickyNote.Content
+                    },
+                    "Sticky note updated successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating sticky note");
+                return ServiceResult<StickyNoteResponseDto>.Failure(
+                    "A database error occurred while updating the sticky note.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating sticky not");
+                return ServiceResult<StickyNoteResponseDto>.Failure(
+                    "An unexpected error occurred while updating the sticky note.",
+                    new[] { ex.Message });
+            }
         }
 
         // DELETE services
