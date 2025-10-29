@@ -7,7 +7,7 @@ namespace ADE_WFM.Services.TodoService
     public interface ITodoService
     {
         // ADD service
-        Task AddTodo(AddTodoDto dto);
+        Task<ServiceResult<ToDoResponseDto>> AddTodo(AddTodoDto dto);
 
 
         // GET service

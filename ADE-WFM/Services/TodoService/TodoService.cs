@@ -26,12 +26,76 @@ namespace ADE_WFM.Services.TodoService
 
 
         // ADD service
-        public async Task AddTodo(AddTodoDto dto)
+        public async Task<ServiceResult<ToDoResponseDto>> AddTodo(AddTodoDto dto)
         {
-            var todos = await _context.Todos
-                .Include(user => user.User)
-                .Include(subTasks => subTasks.SubTasks)
-                .ToListAsync();
+            // General validation
+            if (dto == null)
+                return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
+
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                return ServiceResult<ToDoResponseDto>.Failure("User id required.");
+
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                return ServiceResult<ToDoResponseDto>.Failure("Title is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.Description))
+                return ServiceResult<ToDoResponseDto>.Failure("Description is required.");
+
+            var user = await _userManager
+                .FindByIdAsync(dto.UserId);
+            if (user == null)
+            {
+                _logger.LogWarning("User with ID {UserId} does not exist.", dto.UserId);
+                return ServiceResult<ToDoResponseDto>.Failure("User does not exist.");
+            }
+
+            try
+            {
+                var todo = new Todo
+                {
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    DueDate = dto.DueDate,
+                    DateCreated = DateTime.UtcNow,
+                    IsComplete = false,
+                    UserId = dto.UserId,
+                    ProjectId = dto.ProjectId,
+                };
+
+                _context.Todos.Add(todo);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Todo with ID {TodoId} created successfully for user ID {UserId}.", todo.Id, dto.UserId);
+
+                return ServiceResult<ToDoResponseDto>.Success(
+                    new ToDoResponseDto
+                    {
+                        Id = todo.Id,
+                        IsComplete = todo.IsComplete,
+                        Title = todo.Title,
+                        Description = todo.Description,
+                        DateCreated = todo.DateCreated,
+                        DueDate = todo.DueDate,
+                        UserName = user.UserName ?? "Unknown",
+                        ProjectId = todo.ProjectId
+                    },
+                    "Todo created successfully."
+                    );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while adding todo {TodoTitle}", dto.Title);
+                return ServiceResult<ToDoResponseDto>.Failure(
+                    "A database error occurred while adding the todo.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while adding todo {TodoTitle}", dto.Title);
+                return ServiceResult<ToDoResponseDto>.Failure(
+                    "An unexpected error occurred while adding the todo.",
+                    new[] { ex.Message });
+            }
         }
 
 
@@ -69,7 +133,7 @@ namespace ADE_WFM.Services.TodoService
                         Description = t.Description,
                         DateCreated = t.DateCreated,
                         DueDate = t.DueDate,
-                        UserId = t.UserId,
+                        UserName = t.User.UserName ?? "Unknown",
                         ProjectId = t.ProjectId
                     }).ToList(),
                     "User todo's retrieved successfully."
@@ -127,7 +191,7 @@ namespace ADE_WFM.Services.TodoService
                         Description = t.Description,
                         DateCreated = t.DateCreated,
                         DueDate = t.DueDate,
-                        UserId = t.UserId,
+                        UserName = t.User.UserName ?? "Unknown",
                         ProjectId = t.ProjectId
                     }).ToList(),
                     "Project todo's retrieved successfully."
