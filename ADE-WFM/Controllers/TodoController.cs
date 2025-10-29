@@ -17,5 +17,28 @@ namespace ADE_WFM.Controllers
         {
             _todoService = todoService;
         }
+
+
+        // CREATE API's
+
+
+        // GET API's
+        // Get all todos for a user
+        [HttpPost("User/Get/All")]
+        public async Task<IActionResult> GetAllUserTodos([FromBody] GetToDoDto dto)
+        {
+            var result = await _todoService.GetAllUserTodos(dto);
+
+            if (!result.Succeeded)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+
+        // UPDATE API's
+
+
+        // DELETE API's
     }
 }

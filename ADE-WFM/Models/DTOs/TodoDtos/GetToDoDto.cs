@@ -2,8 +2,8 @@
 {
     public class GetToDoDto
     {
-        public int ToDoId { get; set; }
+        public int? ToDoId { get; set; }
         public string? UserId { get; set; }
-        public string? ProjectId { get; set; }
+        public int? ProjectId { get; set; }
     }
 }

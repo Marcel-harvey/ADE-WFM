@@ -1,4 +1,5 @@
 ﻿using ADE_WFM.Models;
+using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.TodoDtos;
 
 namespace ADE_WFM.Services.TodoService
@@ -6,7 +7,7 @@ namespace ADE_WFM.Services.TodoService
     public interface ITodoService
     {
         // GET service
-        Task<List<Todo>> GetAllTodos();
+        Task<ServiceResult<List<ToDoResponseDto>>> GetAllUserTodos(GetToDoDto dto);
         Task<Todo> GetTodoById(GetTodoByIdDto dto);
         Task<List<Todo>> GetAllUserTodos(GetAllUserTodoDto dto);
 

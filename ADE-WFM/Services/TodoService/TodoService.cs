@@ -2,28 +2,87 @@
 using ADE_WFM.Data;
 using Microsoft.EntityFrameworkCore;
 using ADE_WFM.Models.DTOs.TodoDtos;
+using ADE_WFM.Models.DTOs;
+using ADE_WFM.Models.DTOs.ProjectDtos;
+using Microsoft.AspNetCore.Identity;
 
 namespace ADE_WFM.Services.TodoService
 {
     public class TodoService : ITodoService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<TodoService> _logger;
 
-        public TodoService(ApplicationDbContext context)
+        public TodoService(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            ILogger<TodoService> logger)
         {
             _context = context;
+            _userManager = userManager;
+            _logger = logger;
         }
 
-        // GET service
-        // Get all todos
-        public async Task<List<Todo>> GetAllTodos()
+
+        // ADD service
+        public async Task AddTodo(AddTodoDto dto)
         {
             var todos = await _context.Todos
                 .Include(user => user.User)
                 .Include(subTasks => subTasks.SubTasks)
                 .ToListAsync();
+        }
 
-            return todos;
+
+        // GET service
+        // Get all todos for a user
+        public async Task<ServiceResult<List<ToDoResponseDto>>> GetAllUserTodos(GetToDoDto dto)
+        {
+            // General validation
+            if (dto == null)
+                return ServiceResult<List<ToDoResponseDto>>.Failure("Input data is null.");
+
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                return ServiceResult<List<ToDoResponseDto>>.Failure("User id required.");
+
+            try
+            {
+                var todos = await _context.Todos
+                    .Where(t => t.UserId == dto.UserId)
+                    .Include(t => t.User)
+                    .Include(t => t.SubTasks)
+                    .ToListAsync();
+
+                if (!todos.Any())
+                {
+                    _logger.LogInformation("No todo's found for user {UserId}.", dto.UserId);
+                    return ServiceResult<List<ToDoResponseDto>>.Failure("No todo's found for the given user.");
+                }
+
+                return ServiceResult<List<ToDoResponseDto>>.Success(
+                    todos.Select(t => new ToDoResponseDto
+                    {
+                        Id = t.Id,
+                        IsComplete = t.IsComplete,
+                        Title = t.Title,
+                        Description = t.Description,
+                        DateCreated = t.DateCreated,
+                        DueDate = t.DueDate,
+                        UserId = t.UserId,
+                        ProjectId = t.ProjectId
+                    }).ToList(),
+                    "User todo's retrieved successfully."
+                    );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving todo's for user {UserId}.", dto.UserId);
+
+                return ServiceResult<List<ToDoResponseDto>>.Failure(
+                    "An unexpected error occurred while retrieving todo's.",
+                    new[] { ex.Message });
+            }
         }
 
 
@@ -53,32 +112,7 @@ namespace ADE_WFM.Services.TodoService
             return todos;
         }
 
-
-        // ADD service
-        public async Task AddTodo(AddTodoDto dto)
-        {
-            var todo = new Todo
-            {
-                IsComplete = false,
-                Title = dto.Title,
-                Description = dto.Description,
-                DateCreated = DateTime.UtcNow,
-                DueDate = dto.DueDate,
-                UserId = dto.UserId,
-                ProjectId = dto.ProjectId ?? null,
-                SubTasks = dto.SubTasks?.Select(st => new SubTask
-                {
-                    IsCompleted = st.IsCompleted,
-                    Description = st.Description
-                }).ToList()
-            };
-
-            _context.Todos.Add(todo);
-            await _context.SaveChangesAsync();
-        }
-
-
-
+                
         // UPDATE service
         // Update the title of todo
         public async Task UpdateTodoTitle(UpdateTodoTitleDto dto)
