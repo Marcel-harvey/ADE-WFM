@@ -31,6 +31,7 @@ namespace ADE_WFM.Services.ProjectService
         // Create a new project
         public async Task<ServiceResult<CreateProjectResponseDto>> CreateProject(CreateProjectDto dto)
         {
+            // General validation
             if (dto == null)
                 return ServiceResult<CreateProjectResponseDto>.Failure("CreateProjectDto cannot be null");
 
@@ -50,9 +51,7 @@ namespace ADE_WFM.Services.ProjectService
                 .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
 
             if (workFlow == null)
-            {
                 return ServiceResult<CreateProjectResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} does not exist");
-            }
 
             try
             {
@@ -66,13 +65,16 @@ namespace ADE_WFM.Services.ProjectService
                     ProjectUsers = new List<ProjectUser>(),
                 };
 
+                // Lists for adding added and skipped users when iterating through provided user IDs
                 var addedUsers = new List<ProjectUsersInfoDto>();
                 var skippedUsers = new List<ProjectUsersInfoDto>();
 
                 // Add creator of project
                 project.ProjectUsers.Add(new ProjectUser { UserId = dto.CurrentUserId });
 
-                var creator = await _context.Users.FindAsync(dto.CurrentUserId);
+                var creator = await _context.Users
+                    .FindAsync(dto.CurrentUserId);
+
                 addedUsers.Add(new ProjectUsersInfoDto
                 {
                     UserId = dto.CurrentUserId,
@@ -120,6 +122,7 @@ namespace ADE_WFM.Services.ProjectService
 
                 return ServiceResult<CreateProjectResponseDto>.Success(new CreateProjectResponseDto
                 {
+                    WorkFlowName = workFlow.WorkFlowName,
                     Title = project.ProjectTitle,
                     Description = project.ProjectDescription ?? null,
                     DateCreated = project.DateCreated.ToDateTime(TimeOnly.MinValue),
@@ -130,8 +133,6 @@ namespace ADE_WFM.Services.ProjectService
                 $"Created project {project.ProjectTitle} successfully"
                 );
             }
-
-            // Database exceptions
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Database error while creating project '{projectName}'", dto.ProjectTitle);
@@ -152,6 +153,7 @@ namespace ADE_WFM.Services.ProjectService
         // Add new user to project
         public async Task<ServiceResult<ProjectUsersInfoDto>> AddUserToProject(AddUserToProjectDto dto)
         {
+            // General validation
             if (dto == null)
                 return ServiceResult<ProjectUsersInfoDto>.Failure("AddUserToProjectDto cannot be null");
 
@@ -248,6 +250,7 @@ namespace ADE_WFM.Services.ProjectService
             try
             {
                 var projects = await _context.Projects
+                    .Include(p => p.WorkFlows)
                     .Include(pu => pu.ProjectUsers)
                         .ThenInclude(u => u.User)
                     .OrderByDescending(p => p.DateCreated)
@@ -262,13 +265,14 @@ namespace ADE_WFM.Services.ProjectService
                 return ServiceResult<List<GetProjectResponseDto>>.Success(
                     projects.Select(p => new GetProjectResponseDto
                     {
-                        Id = p.Id,
-                        Title = p.ProjectTitle,
+                        WorkFlowName = p.WorkFlows.WorkFlowName,
+                        ProjectTitle = p.ProjectTitle,
                         Description = p.ProjectDescription,
                         DueDate = p.DueDate,
                         DateCreated = p.DateCreated,
                         Users = p.ProjectUsers.Select(u => new ProjectUsersInfoDto
                         {
+                            ProjectId = p.Id,
                             UserId = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
                         }).ToList()
@@ -311,13 +315,13 @@ namespace ADE_WFM.Services.ProjectService
 
                 var response = new GetProjectResponseDto
                 {
-                    Id = project.Id,
-                    Title = project.ProjectTitle,
+                    ProjectTitle = project.ProjectTitle,
                     Description = project.ProjectDescription,
                     DueDate = project.DueDate,
                     DateCreated = project.DateCreated,
                     Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto
                     {
+                        ProjectId = project.Id,
                         UserId = u.UserId,
                         UserName = u.User?.UserName ?? string.Empty
                     }).ToList()
