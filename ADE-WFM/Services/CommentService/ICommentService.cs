@@ -9,7 +9,7 @@ namespace ADE_WFM.Services.CommentService
     {
         // CREATE services
         Task<ServiceResult<AddCommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto);
-        Task AddCommentToProject(AddCommentProjectViewModel model);
+        Task<ServiceResult<AddCommentResponseDto>> AddCommentToProject(AddCommentDto dto);
 
         // GET serivces
         Task<ServiceResult<List<GetCommentsResponseDto>>> GetWorkFlowComments(GetCommentsInSectionDto dto);

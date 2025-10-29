@@ -32,6 +32,7 @@ namespace ADE_WFM.Services.CommentService
         // Add comment to workflow
         public async Task<ServiceResult<AddCommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto)
         {
+            // General validations
             if (dto == null)
                 return ServiceResult<AddCommentResponseDto>.Failure("Invalid request data.");
 
@@ -42,7 +43,7 @@ namespace ADE_WFM.Services.CommentService
                 return ServiceResult<AddCommentResponseDto>.Failure("Comment content cannot be empty.");
 
             if (dto.WorkFlowId <= 0)
-                return ServiceResult<AddCommentResponseDto>.Failure("Valid WorkFlow ID is required.");
+                return ServiceResult<AddCommentResponseDto>.Failure("Valid Work flow ID is required.");
 
 
             var user = await _userManager
@@ -53,7 +54,7 @@ namespace ADE_WFM.Services.CommentService
             var workFlow = await _context.WorkFlows
                 .FindAsync(dto.WorkFlowId);
             if (workFlow == null)
-                return ServiceResult<AddCommentResponseDto>.Failure("WorkFlow not found.");
+                return ServiceResult<AddCommentResponseDto>.Failure("Work flow not found.");
 
             try
             {
@@ -62,7 +63,7 @@ namespace ADE_WFM.Services.CommentService
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                     CommentContent = dto.CommentContent,
                     UserId = dto.UserId,
-                    WorkFlowId = dto.WorkFlowId,
+                    WorkFlowId = workFlow.Id,
                     IsViewed = false,
                 };
 
@@ -78,7 +79,7 @@ namespace ADE_WFM.Services.CommentService
                         UserName = user.UserName ?? "Unknown",
                         WorkFlowId = comment.WorkFlowId,
                     },
-                    "Comment added to workflow successfully."
+                    "Comment added to work flow successfully."
                 );
             }
             catch (DbUpdateException ex)
@@ -101,19 +102,81 @@ namespace ADE_WFM.Services.CommentService
 
 
         // Add comment to project
-        public async Task AddCommentToProject(AddCommentProjectViewModel model)
+        public async Task<ServiceResult<AddCommentResponseDto>> AddCommentToProject(AddCommentDto dto)
         {
-            var comment = new Comment
-            {
-                DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
-                CommentContent = model.Comment.CommentContent,
-                UserId = model.UserId,
-                ProjectId = model.Comment.ProjectId,
-                IsViewed = false,
-            };
+            // General validations
+            if (dto == null)
+                return ServiceResult<AddCommentResponseDto>.Failure("Invalid request data.");
 
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                return ServiceResult<AddCommentResponseDto>.Failure("User ID is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.CommentContent))
+                return ServiceResult<AddCommentResponseDto>.Failure("Comment content cannot be empty.");
+
+            if (dto.ProjectId <= 0)
+                return ServiceResult<AddCommentResponseDto>.Failure("Valid project ID is required.");
+
+            if (dto.WorkFlowId <= 0)
+                return ServiceResult<AddCommentResponseDto>.Failure("Valid Work flow ID is required.");
+
+
+            var user = await _userManager
+                .FindByIdAsync(dto.UserId);
+            if (user == null)
+                return ServiceResult<AddCommentResponseDto>.Failure("User not found.");
+
+            var project = await _context.Projects
+                .Include(wf => wf.WorkFlows)
+                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
+            if (project == null)
+                return ServiceResult<AddCommentResponseDto>.Failure("Project not found.");
+
+            try
+            {
+                // Need to supply work flow id for relationship
+                var comment = new Comment
+                {
+                    DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
+                    CommentContent = dto.CommentContent,
+                    UserId = dto.UserId,
+                    ProjectId = dto.ProjectId,
+                    WorkFlowId = project.WorkFlowId,
+                    IsViewed = false,
+                };
+
+                _context.Comments.Add(comment);
+                await _context.SaveChangesAsync();
+
+                return ServiceResult<AddCommentResponseDto>.Success(
+                    new AddCommentResponseDto
+                    {
+                        Id = comment.Id,
+                        DateCreated = comment.DateCreated,
+                        CommentContent = comment.CommentContent,
+                        UserName = user.UserName ?? "Unknown",
+                        ProjectId = comment.ProjectId,
+                        WorkFlowId = project.WorkFlowId,
+                    },
+                    "Comment added to project successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error adding comment to project");
+                return ServiceResult<AddCommentResponseDto>.Failure(
+                    "A database error occurred while adding new comment to project.",
+                    new[] { ex.Message }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error adding comment to project");
+                return ServiceResult<AddCommentResponseDto>.Failure(
+                    "An unexpected error occurred while adding new comment to project.",
+                    new[] { ex.Message }
+                );
+            }
         }
 
 

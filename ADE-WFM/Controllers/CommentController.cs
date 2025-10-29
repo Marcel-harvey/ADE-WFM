@@ -33,6 +33,19 @@ namespace ADE_WFM.Controllers
             return Ok(result);
         }
 
+        // Add comment to selected project
+        [HttpPost("Project/Add")]
+        public async Task<IActionResult> AddCommentToProject([FromBody] AddCommentDto dto)
+        {
+            var result = await _commentService.AddCommentToProject(dto);
+
+            if (!result.Succeeded)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+
         // GET API's
         // Get all comments in selected work flow
         [HttpGet("WorkFlow/Get/{id}")]
