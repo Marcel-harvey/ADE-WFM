@@ -17,5 +17,24 @@ namespace ADE_WFM.Controllers
             _stickyNoteService = stickyNoteService;
         }
 
+        // CREATE API's
+
+
+        // GET API's
+        [HttpPost("User/All")]
+        public async Task<IActionResult> GetAllUserStickyNotes([FromBody] GetAllUserStickyNotesDto dto)
+        {
+            var result = await _stickyNoteService.GetAllStickyNotes(dto);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result.Data);
+        }
+
+        // UPDATE API's
+
+        // DELETE API's
+
     }
 }
