@@ -8,7 +8,7 @@
         public string Description { get; set; } = string.Empty;
         public DateTime DateCreated { get; set; }
         public DateTime DueDate { get; set; }
-        public string UserId { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
         public int? ProjectId { get; set; }
     }
 }
