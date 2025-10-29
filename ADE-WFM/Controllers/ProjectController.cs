@@ -23,22 +23,12 @@ namespace ADE_WFM.Controllers
         [HttpPost("Create-new")]
         public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
         {
-            try
-            {
-                var result = await _projectService.CreateProject(dto);
+            var result = await _projectService.CreateProject(dto);
 
-                if (!result.Succeeded)
-                    return BadRequest(result);
+            if (!result.Succeeded)
+                return BadRequest(result);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<CreateProjectResponseDto>.Failure(
-                    "An unexpected error occurred while creating the project.",
-                    new[] { ex.Message }
-                ));
-            }
+            return Ok(result);
         }
 
 
@@ -46,22 +36,12 @@ namespace ADE_WFM.Controllers
         [HttpPost("Add-user")]
         public async Task<IActionResult> AddUserToProject([FromBody] AddUserToProjectDto dto)
         {
-            try
-            {
-                var result = await _projectService.AddUserToProject(dto);
+            var result = await _projectService.AddUserToProject(dto);
 
-                if (!result.Succeeded)
-                    return BadRequest(result);
+            if (!result.Succeeded)
+                return BadRequest(result);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<ProjectUsersInfoDto>.Failure(
-                    "An unexpected error occurred while adding the user to the project.",
-                    new[] { ex.Message }
-                ));
-            }
+            return Ok(result);
         }
 
 
@@ -70,22 +50,12 @@ namespace ADE_WFM.Controllers
         [HttpGet("Get-all")]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var result = await _projectService.GetAllProjects();
+            var result = await _projectService.GetAllProjects();
 
-                if (!result.Succeeded)
-                    return NotFound(result);
+            if (!result.Succeeded)
+                return NotFound(result);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<List<GetProjectResponseDto>>.Failure(
-                    "An unexpected error occurred while retrieving all projects.",
-                    new[] { ex.Message }
-                ));
-            }
+            return Ok(result);
         }
 
 
@@ -93,23 +63,13 @@ namespace ADE_WFM.Controllers
         [HttpGet("Get/{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var dto = new GetProjectByIdDto { Id = id };
-                var result = await _projectService.GetProjectById(dto);
+            var dto = new GetProjectByIdDto { Id = id };
+            var result = await _projectService.GetProjectById(dto);
 
-                if (!result.Succeeded)
-                    return NotFound(result);
+            if (!result.Succeeded)
+                return NotFound(result);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<GetProjectResponseDto>.Failure(
-                    "An unexpected error occurred while retrieving the project.",
-                    new[] { ex.Message }
-                ));
-            }
+            return Ok(result);
         }
 
 
@@ -117,23 +77,13 @@ namespace ADE_WFM.Controllers
         [HttpGet("Get-users/{projectId}")]
         public async Task<IActionResult> GetUsersInProject(int projectId)
         {
-            try
-            {
-                var dto = new GetProjectUsersDto { Id = projectId };
-                var result = await _projectService.GetUsersInProject(dto);
+            var dto = new GetProjectUsersDto { Id = projectId };
+            var result = await _projectService.GetUsersInProject(dto);
 
-                if (!result.Succeeded)
-                    return NotFound(result);
+            if (!result.Succeeded)
+                return NotFound(result);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<GetProjectUsersResponseDto>.Failure(
-                    "An unexpected error occurred while retrieving users in the project.",
-                    new[] { ex.Message }
-                ));
-            }
+            return Ok(result);
         }
 
         // UPDATE API's
@@ -141,22 +91,12 @@ namespace ADE_WFM.Controllers
         [HttpPut("Update-info")]
         public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto)
         {
-            try
-            {
-                var result = await _projectService.UpdateProjectInfo(dto);
+            var result = await _projectService.UpdateProjectInfo(dto);
 
-                if (!result.Succeeded)
-                    return BadRequest(result);
+            if (!result.Succeeded)
+                return BadRequest(result);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<UpdateProjectInfoResponseDto>.Failure(
-                    "An unexpected error occurred while updating the project info.",
-                    new[] { ex.Message }
-                ));
-            }
+            return Ok(result);
         }
 
         // DELETE API's
@@ -164,22 +104,12 @@ namespace ADE_WFM.Controllers
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteProject([FromBody] DeleteProjectDto dto)
         {
-            try
-            {
-                var result = await _projectService.DeleteProject(dto);
+            var result = await _projectService.DeleteProject(dto);
 
-                if (!result.Succeeded)
-                    return BadRequest(result);
+            if (!result.Succeeded)
+                return BadRequest(result);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<DeleteProjectResponseDto>.Failure(
-                    "An unexpected error occurred while deleting the project.",
-                    new[] { ex.Message }
-                ));
-            }
+            return Ok(result);
         }
 
 
@@ -187,22 +117,12 @@ namespace ADE_WFM.Controllers
         [HttpDelete("Remove-user")]
         public async Task<IActionResult> RemoveUserFromProject([FromBody] RemoveUserFromProjectDto dto)
         {
-            try
-            {
-                var result = await _projectService.RemoveUserFromProject(dto);
+            var result = await _projectService.RemoveUserFromProject(dto);
 
-                if (!result.Succeeded)
-                    return BadRequest(result);
+            if (!result.Succeeded)
+                return BadRequest(result);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<ProjectUsersInfoDto>.Failure(
-                    "An unexpected error occurred while removing the user from the project.",
-                    new[] { ex.Message }
-                ));
-            }
+            return Ok(result);
         }
     }
 }
