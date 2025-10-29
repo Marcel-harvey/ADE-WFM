@@ -110,6 +110,7 @@ namespace ADE_WFM.Services.StickyNoteService
                 return ServiceResult<List<GetStickyNoteResponseDto>>.Success(
                     stickyNotes.Select(sn => new GetStickyNoteResponseDto
                     {
+                        Id = sn.Id,
                         Content = sn.Content
                     }).ToList(),
                     "Sticky notes retrieved successfully."
@@ -157,6 +158,8 @@ namespace ADE_WFM.Services.StickyNoteService
                 stickyNote.Content = dto.NewContent;
                 await _context.SaveChangesAsync();
 
+                _logger.LogInformation("Sticky note with ID {StickyNoteId} updated successfully for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
+
                 return ServiceResult<StickyNoteResponseDto>.Success(
                     new StickyNoteResponseDto
                     {
@@ -175,7 +178,7 @@ namespace ADE_WFM.Services.StickyNoteService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while updating sticky not");
+                _logger.LogError(ex, "Unexpected error while updating sticky note");
                 return ServiceResult<StickyNoteResponseDto>.Failure(
                     "An unexpected error occurred while updating the sticky note.",
                     new[] { ex.Message });
@@ -188,9 +191,6 @@ namespace ADE_WFM.Services.StickyNoteService
             // General validations
             if (dto == null)
                 return ServiceResult<StickyNoteResponseDto>.Failure("Input data is null.");
-
-            if (string.IsNullOrEmpty(dto.NewContent))
-                return ServiceResult<StickyNoteResponseDto>.Failure("Updated content is required.");
 
             if (dto.StickyNoteId <= 0)
                 return ServiceResult<StickyNoteResponseDto>.Failure("Valid StickyNoteId is required.");
@@ -211,6 +211,8 @@ namespace ADE_WFM.Services.StickyNoteService
 
                 _context.StickyNotes.Remove(stickyNote);
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Sticky note with ID {StickyNoteId} deleted successfully for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
 
                 return ServiceResult<StickyNoteResponseDto>.Success(
                     new StickyNoteResponseDto
