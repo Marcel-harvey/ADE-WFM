@@ -59,6 +59,19 @@ namespace ADE_WFM.Controllers
         }
 
 
+        // Mark a subtask as completed or not completed
+        [HttpPut("Update/Completion")]
+        public async Task<IActionResult> MarkSubTaskCompletion([FromBody] MarkSubTaskCompletionDto dto)
+        {
+            var result = await _subTaskService.MarkSubTaskCompletion(dto);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
+
+
         // DELETE API's
     }
 }
