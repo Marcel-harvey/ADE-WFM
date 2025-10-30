@@ -275,12 +275,66 @@ namespace ADE_WFM.Services.TodoService
                     new[] { ex.Message });
             }
         }
-                       
+
 
         // DELETE service
-        public async Task DeleteTodo()
+        public async Task<ServiceResult<ToDoResponseDto>> DeleteTodo(GetToDoDto dto)
         {
+            // General validation
+            if (dto == null)
+                return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
 
+            if (dto.ToDoId <= 0)
+                return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
+
+            try
+            {
+                var todo = await _context.Todos
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.Id == dto.ToDoId);
+
+                if (todo == null)
+                {
+                    _logger.LogInformation("Todo with ID {TodoId} not found.", dto.ToDoId);
+                    return ServiceResult<ToDoResponseDto>.Failure("Todo not found.");
+                }
+
+                var response = new ToDoResponseDto
+                {
+                    Id = todo.Id,
+                    IsComplete = todo.IsComplete,
+                    Title = todo.Title,
+                    Description = todo.Description,
+                    DateCreated = todo.DateCreated,
+                    DueDate = todo.DueDate,
+                    UserName = todo.User?.UserName ?? "Unknown",
+                    ProjectId = todo.ProjectId
+                };
+
+                _context.Todos.Remove(todo);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Todo with ID {TodoId} deleted successfully by user {UserName}.",
+                    dto.ToDoId, todo.User?.UserName ?? "Unknown");
+
+                return ServiceResult<ToDoResponseDto>.Success(response, "Todo deleted successfully.");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while deleting todo ID {TodoId}", dto.ToDoId);
+                return ServiceResult<ToDoResponseDto>.Failure(
+                    "A database error occurred while deleting the todo.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while deleting todo ID {TodoId}", dto.ToDoId);
+                return ServiceResult<ToDoResponseDto>.Failure(
+                    "An unexpected error occurred while deleting the todo.",
+                    new[] { ex.Message });
+            }
         }
+
     }
 }
