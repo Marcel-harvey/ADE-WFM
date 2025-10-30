@@ -134,10 +134,18 @@ namespace ADE_WFM.Services.TodoService
                         DateCreated = t.DateCreated,
                         DueDate = t.DueDate,
                         UserName = t.User.UserName ?? "Unknown",
-                        ProjectId = t.ProjectId
+                        ProjectId = t.ProjectId,
+                        SubTasks = t.SubTasks?
+                            .Select(st => new TodoSubTasksResponseDto
+                            {
+                                Id = st.Id,
+                                Description = st.Description,
+                                IsCompleted = st.IsCompleted
+                            }).ToList() ?? new List<TodoSubTasksResponseDto>()
                     }).ToList(),
                     "User todo's retrieved successfully."
-                    );
+                );
+
             }
             catch (Exception ex)
             {
@@ -160,13 +168,12 @@ namespace ADE_WFM.Services.TodoService
             if (dto.ProjectId <= 0)
                 return ServiceResult<List<ToDoResponseDto>>.Failure("Valid Project id required.");
 
-            var project = await _context.Projects
-                .FindAsync(dto.ProjectId);
+            var project = await _context.Projects.FindAsync(dto.ProjectId);
             if (project == null)
             {
                 _logger.LogWarning("Project with ID {ProjectId} does not exist.", dto.ProjectId);
                 return ServiceResult<List<ToDoResponseDto>>.Failure("Project does not exist.");
-            }                
+            }
 
             try
             {
@@ -192,20 +199,27 @@ namespace ADE_WFM.Services.TodoService
                         DateCreated = t.DateCreated,
                         DueDate = t.DueDate,
                         UserName = t.User.UserName ?? "Unknown",
-                        ProjectId = t.ProjectId
+                        ProjectId = t.ProjectId,
+                        SubTasks = t.SubTasks?
+                            .Select(st => new TodoSubTasksResponseDto
+                            {
+                                Id = st.Id,
+                                Description = st.Description,
+                                IsCompleted = st.IsCompleted
+                            }).ToList() ?? new List<TodoSubTasksResponseDto>()
                     }).ToList(),
                     "Project todo's retrieved successfully."
-                    );
+                );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving todo's for project {ProjectId}.", dto.ProjectId);
-
                 return ServiceResult<List<ToDoResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving todo's.",
                     new[] { ex.Message });
             }
         }
+
 
 
         // UPDATE service
@@ -215,35 +229,35 @@ namespace ADE_WFM.Services.TodoService
             // General validation
             if (dto == null)
                 return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
-
             if (dto.TodoId <= 0)
                 return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
 
             var todo = await _context.Todos
                 .Include(t => t.User)
+                .Include(t => t.SubTasks)
                 .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
-            if ( todo == null)
+
+            if (todo == null)
             {
-                _logger.LogInformation( "Todo with ID {TodoId} not found.", dto.TodoId);
+                _logger.LogInformation("Todo with ID {TodoId} not found.", dto.TodoId);
                 return ServiceResult<ToDoResponseDto>.Failure("Todo not found.");
             }
 
             try
             {
-
                 if (!string.IsNullOrWhiteSpace(dto.Title))
                     todo.Title = dto.Title.Trim();
-
                 if (!string.IsNullOrWhiteSpace(dto.Description))
                     todo.Description = dto.Description.Trim();
-
                 if (dto.DueDate != default(DateTime))
                     todo.DueDate = dto.DueDate;
 
                 _context.Todos.Update(todo);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Todo with ID {TodoId} updated successfully by user {UserName}.", dto.TodoId, todo.User.UserName);
+                _logger.LogInformation(
+                    "Todo with ID {TodoId} updated successfully by user {UserName}.",
+                    dto.TodoId, todo.User.UserName);
 
                 return ServiceResult<ToDoResponseDto>.Success(
                     new ToDoResponseDto
@@ -255,10 +269,17 @@ namespace ADE_WFM.Services.TodoService
                         DateCreated = todo.DateCreated,
                         DueDate = todo.DueDate,
                         UserName = todo.User.UserName ?? "Unknown",
-                        ProjectId = todo.ProjectId
+                        ProjectId = todo.ProjectId,
+                        SubTasks = todo.SubTasks?
+                            .Select(st => new TodoSubTasksResponseDto
+                            {
+                                Id = st.Id,
+                                Description = st.Description,
+                                IsCompleted = st.IsCompleted
+                            }).ToList() ?? new List<TodoSubTasksResponseDto>()
                     },
                     "Todo updated successfully."
-                    );
+                );
             }
             catch (DbUpdateException ex)
             {
@@ -277,6 +298,7 @@ namespace ADE_WFM.Services.TodoService
         }
 
 
+
         // Mark todo as complete
         public async Task<ServiceResult<ToDoResponseDto>> MarkTodoCompletion(MarkTodoCompletionDto dto)
         {
@@ -289,6 +311,7 @@ namespace ADE_WFM.Services.TodoService
             {
                 var todo = await _context.Todos
                     .Include(t => t.User)
+                    .Include(t => t.SubTasks)
                     .FirstOrDefaultAsync(t => t.Id == dto.ToDoId);
 
                 if (todo == null)
@@ -300,9 +323,7 @@ namespace ADE_WFM.Services.TodoService
                 todo.IsComplete = dto.IsComplete;
                 await _context.SaveChangesAsync();
 
-                // Changes depending on true or false
                 var status = dto.IsComplete ? "complete" : "incomplete";
-
                 _logger.LogInformation(
                     "Todo with ID {TodoId} marked as {Status} by user {UserName}.",
                     dto.ToDoId, status, todo.User?.UserName ?? "Unknown");
@@ -317,7 +338,14 @@ namespace ADE_WFM.Services.TodoService
                         DateCreated = todo.DateCreated,
                         DueDate = todo.DueDate,
                         UserName = todo.User?.UserName ?? "Unknown",
-                        ProjectId = todo.ProjectId
+                        ProjectId = todo.ProjectId,
+                        SubTasks = todo.SubTasks?
+                            .Select(st => new TodoSubTasksResponseDto
+                            {
+                                Id = st.Id,
+                                Description = st.Description,
+                                IsCompleted = st.IsCompleted
+                            }).ToList() ?? new List<TodoSubTasksResponseDto>()
                     },
                     $"Todo marked as {status} successfully."
                 );
@@ -340,13 +368,13 @@ namespace ADE_WFM.Services.TodoService
 
 
 
+
         // DELETE service
         public async Task<ServiceResult<ToDoResponseDto>> DeleteTodo(GetToDoDto dto)
         {
             // General validation
             if (dto == null)
                 return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
-
             if (dto.ToDoId <= 0)
                 return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
 
@@ -354,6 +382,7 @@ namespace ADE_WFM.Services.TodoService
             {
                 var todo = await _context.Todos
                     .Include(t => t.User)
+                    .Include(t => t.SubTasks)
                     .FirstOrDefaultAsync(t => t.Id == dto.ToDoId);
 
                 if (todo == null)
@@ -362,6 +391,7 @@ namespace ADE_WFM.Services.TodoService
                     return ServiceResult<ToDoResponseDto>.Failure("Todo not found.");
                 }
 
+                // Prepare response before deletion
                 var response = new ToDoResponseDto
                 {
                     Id = todo.Id,
@@ -371,7 +401,14 @@ namespace ADE_WFM.Services.TodoService
                     DateCreated = todo.DateCreated,
                     DueDate = todo.DueDate,
                     UserName = todo.User?.UserName ?? "Unknown",
-                    ProjectId = todo.ProjectId
+                    ProjectId = todo.ProjectId,
+                    SubTasks = todo.SubTasks?
+                        .Select(st => new TodoSubTasksResponseDto
+                        {
+                            Id = st.Id,
+                            Description = st.Description,
+                            IsCompleted = st.IsCompleted
+                        }).ToList() ?? new List<TodoSubTasksResponseDto>()
                 };
 
                 _context.Todos.Remove(todo);
@@ -398,6 +435,5 @@ namespace ADE_WFM.Services.TodoService
                     new[] { ex.Message });
             }
         }
-
     }
 }
