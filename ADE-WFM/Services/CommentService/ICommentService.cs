@@ -7,19 +7,19 @@ namespace ADE_WFM.Services.CommentService
     public interface ICommentService
     {
         // CREATE services
-        Task<ServiceResult<AddCommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto);
-        Task<ServiceResult<AddCommentResponseDto>> AddCommentToProject(AddCommentDto dto);
+        Task<ServiceResult<CommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto);
+        Task<ServiceResult<CommentResponseDto>> AddCommentToProject(AddCommentDto dto);
 
         // GET serivces
-        Task<ServiceResult<List<GetCommentsResponseDto>>> GetWorkFlowComments(GetCommentsInSectionDto dto);
-        Task <ServiceResult<List<GetCommentsResponseDto>>> GetProjectComments(GetCommentsInSectionDto dto);
-        Task<ServiceResult<List<GetCommentsResponseDto>>> GetUserComments(GetUserCommentsDto dto);
+        Task<ServiceResult<List<CommentResponseDto>>> GetWorkFlowComments(GetCommentsInSectionDto dto);
+        Task <ServiceResult<List<CommentResponseDto>>> GetProjectComments(GetCommentsInSectionDto dto);
+        Task<ServiceResult<List<CommentResponseDto>>> GetUserComments(GetUserCommentsDto dto);
 
         // UPDATE services
-        Task<ServiceResult<UpdateCommentViewedResponseDto>> MarkCommentAsViewed(UpdateCommentViewedDto dto);
+        Task<ServiceResult<CommentResponseDto>> MarkCommentAsViewed(UpdateCommentViewedDto dto);
 
         // DELETE services
-        Task<ServiceResult<DeleteCommentResponseDto>> DeleteComment(DeleteCommentDto dto);
+        Task<ServiceResult<CommentResponseDto>> DeleteComment(DeleteCommentDto dto);
     }
 }
 
