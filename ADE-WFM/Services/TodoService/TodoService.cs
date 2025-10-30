@@ -275,52 +275,12 @@ namespace ADE_WFM.Services.TodoService
                     new[] { ex.Message });
             }
         }
-
-
-
-        // Update the title of todo
-        public async Task UpdateTodoTitle(UpdateTodoTitleDto dto)
-        {
-            var todo = await _context.Todos.FindAsync(dto.TodoId)
-                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
-
-            todo.Title = dto.NewTitle;
-
-            await _context.SaveChangesAsync();
-        }
-
-
-        // Update the description of todo
-        public async Task UpdateTodoDescription(UpdateTodoDescriptionDto dto)
-        {
-            var todo = await _context.Todos.FindAsync(dto.TodoId)
-                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
-
-            todo.Description = dto.NewDescription;
-
-            await _context.SaveChangesAsync();
-        }
-
-
-        // Update the due date of todo
-        public async Task UpdateTodoDueDate(UpdateTodoDueDateDto dto)
-        {
-            var todo = await _context.Todos.FindAsync(dto.TodoId)
-                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
-
-            todo.DueDate = dto.NewDueDate;
-
-            await _context.SaveChangesAsync();
-        }
+                       
 
         // DELETE service
-        public async Task DeleteTodo(DeleteTodoDto dto)
+        public async Task DeleteTodo()
         {
-            var todo = await _context.Todos.FindAsync(dto.TodoId)
-                ?? throw new KeyNotFoundException($"Todo with ID {dto.TodoId} not found.");
 
-            _context.Todos.Remove(todo);
-            await _context.SaveChangesAsync();
         }
     }
 }
