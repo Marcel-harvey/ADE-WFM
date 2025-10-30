@@ -46,6 +46,17 @@ namespace ADE_WFM.Controllers
 
 
         // UPDATE API's
+        // Update a subtask description
+        [HttpPut("Update/Description")]
+        public async Task<IActionResult> UpdateSubTaskDescription([FromBody] UpdateSubTaskDto dto)
+        {
+            var result = await _subTaskService.UpdateSubTask(dto);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
 
 
         // DELETE API's

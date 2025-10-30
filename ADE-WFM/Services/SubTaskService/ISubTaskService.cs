@@ -13,7 +13,7 @@ namespace ADE_WFM.Services.SubTaskService
         Task<ServiceResult<List<SubTaskResponseDto>>> GetTodoSubTasks(GetSubTasksDto dto);
 
         // UPDATE services
-        Task UpdateSubTask(UpdateSubTaskDto dto);
+        Task<ServiceResult<SubTaskResponseDto>> UpdateSubTask(UpdateSubTaskDto dto);
 
         // DELETE serives
         Task DeleteSubTask(DeleteSubTaskDto dto);

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using ADE_WFM.Models.DTOs;
 using Microsoft.AspNetCore.Identity;
 using ADE_WFM.Models.DTOs.ProjectDtos;
+using Microsoft.JSInterop.Infrastructure;
 
 namespace ADE_WFM.Services.SubTaskService
 {
@@ -63,7 +64,7 @@ namespace ADE_WFM.Services.SubTaskService
 
                 return ServiceResult<SubTaskResponseDto>.Success(new SubTaskResponseDto
                 {
-                    Id = subTask.Id,
+                    SubTaskId = subTask.Id,
                     Description = subTask.Description,
                     IsCompleted = subTask.IsCompleted,
                     TodoTitle = todo.Title
@@ -101,7 +102,6 @@ namespace ADE_WFM.Services.SubTaskService
             try
             {
                 var todo = await _context.Todos
-                    .Include(t => t.SubTasks)
                     .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
                 if (todo == null)
                 {
@@ -123,7 +123,7 @@ namespace ADE_WFM.Services.SubTaskService
                 return ServiceResult<List<SubTaskResponseDto>>.Success(
                     subtasks.Select(st => new SubTaskResponseDto
                     {
-                        Id = st.Id,
+                        SubTaskId = st.Id,
                         Description = st.Description,
                         IsCompleted = st.IsCompleted,
                         TodoTitle = todo.Title
@@ -142,17 +142,64 @@ namespace ADE_WFM.Services.SubTaskService
 
 
         // UPDATE services
-        public async Task UpdateSubTask(UpdateSubTaskDto dto)
+        public async Task<ServiceResult<SubTaskResponseDto>> UpdateSubTask(UpdateSubTaskDto dto)
         {
-            var subTask = await _context.SubTasks
-                .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId)
-                ?? throw new KeyNotFoundException($"SubTask with ID {dto.SubTaskId} not found for Todo {dto.TodoId}.");
+            // General validation
+            if (dto == null)
+                return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
+            if (dto.TodoId <= 0)
+                return ServiceResult<SubTaskResponseDto>.Failure("Invalid Todo ID.");
+            if (dto.SubTaskId <= 0)
+                return ServiceResult<SubTaskResponseDto>.Failure("Invalid SubTask ID.");
+            if (string.IsNullOrWhiteSpace(dto.Description))
+                return ServiceResult<SubTaskResponseDto>.Failure("Description cannot be empty.");
 
-            subTask.Description = dto.Description ?? subTask.Description;
-            subTask.IsCompleted = dto.IsCompleted ?? subTask.IsCompleted;
+            try
+            {
+                // Confirm if Todo exists
+                var todo = await _context.Todos
+                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
+                if (todo == null)
+                    return ServiceResult<SubTaskResponseDto>.Failure($"Todo with ID {dto.TodoId} not found.");
 
-            await _context.SaveChangesAsync();
+                // Find the subtask belonging to this todo
+                var subTask = await _context.SubTasks
+                    .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId);
+                if (subTask == null)
+                    return ServiceResult<SubTaskResponseDto>.Failure($"SubTask with ID {dto.SubTaskId} not found for Todo {dto.TodoId}.");
+
+                // Update fields
+                subTask.Description = dto.Description;
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("SubTask ID {SubTaskId} updated for Todo ID {TodoId}.", subTask.Id, todo.Id);
+
+                return ServiceResult<SubTaskResponseDto>.Success(new SubTaskResponseDto
+                {
+                    SubTaskId = subTask.Id,
+                    Description = subTask.Description,
+                    IsCompleted = subTask.IsCompleted,
+                    TodoTitle = todo.Title
+                });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating SubTask ID {SubTaskId}", dto.SubTaskId);
+                return ServiceResult<SubTaskResponseDto>.Failure(
+                    "A database error occurred while updating the subtask.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating SubTask ID {SubTaskId}", dto.SubTaskId);
+                return ServiceResult<SubTaskResponseDto>.Failure(
+                    "An unexpected error occurred while updating the subtask.",
+                    new[] { ex.Message });
+            }
         }
+
+
 
         // DELETE serives
         public async Task DeleteSubTask(DeleteSubTaskDto dto)
