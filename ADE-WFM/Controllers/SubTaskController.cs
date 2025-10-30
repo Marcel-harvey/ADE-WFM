@@ -73,5 +73,16 @@ namespace ADE_WFM.Controllers
 
 
         // DELETE API's
+        // Delete a subtask
+        [HttpDelete("Delete")]
+        public async Task<IActionResult> DeleteSubTask([FromBody] GetSubTasksDto dto)
+        {
+            var result = await _subTaskService.DeleteSubTask(dto);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
     }
 }

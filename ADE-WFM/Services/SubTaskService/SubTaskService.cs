@@ -63,12 +63,14 @@ namespace ADE_WFM.Services.SubTaskService
                     subTask.Description, todo.Title, todo.Id);
 
                 return ServiceResult<SubTaskResponseDto>.Success(new SubTaskResponseDto
-                {
-                    SubTaskId = subTask.Id,
-                    Description = subTask.Description,
-                    IsCompleted = subTask.IsCompleted,
-                    TodoTitle = todo.Title
-                });
+                    {
+                        SubTaskId = subTask.Id,
+                        Description = subTask.Description,
+                        IsCompleted = subTask.IsCompleted,
+                        TodoTitle = todo.Title
+                    },
+                    "Sub task added successfully"
+                );
             }
             catch (DbUpdateException ex)
             {
@@ -183,12 +185,14 @@ namespace ADE_WFM.Services.SubTaskService
                 _logger.LogInformation("SubTask ID {SubTaskId} updated for Todo ID {TodoId}.", subTask.Id, todo.Id);
 
                 return ServiceResult<SubTaskResponseDto>.Success(new SubTaskResponseDto
-                {
-                    SubTaskId = subTask.Id,
-                    Description = subTask.Description,
-                    IsCompleted = subTask.IsCompleted,
-                    TodoTitle = todo.Title
-                });
+                    {
+                        SubTaskId = subTask.Id,
+                        Description = subTask.Description,
+                        IsCompleted = subTask.IsCompleted,
+                        TodoTitle = todo.Title
+                    },
+                    "Sub task updated successfully"
+                );
             }
             catch (DbUpdateException ex)
             {
@@ -245,12 +249,14 @@ namespace ADE_WFM.Services.SubTaskService
                     subTask.Id, dto.IsCompleted ? "completed" : "incomplete", todo.Id);
 
                 return ServiceResult<SubTaskResponseDto>.Success(new SubTaskResponseDto
-                {
-                    SubTaskId = subTask.Id,
-                    Description = subTask.Description,
-                    IsCompleted = subTask.IsCompleted,
-                    TodoTitle = todo.Title
-                });
+                    {
+                        SubTaskId = subTask.Id,
+                        Description = subTask.Description,
+                        IsCompleted = subTask.IsCompleted,
+                        TodoTitle = todo.Title
+                    },
+                    $"Sub task marked {dto.IsCompleted.ToString()} successfully"
+                );
             }
             catch (DbUpdateException ex)
             {
@@ -271,14 +277,64 @@ namespace ADE_WFM.Services.SubTaskService
 
 
         // DELETE serives
-        public async Task DeleteSubTask(DeleteSubTaskDto dto)
+        public async Task<ServiceResult<SubTaskResponseDto>> DeleteSubTask(GetSubTasksDto dto)
         {
-            var subTask = await _context.SubTasks
-                .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId)
-                ?? throw new KeyNotFoundException($"SubTask with ID {dto.SubTaskId} not found for Todo {dto.TodoId}.");
+            if (dto == null)
+                return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
 
-            _context.SubTasks.Remove(subTask);
-            await _context.SaveChangesAsync();
+            if (dto.TodoId <= 0)
+                return ServiceResult<SubTaskResponseDto>.Failure("Invalid Todo ID.");
+
+            if (dto.SubTaskId <= 0)
+                return ServiceResult<SubTaskResponseDto>.Failure("Invalid SubTask ID.");
+
+            try
+            {
+                var todo = await _context.Todos
+                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
+                if (todo == null)
+                {
+                    _logger.LogInformation("Todo with ID {TodoId} not found", dto.TodoId);
+                    return ServiceResult<SubTaskResponseDto>.Failure($"Todo with ID {dto.TodoId} not found.");
+                }
+
+                var subTask = await _context.SubTasks
+                    .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId);
+                if (subTask == null)
+                {
+                    _logger.LogInformation("SubTask with ID {SubTaskId} not found for Todo ID {TodoId}", dto.SubTaskId, dto.TodoId);
+                    return ServiceResult<SubTaskResponseDto>.Failure($"SubTask with ID {dto.SubTaskId} not found for Todo {dto.TodoId}.");
+                }
+
+                var response = new SubTaskResponseDto
+                {
+                    SubTaskId = subTask.Id,
+                    Description = subTask.Description,
+                    IsCompleted = subTask.IsCompleted,
+                    TodoTitle = todo.Title
+                };
+
+                _context.SubTasks.Remove(subTask);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("SubTask ID {SubTaskId} deleted from Todo ID {TodoId}.", subTask.Id, todo.Id);
+
+                return ServiceResult<SubTaskResponseDto>.Success(response, "Sub task deleted successfully");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while deleting SubTask ID {SubTaskId}", dto.SubTaskId);
+                return ServiceResult<SubTaskResponseDto>.Failure(
+                    "A database error occurred while deleting the subtask.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while deleting SubTask ID {SubTaskId}", dto.SubTaskId);
+                return ServiceResult<SubTaskResponseDto>.Failure(
+                    "An unexpected error occurred while deleting the subtask.",
+                    new[] { ex.Message });
+            }
         }
     }
 }

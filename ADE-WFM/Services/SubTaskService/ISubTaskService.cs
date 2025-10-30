@@ -17,6 +17,6 @@ namespace ADE_WFM.Services.SubTaskService
         Task<ServiceResult<SubTaskResponseDto>> MarkSubTaskCompletion(MarkSubTaskCompletionDto dto);
 
         // DELETE serives
-        Task DeleteSubTask(DeleteSubTaskDto dto);
+        Task<ServiceResult<SubTaskResponseDto>> DeleteSubTask(GetSubTasksDto dto);
     }
 }
