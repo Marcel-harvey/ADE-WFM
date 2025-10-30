@@ -51,7 +51,7 @@ namespace ADE_WFM.Controllers
         [HttpGet("WorkFlow/Get/{id}")]
         public async Task<IActionResult> GetWorkFlowComments(int id)
         {
-            var dto = new GetCommentsInSectionDto { Id = id };
+            var dto = new GetCommentInfoDto { WorkFlowId = id };
             var result = await _commentService.GetWorkFlowComments(dto);
 
             if (!result.Succeeded)
@@ -65,7 +65,7 @@ namespace ADE_WFM.Controllers
         [HttpGet("Project/Get/{id}")]
         public async Task<IActionResult> GetProjectComments(int id)
         {
-            var dto = new GetCommentsInSectionDto { Id = id };
+            var dto = new GetCommentInfoDto { ProjectId = id };
             var result = await _commentService.GetProjectComments(dto);
 
             if (!result.Succeeded)
@@ -79,7 +79,7 @@ namespace ADE_WFM.Controllers
         [HttpGet("User/Get/{userId}")]
         public async Task<IActionResult> GetUserComments(string userId)
         {
-            var dto = new GetUserCommentsDto { UserId = userId };
+            var dto = new GetCommentInfoDto { UserId = userId };
             var result = await _commentService.GetUserComments(dto);
 
             if (!result.Succeeded)
