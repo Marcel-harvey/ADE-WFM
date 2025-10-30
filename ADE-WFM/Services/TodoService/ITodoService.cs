@@ -17,6 +17,7 @@ namespace ADE_WFM.Services.TodoService
 
         // UPDATE service
         Task<ServiceResult<ToDoResponseDto>> UpdateTodo(UpdateTodoDto dto);
+        Task<ServiceResult<ToDoResponseDto>> MarkTodoCompletion(MarkTodoCompletionDto dto);
 
 
         // DELETE service

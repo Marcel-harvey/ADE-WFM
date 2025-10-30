@@ -74,6 +74,19 @@ namespace ADE_WFM.Controllers
         }
 
 
+        // Mark a todo as complete/incomplete
+        [HttpPut("MarkCompletion")]
+        public async Task<IActionResult> MarkTodoCompletion([FromBody] MarkTodoCompletionDto dto)
+        {
+            var result = await _todoService.MarkTodoCompletion(dto);
+
+            if (!result.Succeeded)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+
         // DELETE API's
         // Delete a todo
         [HttpDelete("Delete")]

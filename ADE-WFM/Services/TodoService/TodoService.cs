@@ -277,6 +277,69 @@ namespace ADE_WFM.Services.TodoService
         }
 
 
+        // Mark todo as complete
+        public async Task<ServiceResult<ToDoResponseDto>> MarkTodoCompletion(MarkTodoCompletionDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
+            if (dto.ToDoId <= 0)
+                return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
+
+            try
+            {
+                var todo = await _context.Todos
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.Id == dto.ToDoId);
+
+                if (todo == null)
+                {
+                    _logger.LogInformation("Todo with ID {TodoId} not found.", dto.ToDoId);
+                    return ServiceResult<ToDoResponseDto>.Failure("Todo not found.");
+                }
+
+                todo.IsComplete = dto.IsComplete;
+                await _context.SaveChangesAsync();
+
+                // Changes depending on true or false
+                var status = dto.IsComplete ? "complete" : "incomplete";
+
+                _logger.LogInformation(
+                    "Todo with ID {TodoId} marked as {Status} by user {UserName}.",
+                    dto.ToDoId, status, todo.User?.UserName ?? "Unknown");
+
+                return ServiceResult<ToDoResponseDto>.Success(
+                    new ToDoResponseDto
+                    {
+                        Id = todo.Id,
+                        IsComplete = todo.IsComplete,
+                        Title = todo.Title,
+                        Description = todo.Description,
+                        DateCreated = todo.DateCreated,
+                        DueDate = todo.DueDate,
+                        UserName = todo.User?.UserName ?? "Unknown",
+                        ProjectId = todo.ProjectId
+                    },
+                    $"Todo marked as {status} successfully."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating completion status for todo ID {TodoId}", dto.ToDoId);
+                return ServiceResult<ToDoResponseDto>.Failure(
+                    "A database error occurred while updating the todo completion status.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating completion status for todo ID {TodoId}", dto.ToDoId);
+                return ServiceResult<ToDoResponseDto>.Failure(
+                    "An unexpected error occurred while updating the todo completion status.",
+                    new[] { ex.Message });
+            }
+        }
+
+
+
         // DELETE service
         public async Task<ServiceResult<ToDoResponseDto>> DeleteTodo(GetToDoDto dto)
         {
