@@ -186,12 +186,12 @@ namespace ADE_WFM.Services.CommentService
 
         // GET serivces
         // Get all comments on a workflow
-        public async Task<ServiceResult<List<CommentResponseDto>>> GetWorkFlowComments(GetCommentsInSectionDto dto)
+        public async Task<ServiceResult<List<CommentResponseDto>>> GetWorkFlowComments(GetCommentInfoDto dto)
         {
             if (dto == null)
                 return ServiceResult<List<CommentResponseDto>>.Failure("Invalid request data.");
 
-            if (dto.Id <= 0)
+            if (dto.WorkFlowId <= 0)
                 return ServiceResult<List<CommentResponseDto>>.Failure("Invalid WorkFlow ID.");
 
             try
@@ -199,18 +199,18 @@ namespace ADE_WFM.Services.CommentService
                 var workflow = await _context.WorkFlows
                     .Include(wf => wf.Comments!)
                         .ThenInclude(c => c.User)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.Id);
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
 
                 // Check if workflow exists first before accessing comments
                 if (workflow == null)
                 {
-                    _logger.LogInformation("WorkFlow not found for WorkFlow ID: {WorkFlowId}", dto.Id);
+                    _logger.LogInformation("WorkFlow not found for WorkFlow ID: {WorkFlowId}", dto.WorkFlowId);
                     return ServiceResult<List<CommentResponseDto>>.Failure("WorkFlow not found.");
                 }
 
                 if (workflow.Comments == null || !workflow.Comments.Any())
                 {
-                    _logger.LogInformation("No comments found for WorkFlow ID: {WorkFlowId}", dto.Id);
+                    _logger.LogInformation("No comments found for WorkFlow ID: {WorkFlowId}", dto.WorkFlowId);
                     return ServiceResult<List<CommentResponseDto>>.Success(new List<CommentResponseDto>(), "No comments found for the specified workflow.");
                 }
 
@@ -233,7 +233,7 @@ namespace ADE_WFM.Services.CommentService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving workflow comments for WorkFlow ID {WorkFlowId}", dto.Id);
+                _logger.LogError(ex, "Error retrieving workflow comments for WorkFlow ID {WorkFlowId}", dto.WorkFlowId);
                 return ServiceResult<List<CommentResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving workflow comments.",
                     new[] { ex.Message });
@@ -242,12 +242,12 @@ namespace ADE_WFM.Services.CommentService
 
 
         // Get all comments on project
-        public async Task<ServiceResult<List<CommentResponseDto>>> GetProjectComments(GetCommentsInSectionDto dto)
+        public async Task<ServiceResult<List<CommentResponseDto>>> GetProjectComments(GetCommentInfoDto dto)
         {
             if (dto == null)
                 return ServiceResult<List<CommentResponseDto>>.Failure("Invalid request data.");
 
-            if (dto.Id <= 0)
+            if (dto.ProjectId <= 0)
                 return ServiceResult<List<CommentResponseDto>>.Failure("Invalid Project ID.");
 
             try
@@ -256,18 +256,18 @@ namespace ADE_WFM.Services.CommentService
                     .Include(p => p.Comment!)
                         .ThenInclude(c => c.User)
                     .Include(p => p.WorkFlows)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.Id);
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.ProjectId);
 
                 // Check if project exists first before accessing comments
                 if (project == null)
                 {
-                    _logger.LogInformation("Project not found for project ID: {ProjectId}", dto.Id);
+                    _logger.LogInformation("Project not found for project ID: {ProjectId}", dto.ProjectId);
                     return ServiceResult<List<CommentResponseDto>>.Failure("Project not found.");
                 }
 
                     if (project.Comment == null || !project.Comment.Any())
                 {
-                    _logger.LogInformation("No comments found for project ID: {ProjectId}", dto.Id);
+                    _logger.LogInformation("No comments found for project ID: {ProjectId}", dto.ProjectId);
                     return ServiceResult<List<CommentResponseDto>>.Success(new List<CommentResponseDto>(), "No comments found for the specified Project.");
                 }
 
@@ -292,7 +292,7 @@ namespace ADE_WFM.Services.CommentService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving project comments for project ID {ProjectTitle}", dto.Id);
+                _logger.LogError(ex, "Error retrieving project comments for project ID {ProjectTitle}", dto.ProjectId);
                 return ServiceResult<List<CommentResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving project comments.",
                     new[] { ex.Message });
@@ -301,7 +301,7 @@ namespace ADE_WFM.Services.CommentService
 
 
         // Get all comments a user made
-        public async Task<ServiceResult<List<CommentResponseDto>>> GetUserComments(GetUserCommentsDto dto)
+        public async Task<ServiceResult<List<CommentResponseDto>>> GetUserComments(GetCommentInfoDto dto)
         {
             if (dto == null)
                 return ServiceResult<List<CommentResponseDto>>.Failure("Invalid request data.");

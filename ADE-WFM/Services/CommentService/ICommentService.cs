@@ -11,9 +11,9 @@ namespace ADE_WFM.Services.CommentService
         Task<ServiceResult<CommentResponseDto>> AddCommentToProject(AddCommentDto dto);
 
         // GET serivces
-        Task<ServiceResult<List<CommentResponseDto>>> GetWorkFlowComments(GetCommentsInSectionDto dto);
-        Task <ServiceResult<List<CommentResponseDto>>> GetProjectComments(GetCommentsInSectionDto dto);
-        Task<ServiceResult<List<CommentResponseDto>>> GetUserComments(GetUserCommentsDto dto);
+        Task<ServiceResult<List<CommentResponseDto>>> GetWorkFlowComments(GetCommentInfoDto dto);
+        Task <ServiceResult<List<CommentResponseDto>>> GetProjectComments(GetCommentInfoDto dto);
+        Task<ServiceResult<List<CommentResponseDto>>> GetUserComments(GetCommentInfoDto dto);
 
         // UPDATE services
         Task<ServiceResult<CommentResponseDto>> MarkCommentAsViewed(UpdateCommentViewedDto dto);
