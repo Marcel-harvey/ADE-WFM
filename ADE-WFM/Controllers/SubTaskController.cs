@@ -16,5 +16,27 @@ namespace ADE_WFM.Controllers
         {
             _subTaskService = subTaskService;
         }
+
+        // CREATE API's
+        // Create new subtask and add to a todo
+        [HttpPost("Todo/Add")]
+        public async Task<IActionResult> AddSubTaskToTodo([FromBody] AddSubTasksToTodoDto dto)
+        {
+            var result = await _subTaskService.AddSubTasksToTodo(dto);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
+
+
+        // GET API's
+
+
+        // UPDATE API's
+
+
+        // DELETE API's
     }
 }
