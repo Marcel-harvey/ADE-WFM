@@ -207,8 +207,77 @@ namespace ADE_WFM.Services.TodoService
             }
         }
 
-                
+
         // UPDATE service
+        // Update todo by id
+        public async Task<ServiceResult<ToDoResponseDto>> UpdateTodo(UpdateTodoDto dto)
+        {
+            // General validation
+            if (dto == null)
+                return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
+
+            if (dto.TodoId <= 0)
+                return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
+
+            var todo = await _context.Todos
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
+            if ( todo == null)
+            {
+                _logger.LogInformation( "Todo with ID {TodoId} not found.", dto.TodoId);
+                return ServiceResult<ToDoResponseDto>.Failure("Todo not found.");
+            }
+
+            try
+            {
+
+                if (!string.IsNullOrWhiteSpace(dto.Title))
+                    todo.Title = dto.Title.Trim();
+
+                if (!string.IsNullOrWhiteSpace(dto.Description))
+                    todo.Description = dto.Description.Trim();
+
+                if (dto.DueDate != default(DateTime))
+                    todo.DueDate = dto.DueDate;
+
+                _context.Todos.Update(todo);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Todo with ID {TodoId} updated successfully by user {UserName}.", dto.TodoId, todo.User.UserName);
+
+                return ServiceResult<ToDoResponseDto>.Success(
+                    new ToDoResponseDto
+                    {
+                        Id = todo.Id,
+                        IsComplete = todo.IsComplete,
+                        Title = todo.Title,
+                        Description = todo.Description,
+                        DateCreated = todo.DateCreated,
+                        DueDate = todo.DueDate,
+                        UserName = todo.User.UserName ?? "Unknown",
+                        ProjectId = todo.ProjectId
+                    },
+                    "Todo updated successfully."
+                    );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating todo {TodoTitle}", dto.Title);
+                return ServiceResult<ToDoResponseDto>.Failure(
+                    "A database error occurred while updating the todo.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating todo {TodoTitle}", dto.Title);
+                return ServiceResult<ToDoResponseDto>.Failure(
+                    "An unexpected error occurred while updating the todo.",
+                    new[] { ex.Message });
+            }
+        }
+
+
+
         // Update the title of todo
         public async Task UpdateTodoTitle(UpdateTodoTitleDto dto)
         {

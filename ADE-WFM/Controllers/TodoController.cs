@@ -61,6 +61,17 @@ namespace ADE_WFM.Controllers
 
 
         // UPDATE API's
+        // Update a todo
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateTodo([FromBody] UpdateTodoDto dto)
+        {
+            var result = await _todoService.UpdateTodo(dto);
+
+            if (!result.Succeeded)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
 
 
         // DELETE API's
