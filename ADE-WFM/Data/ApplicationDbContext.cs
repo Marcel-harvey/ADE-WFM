@@ -40,6 +40,19 @@ namespace ADE_WFM.Data
               .HasForeignKey(c => c.WorkFlowId)
               .OnDelete(DeleteBehavior.Cascade);
 
+            // WorkFlow relationships
+            builder.Entity<WorkFlow>()
+                .HasMany(wf => wf.Project)
+                .WithOne(p => p.WorkFlows)
+                .HasForeignKey(p => p.WorkFlowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<WorkFlow>()
+                .HasMany(wf => wf.Comments)
+                .WithOne(c => c.WorkFlow)
+                .HasForeignKey(c => c.WorkFlowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // ProjectUser relationships
             builder.Entity<ProjectUser>()
                 .HasOne(wu => wu.Project)
