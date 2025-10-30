@@ -10,6 +10,7 @@ namespace ADE_WFM.Services.SubTaskService
         Task<ServiceResult<SubTaskResponseDto>> AddSubTasksToTodo(AddSubTasksToTodoDto dto);
 
         // GET serives
+        Task<ServiceResult<List<SubTaskResponseDto>>> GetTodoSubTasks(GetSubTasksDto dto);
 
         // UPDATE services
         Task UpdateSubTask(UpdateSubTaskDto dto);

@@ -26,6 +26,7 @@ namespace ADE_WFM.Services.SubTaskService
 
 
         // ADD services
+        // Add new sub task to a todo
         public async Task<ServiceResult<SubTaskResponseDto>> AddSubTasksToTodo(AddSubTasksToTodoDto dto)
         {
             // General validation
@@ -87,6 +88,57 @@ namespace ADE_WFM.Services.SubTaskService
 
 
         // GET serives
+        // Get all subtasks for a specific todo
+        public async Task<ServiceResult<List<SubTaskResponseDto>>> GetTodoSubTasks(GetSubTasksDto dto)
+        {
+            // General validation
+            if (dto == null)
+                return ServiceResult<List<SubTaskResponseDto>>.Failure("Input data is null.");
+
+            if (dto.TodoId <= 0)
+                return ServiceResult<List<SubTaskResponseDto>>.Failure("Invalid Todo ID.");
+
+            try
+            {
+                var todo = await _context.Todos
+                    .Include(t => t.SubTasks)
+                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
+                if (todo == null)
+                {
+                    _logger.LogInformation("Todo with ID {TodoId} not found", dto.TodoId);
+                    return ServiceResult<List<SubTaskResponseDto>>.Failure($"Todo with ID {dto.TodoId} not found.");
+                }
+
+                var subtasks = await _context.SubTasks
+                    .Where(st => st.TodoId == dto.TodoId)
+                    .ToListAsync();
+                if (!subtasks.Any())
+                {
+                    _logger.LogInformation("No SubTasks found for Todo ID {TodoId}", dto.TodoId);
+                    return ServiceResult<List<SubTaskResponseDto>>.Failure($"No SubTasks found for Todo ID {dto.TodoId}.");
+                }
+
+                _logger.LogInformation("Retrieved {count} SubTasks for Todo ID {ToDoTitle}", subtasks.Count(), todo.Title);
+
+                return ServiceResult<List<SubTaskResponseDto>>.Success(
+                    subtasks.Select(st => new SubTaskResponseDto
+                    {
+                        Id = st.Id,
+                        Description = st.Description,
+                        IsCompleted = st.IsCompleted,
+                        TodoTitle = todo.Title
+                    }).ToList(),
+                    "SubTasks retrieved successfully."
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while retrieving SubTasks for Todo ID {TodoId}", dto.TodoId);
+                return ServiceResult<List<SubTaskResponseDto>>.Failure(
+                    "An unexpected error occurred while retrieving the subtasks.",
+                    new[] { ex.Message });
+            }
+        }
 
 
         // UPDATE services
