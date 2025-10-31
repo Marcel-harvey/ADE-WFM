@@ -20,7 +20,7 @@ namespace ADE_WFM.Controllers
 
         // CREATE API's
         // Create a new projects
-        [HttpPost("Create-new")]
+        [HttpPost("Create")]
         public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
         {
             var result = await _projectService.CreateProject(dto);
@@ -33,7 +33,7 @@ namespace ADE_WFM.Controllers
 
 
         // Add user to a project
-        [HttpPost("Add-user")]
+        [HttpPost("User/Add")]
         public async Task<IActionResult> AddUserToProject([FromBody] AddUserToProjectDto dto)
         {
             var result = await _projectService.AddUserToProject(dto);
@@ -47,7 +47,7 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all projects
-        [HttpGet("Get-all")]
+        [HttpGet("All/Get")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _projectService.GetAllProjects();
@@ -60,10 +60,10 @@ namespace ADE_WFM.Controllers
 
 
         // Get project by Id
-        [HttpGet("Get/{id}")]
+        [HttpGet("Get/{projectId}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var dto = new GetProjectByIdDto { Id = id };
+            var dto = new GetProjectDto { ProjectId = id };
             var result = await _projectService.GetProjectById(dto);
 
             if (!result.Succeeded)
@@ -73,22 +73,9 @@ namespace ADE_WFM.Controllers
         }
 
 
-        // Get users in a project
-        [HttpGet("Get-users/{projectId}")]
-        public async Task<IActionResult> GetUsersInProject(int projectId)
-        {
-            var dto = new GetProjectUsersDto { Id = projectId };
-            var result = await _projectService.GetUsersInProject(dto);
-
-            if (!result.Succeeded)
-                return NotFound(result);
-
-            return Ok(result);
-        }
-
         // UPDATE API's
         // Update project info
-        [HttpPut("Update-info")]
+        [HttpPut("Update")]
         public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto)
         {
             var result = await _projectService.UpdateProjectInfo(dto);
@@ -102,7 +89,7 @@ namespace ADE_WFM.Controllers
         // DELETE API's
         // Delete a project
         [HttpDelete("Delete")]
-        public async Task<IActionResult> DeleteProject([FromBody] DeleteProjectDto dto)
+        public async Task<IActionResult> DeleteProject([FromBody] GetProjectDto dto)
         {
             var result = await _projectService.DeleteProject(dto);
 
@@ -114,8 +101,8 @@ namespace ADE_WFM.Controllers
 
 
         // Remove user from a project
-        [HttpDelete("Remove-user")]
-        public async Task<IActionResult> RemoveUserFromProject([FromBody] RemoveUserFromProjectDto dto)
+        [HttpDelete("User/Remove")]
+        public async Task<IActionResult> RemoveUserFromProject([FromBody] GetProjectDto dto)
         {
             var result = await _projectService.RemoveUserFromProject(dto);
 
