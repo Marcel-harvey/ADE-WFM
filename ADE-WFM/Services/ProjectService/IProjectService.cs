@@ -8,20 +8,21 @@ namespace ADE_WFM.Services.ProjectService
     {
 
         // ADD services
-        Task<ServiceResult<CreateProjectResponseDto>> CreateProject(CreateProjectDto dto);
-        Task<ServiceResult<ProjectUsersInfoDto>> AddUserToProject(AddUserToProjectDto dto);
+        Task<ServiceResult<ProjectResponseDto>> CreateProject(CreateProjectDto dto);
+        // TODO: Convert to batch add
+        Task<ServiceResult<ProjectResponseDto>> AddUserToProject(AddUserToProjectDto dto);
 
         // GET services
-        Task<ServiceResult<List<GetProjectResponseDto>>> GetAllProjects();
-        Task<ServiceResult<GetProjectResponseDto>> GetProjectById(GetProjectByIdDto dto);
-        Task<ServiceResult<GetProjectUsersResponseDto>> GetUsersInProject(GetProjectUsersDto dto);
+        Task<ServiceResult<List<ProjectResponseDto>>> GetAllProjects();
+        Task<ServiceResult<ProjectResponseDto>> GetProjectById(GetProjectDto dto);
+        Task<ServiceResult<GetProjectUsersResponseDto>> GetUsersInProject(GetProjectUsersDto dto);// remove later
 
         // UPDATE services
         Task<ServiceResult<UpdateProjectInfoResponseDto>> UpdateProjectInfo(UpdateProjectInfoDto dto);
 
         // DELETE services
-        Task<ServiceResult<DeleteProjectResponseDto>> DeleteProject(DeleteProjectDto dto);
-        Task<ServiceResult<ProjectUsersInfoDto>> RemoveUserFromProject(RemoveUserFromProjectDto dto);
+        Task<ServiceResult<ProjectResponseDto>> DeleteProject(GetProjectDto dto);
+        Task<ServiceResult<ProjectResponseDto>> RemoveUserFromProject(GetProjectDto dto);
 
         // ADD API services
 
