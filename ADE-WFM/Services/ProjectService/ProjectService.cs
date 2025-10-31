@@ -4,9 +4,11 @@ using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using System.Numerics;
+using System.Xml.Linq;
 
 namespace ADE_WFM.Services.ProjectService
 {
@@ -54,7 +56,8 @@ namespace ADE_WFM.Services.ProjectService
 
             try
             {
-                var project = new Project
+                // Models.Project use for some weird error
+                var project = new Models.Project
                 {
                     ProjectTitle = dto.ProjectTitle,
                     ProjectDescription = dto.ProjectDescription,
@@ -488,19 +491,25 @@ namespace ADE_WFM.Services.ProjectService
 
         // UPDATE services
         // Update project info
-        public async Task<ServiceResult<UpdateProjectInfoResponseDto>> UpdateProjectInfo(UpdateProjectInfoDto dto)
+        public async Task<ServiceResult<ProjectResponseDto>> UpdateProjectInfo(UpdateProjectInfoDto dto)
         {
             if (dto == null)
-                return ServiceResult<UpdateProjectInfoResponseDto>.Failure("UpdateProjectInfoDto cannot be null");
+                return ServiceResult<ProjectResponseDto>.Failure("UpdateProjectInfoDto cannot be null");
 
             if (dto.ProjectId <= 0)
-                return ServiceResult<UpdateProjectInfoResponseDto>.Failure("Invalid Project ID provided");
+                return ServiceResult<ProjectResponseDto>.Failure("Invalid Project ID provided");
 
 
             var project = await _context.Projects
+                .Include(p => p.WorkFlows)
+                .Include(pu => pu.ProjectUsers)
+                    .ThenInclude(u => u.User)
+                .Include(pc => pc.Comment)
+                .Include(pt => pt.PorjectTodos!)
+                    .ThenInclude(pt => pt.SubTasks)
                 .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
             if (project == null)
-                return ServiceResult<UpdateProjectInfoResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
+                return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
 
             try
             {
@@ -518,12 +527,44 @@ namespace ADE_WFM.Services.ProjectService
 
                 _logger.LogInformation("Project ID {ProjectId} updated successfully", dto.ProjectId);
 
-                return ServiceResult<UpdateProjectInfoResponseDto>.Success(
-                    new UpdateProjectInfoResponseDto
+                return ServiceResult<ProjectResponseDto>.Success(
+                    new ProjectResponseDto
                     {
-                        Title = project.ProjectTitle,
-                        Description = project.ProjectDescription,
-                        DueDate = project.DueDate
+                        ProjectId = project.Id,
+                        ProjectTitle = project.ProjectTitle,
+                        ProjectDescription = project.ProjectDescription,
+                        DueDate = project.DueDate,
+                        DateCreated = project.DateCreated,
+                        WorkFlowId = project.WorkFlows.Id,
+                        WorkFlowName = project.WorkFlows.WorkFlowName,
+                        Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto
+                        {
+                            UserId = u.UserId,
+                            UserName = u.User.UserName ?? string.Empty,
+                        }).ToList(),
+                        Comments = project.Comment?.Select(c => new ProjectCommentsInfoDto
+                        {
+                            CommentId = c.Id,
+                            CommentContent = c.CommentContent,
+                            DateCreated = c.DateCreated,
+                            UserId = c.UserId,
+                            UserName = c.User.UserName ?? string.Empty,
+                            IsViewed = c.IsViewed
+                        }).ToList(),
+                        Todos = project.PorjectTodos?.Select(t => new ProjectTodosInfoDto
+                        {
+                            TodoId = t.Id,
+                            TodoTitle = t.Title,
+                            TodoIsComplete = t.IsComplete,
+                            DueDate = t.DueDate,
+                            UserName = t.User?.UserName ?? "Unknown",
+                            ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto
+                            {
+                                SubTaskId = st.Id,
+                                SubTaskDescription = st.Description,
+                                SubTaskIsCompleted = st.IsCompleted,
+                            }).ToList() ?? new List<ProjectTodoSubTasksInfoDto>(),
+                        }).ToList()
                     },
                     $"Updated project successfully"
                 );
@@ -531,14 +572,14 @@ namespace ADE_WFM.Services.ProjectService
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Database error while updating project ID {ProjectId}", dto.ProjectId);
-                return ServiceResult<UpdateProjectInfoResponseDto>.Failure(
+                return ServiceResult<ProjectResponseDto>.Failure(
                     "A database error occurred while updating the project.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while updating project ID {ProjectId}", dto.ProjectId);
-                return ServiceResult<UpdateProjectInfoResponseDto>.Failure(
+                return ServiceResult<ProjectResponseDto>.Failure(
                     "An unexpected error occurred while updating the project.",
                     new[] { ex.Message });
             }
