@@ -441,53 +441,7 @@ namespace ADE_WFM.Services.ProjectService
                     new[] { ex.Message });
             }
         }
-
-
-        // Get all users involved in project
-        public async Task<ServiceResult<GetProjectUsersResponseDto>> GetUsersInProject(GetProjectUsersDto dto)
-        {
-            if (dto == null)
-                return ServiceResult<GetProjectUsersResponseDto>.Failure("GetProjectUsersDto cannot be null");
-
-            if (dto.Id <= 0)
-                return ServiceResult<GetProjectUsersResponseDto>.Failure($"Invalid project ID provided: {dto.Id}");
-
-            try
-            {
-                var projectUsers = await _context.ProjectUsers
-                    .Where(pu => pu.ProjectId == dto.Id)
-                    .Include(u => u.User)
-                    .ToListAsync();
-
-                if (!projectUsers.Any())
-                {
-                    _logger.LogWarning("No users found for project ID {ProjectId}", dto.Id);
-                    return ServiceResult<GetProjectUsersResponseDto>.Failure("No users found for the specified project");
-                }
-
-                var response = new GetProjectUsersResponseDto
-                {
-                    Users = projectUsers.Select(u => new ProjectUsersInfoDto
-                    {
-                        UserId = u.UserId,
-                        UserName = u.User?.UserName ?? string.Empty
-                    }).ToList()
-                };
-
-                return ServiceResult<GetProjectUsersResponseDto>.Success(
-                    response,
-                    $"Retrieved {response.Users.Count} users for project ID {dto.Id} successfully"
-                );
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving users for project ID {ProjectId}", dto.Id);
-                return ServiceResult<GetProjectUsersResponseDto>.Failure(
-                    "An unexpected error occurred while retrieving users in the project.",
-                    new[] { ex.Message });
-            }
-        }
-
+                     
 
         // UPDATE services
         // Update project info
