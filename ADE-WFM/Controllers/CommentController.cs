@@ -48,7 +48,7 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all comments in selected work flow
-        [HttpGet("WorkFlow/Get/{id}")]
+        [HttpGet("WorkFlow/All/Get/{workFlowId}")]
         public async Task<IActionResult> GetWorkFlowComments(int id)
         {
             var dto = new GetCommentInfoDto { WorkFlowId = id };
@@ -62,7 +62,7 @@ namespace ADE_WFM.Controllers
 
 
         // Get all comments in selected project
-        [HttpGet("Project/Get/{id}")]
+        [HttpGet("Project/All/Get/{projectId}")]
         public async Task<IActionResult> GetProjectComments(int id)
         {
             var dto = new GetCommentInfoDto { ProjectId = id };
@@ -76,7 +76,7 @@ namespace ADE_WFM.Controllers
 
 
         // Get all comments made by a user
-        [HttpGet("User/Get/{userId}")]
+        [HttpGet("User/All/Get/{userId}")]
         public async Task<IActionResult> GetUserComments(string userId)
         {
             var dto = new GetCommentInfoDto { UserId = userId };
@@ -91,7 +91,7 @@ namespace ADE_WFM.Controllers
 
         // UPDATE API's
         // Mark comment as viewed/unviewed
-        [HttpPut("Update/Viewed")]
+        [HttpPut("Update/Is-Viewed")]
         public async Task<IActionResult> MarkCommentAsViewed([FromBody] UpdateCommentViewedDto dto)
         {
             var result = await _commentService.MarkCommentAsViewed(dto);
