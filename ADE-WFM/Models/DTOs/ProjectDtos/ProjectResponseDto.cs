@@ -13,6 +13,7 @@
 
         // Lists
         public List<ProjectUsersInfoDto>? Users { get; set; }
+        public List<ProjectUsersInfoDto>? SkippedUsers { get; set; }
         public List<ProjectCommentsInfoDto>? Comments { get; set; }
         public List<ProjectTodosInfoDto>? Todos { get; set; }
 
