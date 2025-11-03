@@ -18,7 +18,7 @@ namespace ADE_WFM.Controllers
 
 
         // CREATE:
-        [HttpPost("Create-user")]
+        [HttpPost("Create")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
             if (!ModelState.IsValid)
@@ -34,7 +34,7 @@ namespace ADE_WFM.Controllers
 
 
         // GET:
-        [HttpGet("All-users")]
+        [HttpGet("Get/All")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _userService.GetAllUsers();
@@ -46,7 +46,7 @@ namespace ADE_WFM.Controllers
 
 
         // DELETE:
-        [HttpDelete("Delete-user")]
+        [HttpDelete("Delete")]
         public async Task<IActionResult> Delete([FromBody] DeleteUserDto dto)
         {
             var result = await _userService.DeleteUser(dto);
