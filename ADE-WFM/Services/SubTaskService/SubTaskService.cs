@@ -59,14 +59,14 @@ namespace ADE_WFM.Services.SubTaskService
                 _context.SubTasks.Add(subTask);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("SubTask '{Description}' added successfully to Todo '{TodoTitle}' (ID: {TodoId})",
-                    subTask.Description, todo.Title, todo.Id);
+                _logger.LogInformation("SubTask added successfully to Todo '{TodoTitle}' (ID: {TodoId})", todo.Title, todo.Id);
 
                 return ServiceResult<SubTaskResponseDto>.Success(new SubTaskResponseDto
                     {
                         SubTaskId = subTask.Id,
                         Description = subTask.Description,
                         IsCompleted = subTask.IsCompleted,
+                        TodoId = todo.Id,
                         TodoTitle = todo.Title
                     },
                     "Sub task added successfully"
@@ -87,7 +87,6 @@ namespace ADE_WFM.Services.SubTaskService
                     new[] { ex.Message });
             }
         }
-
 
 
         // GET serives
@@ -128,6 +127,7 @@ namespace ADE_WFM.Services.SubTaskService
                         SubTaskId = st.Id,
                         Description = st.Description,
                         IsCompleted = st.IsCompleted,
+                        TodoId = dto.TodoId,
                         TodoTitle = todo.Title
                     }).ToList(),
                     "SubTasks retrieved successfully."
@@ -149,10 +149,13 @@ namespace ADE_WFM.Services.SubTaskService
             // General validation
             if (dto == null)
                 return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
+
             if (dto.TodoId <= 0)
                 return ServiceResult<SubTaskResponseDto>.Failure("Invalid Todo ID.");
+
             if (dto.SubTaskId <= 0)
                 return ServiceResult<SubTaskResponseDto>.Failure("Invalid SubTask ID.");
+
             if (string.IsNullOrWhiteSpace(dto.Description))
                 return ServiceResult<SubTaskResponseDto>.Failure("Description cannot be empty.");
 
@@ -189,6 +192,7 @@ namespace ADE_WFM.Services.SubTaskService
                         SubTaskId = subTask.Id,
                         Description = subTask.Description,
                         IsCompleted = subTask.IsCompleted,
+                        TodoId = todo.Id,
                         TodoTitle = todo.Title
                     },
                     "Sub task updated successfully"
@@ -214,6 +218,7 @@ namespace ADE_WFM.Services.SubTaskService
         // Mark sub task as completed/incomplete
         public async Task<ServiceResult<SubTaskResponseDto>> MarkSubTaskCompletion(MarkSubTaskCompletionDto dto)
         {
+            // General validation
             if (dto == null)
                 return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
 
@@ -253,6 +258,7 @@ namespace ADE_WFM.Services.SubTaskService
                         SubTaskId = subTask.Id,
                         Description = subTask.Description,
                         IsCompleted = subTask.IsCompleted,
+                        TodoId = todo.Id,
                         TodoTitle = todo.Title
                     },
                     $"Sub task marked {dto.IsCompleted.ToString()} successfully"
@@ -279,6 +285,7 @@ namespace ADE_WFM.Services.SubTaskService
         // DELETE serives
         public async Task<ServiceResult<SubTaskResponseDto>> DeleteSubTask(GetSubTasksDto dto)
         {
+            // General validation
             if (dto == null)
                 return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
 
@@ -311,6 +318,7 @@ namespace ADE_WFM.Services.SubTaskService
                     SubTaskId = subTask.Id,
                     Description = subTask.Description,
                     IsCompleted = subTask.IsCompleted,
+                    TodoId = todo.Id,
                     TodoTitle = todo.Title
                 };
 
