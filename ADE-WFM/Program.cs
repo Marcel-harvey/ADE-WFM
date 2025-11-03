@@ -10,6 +10,8 @@ using ADE_WFM.Services.UserService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using ADE_WFM.Services.TenantService;
+using ADE_WFM.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +43,7 @@ builder.Services.AddScoped<IStickyNoteService, StickyNoteService>();
 builder.Services.AddScoped<ITodoService, TodoService>();
 builder.Services.AddScoped<ISubTaskService, SubTaskService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<TenantContext>();
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -68,13 +71,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// DB Seeder
-using (var scope = app.Services.CreateScope())
-{
-    var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    await DbSeeder.SeedAsync(ctx, logger);
-}
+
 
 
 // Apply migrations and seed roles/users
@@ -111,10 +108,16 @@ using (var scope = app.Services.CreateScope())
             await userManager.AddToRoleAsync(adminUser, adminRole);
         else
             Console.WriteLine("Failed to create admin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
-    }
+
+        // DB Seeder
+        var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        await DbSeeder.SeedAsync(ctx, logger);
 }
 
 // Configure middleware pipeline
+app.UseMiddleware<TenantMiddleware>();
+
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAll");
