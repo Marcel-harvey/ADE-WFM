@@ -25,5 +25,11 @@ namespace ADE_WFM.Models
         public int WorkFlowId { get; set; }
         [ForeignKey(nameof(WorkFlowId))]
         public WorkFlow WorkFlow { get; set; } = new();
+
+        // Tenand Setup
+        public int TenantId { get; set; }
+        [ForeignKey(nameof(TenantId))]
+        public Tenant Tenant { get; set; } = null!;
+
     }
 }

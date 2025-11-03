@@ -12,5 +12,11 @@ namespace ADE_WFM.Models
         public string UserId { get; set; } = string.Empty;
         [ForeignKey(nameof(UserId))]
         public ApplicationUser User { get; set; } = null!;
+
+
+        // Tenand Setup
+        public int TenantId { get; set; }
+        [ForeignKey(nameof(TenantId))]
+        public Tenant Tenant { get; set; } = null!;
     }
 }

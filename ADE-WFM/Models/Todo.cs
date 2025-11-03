@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ADE_WFM.Models
 {
@@ -30,6 +31,12 @@ namespace ADE_WFM.Models
 
        public int? ProjectId { get; set; }
        public Project? Project { get; set; }
+
+
+        // Tenand Setup
+        public int TenantId { get; set; }
+        [ForeignKey(nameof(TenantId))]
+        public Tenant Tenant { get; set; } = null!;
 
     }
 }
