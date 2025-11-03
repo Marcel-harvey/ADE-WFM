@@ -270,13 +270,13 @@ namespace ADE_WFM.Services.WorkFlowService
 
 
         // Get workflow by ID
-        public async Task<ServiceResult<WorkFlowResponseDto>> GetWorkFlowById(GetWorkFlowByIdDto dto)
+        public async Task<ServiceResult<WorkFlowResponseDto>> GetWorkFlowById(GetWorkFlowInfoDto dto)
         {
             // General validation
             if (dto == null)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
 
-            if (dto.Id <= 0)
+            if (dto.WorkFlowId <= 0)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
 
             try
@@ -285,12 +285,12 @@ namespace ADE_WFM.Services.WorkFlowService
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.Id);
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
 
                 if (workFlow == null)
                 {
-                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found.", dto.Id);
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.Id} was not found.");
+                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found.", dto.WorkFlowId);
+                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
                 }
 
                 _logger.LogInformation("Retrieved workflow '{WorkFlowName}' (ID: {WorkFlowId}) successfully.",
@@ -317,7 +317,7 @@ namespace ADE_WFM.Services.WorkFlowService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving workflow with ID {WorkFlowId}.", dto.Id);
+                _logger.LogError(ex, "Error retrieving workflow with ID {WorkFlowId}.", dto.WorkFlowId);
 
                 return ServiceResult<WorkFlowResponseDto>.Failure(
                     "An unexpected error occurred while retrieving the workflow.",
@@ -397,13 +397,13 @@ namespace ADE_WFM.Services.WorkFlowService
 
         // DELETE services
         // Delete workflow
-        public async Task<ServiceResult<WorkFlowResponseDto>> DeleteWorkFlow(DeleteWorkFlowDto dto)
+        public async Task<ServiceResult<WorkFlowResponseDto>> DeleteWorkFlow(GetWorkFlowInfoDto dto)
         {
             // Genral validation
             if (dto == null)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
 
-            if (dto.Id <= 0)
+            if (dto.WorkFlowId <= 0)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID.");
 
             try
@@ -414,12 +414,12 @@ namespace ADE_WFM.Services.WorkFlowService
                     .Include(w => w.Project)
                     .Include(w => w.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
-                    .FirstOrDefaultAsync(w => w.Id == dto.Id);
+                    .FirstOrDefaultAsync(w => w.Id == dto.WorkFlowId);
 
                 if (workFlow == null)
                 {
-                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found for deletion.", dto.Id);
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.Id} was not found.");
+                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found for deletion.", dto.WorkFlowId);
+                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
                 }
 
                 var response = new WorkFlowResponseDto
@@ -447,14 +447,14 @@ namespace ADE_WFM.Services.WorkFlowService
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error while updating workflow name for ID {WorkFlowId}", dto.Id);
+                _logger.LogError(ex, "Database error while updating workflow name for ID {WorkFlowId}", dto.WorkFlowId);
                 return ServiceResult<WorkFlowResponseDto>.Failure(
                     "A database error occurred while deleting the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting workflow with ID {WorkFlowId}", dto.Id);
+                _logger.LogError(ex, "Error deleting workflow with ID {WorkFlowId}", dto.WorkFlowId);
                 return ServiceResult<WorkFlowResponseDto>.Failure(
                     "An unexpected error occurred while deleting the workflow.",
                     new[] { ex.Message });

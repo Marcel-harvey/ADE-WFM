@@ -13,13 +13,13 @@ namespace ADE_WFM.Services.WorkFlowService
 
         // GET services
         Task<ServiceResult<List<WorkFlowResponseDto>>> GetAllWorkFlows();
-        Task<ServiceResult<WorkFlowResponseDto>> GetWorkFlowById(GetWorkFlowByIdDto dto);
+        Task<ServiceResult<WorkFlowResponseDto>> GetWorkFlowById(GetWorkFlowInfoDto dto);
 
         // UPDATE services
         Task <ServiceResult<WorkFlowResponseDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);
         
         // DELETE services
-        Task <ServiceResult<WorkFlowResponseDto>> DeleteWorkFlow(DeleteWorkFlowDto dto);
+        Task <ServiceResult<WorkFlowResponseDto>> DeleteWorkFlow(GetWorkFlowInfoDto dto);
         Task <ServiceResult<WorkFlowResponseDto>> RemoveUserFromWorkFlow(RemoveUserFromWorkFlowDto dto);
     }
 }

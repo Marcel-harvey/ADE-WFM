@@ -65,7 +65,7 @@ namespace ADE_WFM.Controllers
         {
             try
             {
-                var dto = new GetWorkFlowByIdDto { Id = id };
+                var dto = new GetWorkFlowInfoDto { Id = id };
                 var result = await _workFlowService.GetWorkFlowById(dto);
 
                 if (!result.Succeeded)
@@ -77,7 +77,7 @@ namespace ADE_WFM.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ServiceResult<GetAllWorkFlowsDtoResponse>.Failure(
+                return StatusCode(500, ServiceResult<WorkFlowResponseDto>.Failure(
                     "An unexpected error occurred while retrieving the workflow.",
                     new[] { ex.Message }
                 ));
@@ -119,9 +119,9 @@ namespace ADE_WFM.Controllers
         // DELETE API's
         // Delete a workflow via id
         [HttpDelete("Delete")]
-        public async Task<IActionResult> DeleteWorkFlow([FromBody] DeleteWorkFlowDto dto)
+        public async Task<IActionResult> DeleteWorkFlow([FromBody] GetWorkFlowInfoDto dto)
         {
-            if (dto == null || dto.Id <= 0)
+            if (dto == null || dto.WorkFlowId <= 0)
                 return BadRequest(ServiceResult<object>.Failure("Invalid workflow ID provided."));
 
             try
