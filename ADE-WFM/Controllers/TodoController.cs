@@ -75,7 +75,7 @@ namespace ADE_WFM.Controllers
 
 
         // Mark a todo as complete/incomplete
-        [HttpPut("MarkCompletion")]
+        [HttpPut("Update/Completion")]
         public async Task<IActionResult> MarkTodoCompletion([FromBody] MarkTodoCompletionDto dto)
         {
             var result = await _todoService.MarkTodoCompletion(dto);
