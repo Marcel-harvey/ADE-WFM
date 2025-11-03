@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using ADE_WFM.Services.TenantService;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ADE_WFM.Models
 {
-    public class StickyNote
+    public class StickyNote : ITenantEntity
     {
         public int Id { get; set; }
         public string Content { get; set; } = string.Empty;

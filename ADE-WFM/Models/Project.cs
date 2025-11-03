@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ADE_WFM.Services.TenantService;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ADE_WFM.Models
 {
-    public class Project
+    public class Project : ITenantEntity
     {
         public int Id { get; set; }
         [Required]

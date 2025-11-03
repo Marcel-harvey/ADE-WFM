@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ADE_WFM.Services.TenantService;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ADE_WFM.Models
 {
-    public class Comment
+    public class Comment : ITenantEntity
     {
         public int Id { get; set; }
         public DateOnly DateCreated { get; set; }
