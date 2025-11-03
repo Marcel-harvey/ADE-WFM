@@ -84,14 +84,14 @@ namespace ADE_WFM.Services.StickyNoteService
 
         // GET services
         // Get all sticky notes related to user
-        public async Task<ServiceResult<List<GetStickyNoteResponseDto>>> GetAllStickyNotes(GetAllUserStickyNotesDto dto)
+        public async Task<ServiceResult<List<StickyNoteResponseDto>>> GetAllStickyNotes(GetStickyNoteInfoDto dto)
         {
             // General validations
             if (dto == null)
-                return ServiceResult<List<GetStickyNoteResponseDto>>.Failure("Input data is null.");
+                return ServiceResult<List<StickyNoteResponseDto>>.Failure("Input data is null.");
 
             if (string.IsNullOrEmpty(dto.UserId))
-                return ServiceResult<List<GetStickyNoteResponseDto>>.Failure("UserId is required.");
+                return ServiceResult<List<StickyNoteResponseDto>>.Failure("UserId is required.");
 
             try
             {
@@ -103,12 +103,12 @@ namespace ADE_WFM.Services.StickyNoteService
                 if (!stickyNotes.Any())
                 {
                     _logger.LogWarning("No sticky notes found for user with ID: {UserId}", dto.UserId);
-                    return ServiceResult<List<GetStickyNoteResponseDto>>.Failure("No sticky notes found for user");
+                    return ServiceResult<List<StickyNoteResponseDto>>.Failure("No sticky notes found for user");
                 }
                 _logger.LogInformation("Retrieved {Count} sticky notes for user with ID: {UserId}", stickyNotes.Count, dto.UserId);
 
-                return ServiceResult<List<GetStickyNoteResponseDto>>.Success(
-                    stickyNotes.Select(sn => new GetStickyNoteResponseDto
+                return ServiceResult<List<StickyNoteResponseDto>>.Success(
+                    stickyNotes.Select(sn => new StickyNoteResponseDto
                     {
                         Id = sn.Id,
                         Content = sn.Content
@@ -120,7 +120,7 @@ namespace ADE_WFM.Services.StickyNoteService
             {
                 _logger.LogError(ex, "Error retrieving sticky notes.");
 
-                return ServiceResult<List<GetStickyNoteResponseDto>>.Failure(
+                return ServiceResult<List<StickyNoteResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving sticky notes.",
                     new[] { ex.Message });
             }

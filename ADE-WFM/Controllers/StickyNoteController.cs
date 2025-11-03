@@ -33,7 +33,7 @@ namespace ADE_WFM.Controllers
         // GET API's
         // Get all users sticky notes
         [HttpPost("User/All")]
-        public async Task<IActionResult> GetAllUserStickyNotes([FromBody] GetAllUserStickyNotesDto dto)
+        public async Task<IActionResult> GetAllUserStickyNotes([FromBody] GetStickyNoteInfoDto dto)
         {
             var result = await _stickyNoteService.GetAllStickyNotes(dto);
             if (!result.Succeeded)
