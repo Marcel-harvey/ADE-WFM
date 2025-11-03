@@ -8,18 +8,18 @@ namespace ADE_WFM.Services.WorkFlowService
     public interface IWorkFlowService
     {
         // ADD services
-        Task <ServiceResult<CreateWorkFlowResponseDto>> AddWorkFlow(CreateWorkFlowDto dto);
-        Task <ServiceResult<AddUserWorkFlowResponseDto>> AddUserToWorkFlow(AddUserWorkFlowDto dto);
+        Task <ServiceResult<WorkFlowResponseDto>> AddWorkFlow(CreateWorkFlowDto dto);
+        Task <ServiceResult<WorkFlowResponseDto>> AddUserToWorkFlow(AddUserWorkFlowDto dto);
 
         // GET services
-        Task<ServiceResult<List<GetAllWorkFlowsDtoResponse>>> GetAllWorkFlows();
-        Task<ServiceResult<GetAllWorkFlowsDtoResponse>> GetWorkFlowById(GetWorkFlowByIdDto dto);
+        Task<ServiceResult<List<WorkFlowResponseDto>>> GetAllWorkFlows();
+        Task<ServiceResult<WorkFlowResponseDto>> GetWorkFlowById(GetWorkFlowByIdDto dto);
 
         // UPDATE services
-        Task <ServiceResult<UpdateWorkFlowNameResponseDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);
+        Task <ServiceResult<WorkFlowResponseDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto);
         
         // DELETE services
-        Task <ServiceResult<DeleteWorkFlowResponseDto>> DeleteWorkFlow(DeleteWorkFlowDto dto);
-        Task <ServiceResult<RemoveUserFromWorkFlowResponseDto>> RemoveUserFromWorkFlow(RemoveUserFromWorkFlowDto dto);
+        Task <ServiceResult<WorkFlowResponseDto>> DeleteWorkFlow(DeleteWorkFlowDto dto);
+        Task <ServiceResult<WorkFlowResponseDto>> RemoveUserFromWorkFlow(RemoveUserFromWorkFlowDto dto);
     }
 }
