@@ -7,22 +7,28 @@ using ADE_WFM.Services.StickyNoteService;
 using ADE_WFM.Services.TodoService;
 using ADE_WFM.Services.SubTaskService;
 using ADE_WFM.Services.UserService;
+using ADE_WFM.Services.TenantService;
+using ADE_WFM.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using ADE_WFM.Services.TenantService;
-using ADE_WFM.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddControllers(); // ✅ API controllers only
+// ======================================
+// 1️⃣ Core Framework Services
+// ======================================
+builder.Services.AddControllers(); // API only, no MVC Views
 
-// Register DbContext with PostgreSQL
+// ======================================
+// 2️⃣ Database Context (Single DB setup)
+// ======================================
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register Identity (no UI)
+// ======================================
+// 3️⃣ Identity (Core Authentication)
+// ======================================
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -35,7 +41,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// Register custom services
+// ======================================
+// 4️⃣ Custom App Services
+// ======================================
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
@@ -45,11 +53,15 @@ builder.Services.AddScoped<ISubTaskService, SubTaskService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<TenantContext>();
 
-// Add Swagger
+// ======================================
+// 5️⃣ Swagger (Docs & Testing)
+// ======================================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add CORS (so frontends can connect)
+// ======================================
+// 6️⃣ CORS (Allow Angular / Frontend access)
+// ======================================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -60,21 +72,22 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Only enable Swagger in Development
+// ======================================
+// 7️⃣ Development Environment Config
+// ======================================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "ADE-WFM API v1");
-        options.RoutePrefix = string.Empty; // optional – serves Swagger UI at root "/"
+        options.RoutePrefix = string.Empty; // Serve Swagger UI at root "/"
     });
 }
 
-
-
-
-// Apply migrations and seed roles/users
+// ======================================
+// 8️⃣ Database Setup & Default Data
+// ======================================
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -82,6 +95,7 @@ using (var scope = app.Services.CreateScope())
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     string[] roles = { "Admin", "Standard", "View" };
+
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -107,27 +121,32 @@ using (var scope = app.Services.CreateScope())
         if (result.Succeeded)
             await userManager.AddToRoleAsync(adminUser, adminRole);
         else
-            Console.WriteLine("Failed to create admin: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+            Console.WriteLine("Failed to create admin: " +
+                string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
 
-        // DB Seeder
-        var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        await DbSeeder.SeedAsync(ctx, logger);
+    // Run DB seeder
+    var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await DbSeeder.SeedAsync(ctx, logger);
 }
 
-// Configure middleware pipeline
-app.UseMiddleware<TenantMiddleware>();
-
+// ======================================
+// 9️⃣ Middleware Pipeline
+// ======================================
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseMiddleware<TenantMiddleware>(); // 🏢 Identify tenant
+
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map API controllers
 app.MapControllers();
 
-// Health/test endpoint
+// Health Check Endpoint
 app.MapGet("/health", () => Results.Ok("ADE-WFM API is running ✅"));
 
+// ======================================
 app.Run();
