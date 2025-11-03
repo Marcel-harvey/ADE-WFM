@@ -21,7 +21,7 @@ namespace ADE_WFM.Controllers
 
         // CREATE API's
         // Create a new workflow
-        [HttpPost("Create-new")]
+        [HttpPost("Create")]
         public async Task<IActionResult> CreateWorkFlow([FromBody] CreateWorkFlowDto dto)
         {
             var result = await _workFlowService.AddWorkFlow(dto);
@@ -34,7 +34,7 @@ namespace ADE_WFM.Controllers
 
 
         // Add multiple users to a workflow
-        [HttpPost("Add-users")]
+        [HttpPost("User/Add")]
         public async Task<IActionResult> AddUsersToWorkFlow([FromBody] AddUserWorkFlowDto dto)
         {
             var result = await _workFlowService.AddUserToWorkFlow(dto);
@@ -48,7 +48,7 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Return all workflows
-        [HttpGet("Get-all")]
+        [HttpGet("Get/All")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _workFlowService.GetAllWorkFlows();
@@ -86,7 +86,7 @@ namespace ADE_WFM.Controllers
 
 
         // UPDATE API's
-        [HttpPut("Update-name")]
+        [HttpPut("Update")]
         public async Task<IActionResult> UpdateWorkFlowName([FromBody] UpdateWorkFlowNameDto dto)
         {
             if (!ModelState.IsValid)
@@ -145,7 +145,7 @@ namespace ADE_WFM.Controllers
 
 
         // Remove a user from a workflow
-        [HttpDelete("Remove-user")]
+        [HttpDelete("User/Remove")]
         public async Task<IActionResult> RemoveUser([FromBody] RemoveUserFromWorkFlowDto dto)
         {
             if (dto == null || dto.WorkFlowId <= 0 || string.IsNullOrEmpty(dto.UserId))
@@ -164,7 +164,4 @@ namespace ADE_WFM.Controllers
             return Ok(result);
         }
     }
-
-
-
 }

@@ -47,7 +47,7 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all projects
-        [HttpGet("All/Get")]
+        [HttpGet("Get/All")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _projectService.GetAllProjects();

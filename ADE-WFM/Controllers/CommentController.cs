@@ -48,7 +48,7 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all comments in selected work flow
-        [HttpGet("WorkFlow/All/Get/{workFlowId}")]
+        [HttpGet("WorkFlow/Get/All/{workFlowId}")]
         public async Task<IActionResult> GetWorkFlowComments(int id)
         {
             var dto = new GetCommentInfoDto { WorkFlowId = id };
@@ -62,7 +62,7 @@ namespace ADE_WFM.Controllers
 
 
         // Get all comments in selected project
-        [HttpGet("Project/All/Get/{projectId}")]
+        [HttpGet("Project/Get/All/{projectId}")]
         public async Task<IActionResult> GetProjectComments(int id)
         {
             var dto = new GetCommentInfoDto { ProjectId = id };
@@ -76,7 +76,7 @@ namespace ADE_WFM.Controllers
 
 
         // Get all comments made by a user
-        [HttpGet("User/All/Get/{userId}")]
+        [HttpGet("User/Get/All/{userId}")]
         public async Task<IActionResult> GetUserComments(string userId)
         {
             var dto = new GetCommentInfoDto { UserId = userId };
