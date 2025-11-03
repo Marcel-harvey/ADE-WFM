@@ -117,5 +117,6 @@ namespace ADE_WFM.Data
         public DbSet<WorkFlowUser> WorkFlowUsers { get; set; }
         public DbSet<ProjectUser> ProjectUsers { get; set; }
         public DbSet<SubTask> SubTasks { get; set; }
+        public DbSet<Tenant> Tenants { get; set; }
     }
 }
