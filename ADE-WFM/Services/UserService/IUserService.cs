@@ -5,15 +5,15 @@ namespace ADE_WFM.Services.UserService
 {
     public interface IUserService
     {
-        // CREATE: Add a new user
-        Task<ServiceResult<CreateUserResponseDto>> AddUser(CreateUserDto dto);
+        // CREATE service
+        Task<ServiceResult<UserResponseDto>> AddUser(CreateUserDto dto);
 
-        // GET: Retrieve all users
-        Task<ServiceResult<List<GetAllUsersResponseDto>>> GetAllUsers();
+        // GET service
+        Task<ServiceResult<List<UserResponseDto>>> GetAllUsers();
 
-        // UPDATE: (To be added later)
+        // UPDATE service (To be added later)
 
-        // DELETE: (To be added later)
-        Task<ServiceResult<DeleteUserResponseDto>> DeleteUser(DeleteUserDto dto);
+        // DELETE service
+        Task<ServiceResult<UserResponseDto>> DeleteUser(DeleteUserDto dto);
     }
 }

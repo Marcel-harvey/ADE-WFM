@@ -25,14 +25,14 @@ namespace ADE_WFM.Services.UserService
         }
 
         // CREATE:
-        public async Task<ServiceResult<CreateUserResponseDto>> AddUser(CreateUserDto dto)
+        public async Task<ServiceResult<UserResponseDto>> AddUser(CreateUserDto dto)
         {
             try
             {
                 // Check if email is provided, and set username to email if not provided
                 if (string.IsNullOrWhiteSpace(dto.Email))
                 {
-                    return ServiceResult<CreateUserResponseDto>.Failure("Email is required.");
+                    return ServiceResult<UserResponseDto>.Failure("Email is required.");
                 }
 
                 if (string.IsNullOrWhiteSpace(dto.UserName))
@@ -42,7 +42,7 @@ namespace ADE_WFM.Services.UserService
 
                 if (string.IsNullOrWhiteSpace(dto.Password))
                 {
-                    return ServiceResult<CreateUserResponseDto>.Failure("Password is required.");
+                    return ServiceResult<UserResponseDto>.Failure("Password is required.");
                 }
 
                 // Check if user exists with the same email
@@ -50,7 +50,7 @@ namespace ADE_WFM.Services.UserService
                     .FindByEmailAsync(dto.Email);
                 if (existing != null)
                 {
-                    return ServiceResult<CreateUserResponseDto>.Failure("A user with that email already exists.");
+                    return ServiceResult<UserResponseDto>.Failure("A user with that email already exists.");
                 }
 
                 var user = new ApplicationUser
@@ -80,17 +80,17 @@ namespace ADE_WFM.Services.UserService
                     _logger.LogWarning("Failed to create user {Email}: {Errors}",
                         dto.Email, string.Join(", ", errors));
 
-                    return ServiceResult<CreateUserResponseDto>.Failure("User creation failed.", errors);
+                    return ServiceResult<UserResponseDto>.Failure("User creation failed.", errors);
                 }
 
                 _logger.LogInformation("User created successfully with ID {UserId}", user.Id);
 
-                return ServiceResult<CreateUserResponseDto>.Success(
-                    new CreateUserResponseDto
+                return ServiceResult<UserResponseDto>.Success(
+                    new UserResponseDto
                     {
-                        Succeeded = true,
-                        UserId = user.Id,
-                        Errors = Array.Empty<string>()
+                        UserName = dto.UserName,
+                        Email = dto.Email ?? dto.UserName,
+                        Id = user.Id
                     },
                     "User created successfully."
                 );
@@ -98,7 +98,7 @@ namespace ADE_WFM.Services.UserService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error occurred while creating user {Email}", dto.Email);
-                return ServiceResult<CreateUserResponseDto>.Failure(
+                return ServiceResult<UserResponseDto>.Failure(
                     "An unexpected error occurred while creating the user.",
                     new[] { ex.Message });
             }
@@ -106,7 +106,7 @@ namespace ADE_WFM.Services.UserService
 
 
         // GET ALL:
-        public async Task<ServiceResult<List<GetAllUsersResponseDto>>> GetAllUsers()
+        public async Task<ServiceResult<List<UserResponseDto>>> GetAllUsers()
         {
             try
             {
@@ -116,25 +116,26 @@ namespace ADE_WFM.Services.UserService
                 if (users == null || users.Count == 0)
                 {
                     _logger.LogWarning("No users found in the system.");
-                    return ServiceResult<List<GetAllUsersResponseDto>>.Failure("No users found.");
+                    return ServiceResult<List<UserResponseDto>>.Failure("No users found.");
                 }
 
-                var response = users.Select(user => new GetAllUsersResponseDto
-                {
-                    Id = user.Id,
-                    UserName = user.UserName ?? string.Empty,
-                    Email = user.Email ?? string.Empty
-                }).ToList();
+                _logger.LogInformation("Retrieved {Count} users successfully.", users.Count);
 
-                _logger.LogInformation("Retrieved {Count} users successfully.", response.Count);
-
-                return ServiceResult<List<GetAllUsersResponseDto>>.Success(response, "Users retrieved successfully.");
+                return ServiceResult<List<UserResponseDto>>.Success(
+                    users.Select(u => new UserResponseDto
+                    {
+                        Id = u.Id,
+                        UserName = u.UserName ?? "Unknown",
+                        Email = u.Email ?? "No email"
+                    }).ToList(),
+                    "Users retrieved successfully."
+                );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving users.");
 
-                return ServiceResult<List<GetAllUsersResponseDto>>.Failure(
+                return ServiceResult<List<UserResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving users.",
                     new[] { ex.Message });
             }
@@ -143,21 +144,33 @@ namespace ADE_WFM.Services.UserService
 
         // DELETEE:
         // Delete user by ID
-        public async Task<ServiceResult<DeleteUserResponseDto>> DeleteUser(DeleteUserDto dto)
+        public async Task<ServiceResult<UserResponseDto>> DeleteUser(DeleteUserDto dto)
         {
+            // General validation
+            if (dto == null)
+                return ServiceResult<UserResponseDto>.Failure("DeleteUserDto cannot be null.");
+
+            if (string.IsNullOrWhiteSpace(dto.Id))
+                return ServiceResult<UserResponseDto>.Failure("User ID is required for deletion.");
+
             try
             {
-                // --- Find user by Id ---
                 var user = await _userManager
                     .FindByIdAsync(dto.Id);
 
                 if (user == null)
                 {
                     _logger.LogWarning("User with ID {UserId} not found for deletion.", dto.Id);
-                    return ServiceResult<DeleteUserResponseDto>.Failure("User not found.");
+                    return ServiceResult<UserResponseDto>.Failure("User not found.");
                 }
 
-                // --- Delete the user ---
+                var respone = new UserResponseDto
+                {
+                    UserName = user.UserName ?? "Unknown",
+                    Email = user.Email ?? "No Email",
+                    Id = user.Id
+                };
+
                 var result = await _userManager
                     .DeleteAsync(user);
 
@@ -165,23 +178,17 @@ namespace ADE_WFM.Services.UserService
                 {
                     var errors = result.Errors.Select(e => e.Description);
                     _logger.LogWarning("Failed to delete user {UserId}: {Errors}", dto.Id, string.Join(", ", errors));
-                    return ServiceResult<DeleteUserResponseDto>.Failure("Failed to delete user.", errors);
+                    return ServiceResult<UserResponseDto>.Failure("Failed to delete user.", errors);
                 }
 
-                // --- Success ---
                 _logger.LogInformation("User deleted successfully with ID {UserId}", dto.Id);
-                return ServiceResult<DeleteUserResponseDto>.Success(
-                    new DeleteUserResponseDto
-                    {
-                        Name = user.UserName ?? string.Empty
-                    },
-                    "User deleted successfully."
-                );
+
+                return ServiceResult<UserResponseDto>.Success(respone, "User deleted successfully.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting user with ID {UserId}", dto.Id);
-                return ServiceResult<DeleteUserResponseDto>.Failure(
+                return ServiceResult<UserResponseDto>.Failure(
                     "An unexpected error occurred while deleting the user.",
                     new[] { ex.Message });
             }
