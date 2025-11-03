@@ -68,6 +68,15 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// DB Seeder
+using (var scope = app.Services.CreateScope())
+{
+    var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await DbSeeder.SeedAsync(ctx, logger);
+}
+
+
 // Apply migrations and seed roles/users
 using (var scope = app.Services.CreateScope())
 {
