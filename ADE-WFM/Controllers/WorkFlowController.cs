@@ -52,6 +52,7 @@ namespace ADE_WFM.Controllers
         public async Task<IActionResult> GetAll()
         {
             var result = await _workFlowService.GetAllWorkFlows();
+
             if (!result.Succeeded)
                 return NotFound(result);
 
@@ -63,25 +64,15 @@ namespace ADE_WFM.Controllers
         [HttpGet("Get/{id}")]
         public async Task<IActionResult> GetWorkFlowById(int id)
         {
-            try
-            {
-                var dto = new GetWorkFlowInfoDto { Id = id };
-                var result = await _workFlowService.GetWorkFlowById(dto);
+            var dto = new GetWorkFlowInfoDto { WorkFlowId = id };
+            var result = await _workFlowService.GetWorkFlowById(dto);
 
-                if (!result.Succeeded)
-                {
-                    return NotFound(result);
-                }
-
-                return Ok(result);
-            }
-            catch (Exception ex)
+            if (!result.Succeeded)
             {
-                return StatusCode(500, ServiceResult<WorkFlowResponseDto>.Failure(
-                    "An unexpected error occurred while retrieving the workflow.",
-                    new[] { ex.Message }
-                ));
+                return NotFound(result);
             }
+
+            return Ok(result);
         }
 
 
@@ -89,30 +80,14 @@ namespace ADE_WFM.Controllers
         [HttpPut("Update")]
         public async Task<IActionResult> UpdateWorkFlowName([FromBody] UpdateWorkFlowNameDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ServiceResult<object>.Failure(
-                    "Invalid data provided.",
-                    ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
-                ));
+            var result = await _workFlowService.UpdateWorkFlowName(dto);
 
-            try
+            if (!result.Succeeded)
             {
-                var result = await _workFlowService.UpdateWorkFlowName(dto);
-
-                if (!result.Succeeded)
-                {
-                    return BadRequest(result);
-                }
-
-                return Ok(result);
+                return BadRequest(result);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<object>.Failure(
-                    "An unexpected error occurred while updating the workflow name.",
-                    new[] { ex.Message }
-                ));
-            }
+
+            return Ok(result);            
         }
 
 
@@ -121,26 +96,14 @@ namespace ADE_WFM.Controllers
         [HttpDelete("Delete")]
         public async Task<IActionResult> DeleteWorkFlow([FromBody] GetWorkFlowInfoDto dto)
         {
-            if (dto == null || dto.WorkFlowId <= 0)
-                return BadRequest(ServiceResult<object>.Failure("Invalid workflow ID provided."));
+            var result = await _workFlowService.DeleteWorkFlow(dto);
 
-            try
+            if (!result.Succeeded)
             {
-                var result = await _workFlowService.DeleteWorkFlow(dto);
-
-                if (!result.Succeeded)
-                {
-                    return BadRequest(result);
-                }
-
-                return Ok(result);
+                return BadRequest(result);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ServiceResult<object>.Failure(
-                    "An unexpected error occurred while deleting the workflow.",
-                    new[] { ex.Message }));
-            }
+
+            return Ok(result);
         }
 
 
@@ -148,12 +111,6 @@ namespace ADE_WFM.Controllers
         [HttpDelete("User/Remove")]
         public async Task<IActionResult> RemoveUser([FromBody] RemoveUserFromWorkFlowDto dto)
         {
-            if (dto == null || dto.WorkFlowId <= 0 || string.IsNullOrEmpty(dto.UserId))
-                return BadRequest(ServiceResult<object>.Failure(
-                    "Invalid workflow ID or user ID.",
-                    new[] { "WorkflowId must be greater than 0", "UserId cannot be null or empty" }
-                ));
-
             var result = await _workFlowService.RemoveUserFromWorkFlow(dto);
 
             if (!result.Succeeded)
