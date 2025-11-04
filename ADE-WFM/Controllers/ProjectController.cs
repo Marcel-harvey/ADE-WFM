@@ -30,15 +30,12 @@ namespace ADE_WFM.Controllers
 
 
         // Add user to a project
-        [HttpPost("User/Add")]
+        [HttpPost("user/add")]
         public async Task<IActionResult> AddUserToProject([FromBody] AddUserToProjectDto dto)
         {
             var result = await _projectService.AddUserToProject(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 

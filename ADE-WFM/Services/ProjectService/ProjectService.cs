@@ -175,8 +175,10 @@ namespace ADE_WFM.Services.ProjectService
 
             if (string.IsNullOrWhiteSpace(dto.UserId))
                 return ServiceResult<ProjectResponseDto>.Failure("User ID cannot be empty");
-
-            var project = await _context.Projects
+                      
+            try
+            {
+                var project = await _context.Projects
                 .Include(p => p.WorkFlows)
                 .Include(pu => pu.ProjectUsers)
                     .ThenInclude(u => u.User)
@@ -184,33 +186,32 @@ namespace ADE_WFM.Services.ProjectService
                 .Include(pt => pt.PorjectTodos!)
                     .ThenInclude(pt => pt.SubTasks)
                     .OrderByDescending(p => p.DateCreated)
-                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
-            if (project == null)
-                return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
+                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
+                if (project == null)
+                    return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == dto.UserId);
-            if (user == null)
-                return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.UserId} was not found");
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == dto.UserId);
+                if (user == null)
+                    return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.UserId} was not found");
 
-            // Get users in workflow - cannot add users outside of workflow
-            var workFlow = await _context.WorkFlows
-                .Include(wf => wf.WorkFlowUsers)
-                .FirstOrDefaultAsync(wf => wf.Id == project.WorkFlowId);
-            if (workFlow == null)
-                return ServiceResult<ProjectResponseDto>.Failure($"Workflow with ID {project.WorkFlowId} does not exist");
+                // Get users in workflow - cannot add users outside of workflow
+                var workFlow = await _context.WorkFlows
+                    .Include(wf => wf.WorkFlowUsers)
+                    .FirstOrDefaultAsync(wf => wf.Id == project.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
+                if (workFlow == null)
+                    return ServiceResult<ProjectResponseDto>.Failure($"Workflow with ID {project.WorkFlowId} does not exist");
 
-            // Ensure user is part of the project's workflow
-            var workflowUserIds = workFlow.WorkFlowUsers.Select(wfu => wfu.UserId).ToHashSet();
+                // Ensure user is part of the project's workflow
+                var workflowUserIds = workFlow.WorkFlowUsers
+                    .Select(wfu => wfu.UserId)
+                    .ToHashSet();
 
-            if (!workflowUserIds.Contains(dto.UserId))
-            {
-                return ServiceResult<ProjectResponseDto>.Failure(
-                    $"User '{user.UserName}' cannot be added because they are not part of the workflow '{workFlow.WorkFlowName}'.");
-            }
-
-            try
-            {
+                if (!workflowUserIds.Contains(dto.UserId))
+                {
+                    return ServiceResult<ProjectResponseDto>.Failure(
+                        $"User '{user.UserName}' cannot be added because they are not part of the workflow '{workFlow.WorkFlowName}'.");
+                }
 
                 // Prevent duplicate users
                 if (project.ProjectUsers.Any(pu => pu.UserId == dto.UserId))
@@ -277,16 +278,14 @@ namespace ADE_WFM.Services.ProjectService
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error while adding user '{UserName}' to project '{ProjectTitle}'",
-                    user.UserName, project.ProjectTitle);
+                _logger.LogError(ex, "Database error while adding new user to selected project");
                 return ServiceResult<ProjectResponseDto>.Failure(
                     "A database error occurred while adding the user.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while adding user '{UserName}' to project '{ProjectTitle}'",
-                    user.UserName, project.ProjectTitle);
+                _logger.LogError(ex, "Unexpected error while adding users to selected project");
                 return ServiceResult<ProjectResponseDto>.Failure(
                     "An unexpected error occurred while adding the user.",
                     new[] { ex.Message });
