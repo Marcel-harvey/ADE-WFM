@@ -3,6 +3,7 @@ using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
+using ADE_WFM.Services.TenantService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
@@ -17,15 +18,18 @@ namespace ADE_WFM.Services.ProjectService
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<ProjectService> _logger;
+        private readonly TenantContext _tenantContext;
 
         public ProjectService(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger<ProjectService> logger)
+            ILogger<ProjectService> logger,
+            TenantContext tenantContext)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _tenantContext = tenantContext;
         }
 
 
@@ -50,7 +54,7 @@ namespace ADE_WFM.Services.ProjectService
             var workFlow = await _context.WorkFlows
                 .Include(u => u.WorkFlowUsers)
                     .ThenInclude(wfu => wfu.User)
-                .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
+                .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId  == _tenantContext.TenantId);
             if (workFlow == null)
                 return ServiceResult<ProjectResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} does not exist");
 
@@ -65,6 +69,7 @@ namespace ADE_WFM.Services.ProjectService
                     DueDate = dto.DueDate,
                     WorkFlowId = dto.WorkFlowId,
                     ProjectUsers = new List<ProjectUser>(),
+                    TenantId = _tenantContext.TenantId
                 };
 
                 // Lists for adding added and skipped users when iterating through provided user IDs
@@ -85,7 +90,9 @@ namespace ADE_WFM.Services.ProjectService
                 });
 
                 // Prepare lookup of all users in workflow
-                var workflowUserIds = workFlow.WorkFlowUsers.Select(wfu => wfu.UserId).ToHashSet();
+                var workflowUserIds = workFlow.WorkFlowUsers
+                    .Select(wfu => wfu.UserId)
+                    .ToHashSet();
 
                 // Add valid users and collect skipped ones
                 foreach (var userId in dto.UserIds)

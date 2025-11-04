@@ -20,15 +20,12 @@ namespace ADE_WFM.Controllers
 
         // CREATE API's
         // Create a new projects
-        [HttpPost("Create")]
+        [HttpPost]
         public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
         {
             var result = await _projectService.CreateProject(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
