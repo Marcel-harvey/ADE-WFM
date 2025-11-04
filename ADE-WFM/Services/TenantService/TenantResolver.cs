@@ -6,12 +6,12 @@ namespace ADE_WFM.Services.TenantService
 {
     public class TenantResolver : ITenantResolver
     {
-        private readonly ApplicationDbContext _db;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<TenantResolver> _logger;
 
-        public TenantResolver(ApplicationDbContext db, ILogger<TenantResolver> logger)
+        public TenantResolver(ApplicationDbContext context, ILogger<TenantResolver> logger)
         {
-            _db = db;
+            _context = context;
             _logger = logger;
         }
 
@@ -28,7 +28,7 @@ namespace ADE_WFM.Services.TenantService
             Tenant? tenant = null;
             if (!string.IsNullOrEmpty(tenantKey))
             {
-                tenant = await _db.Tenants
+                tenant = await _context.Tenants
                     .AsNoTracking()
                     .FirstOrDefaultAsync(t =>
                         t.Domain != null &&
@@ -38,7 +38,7 @@ namespace ADE_WFM.Services.TenantService
             // 3️⃣  Fallback to default tenant
             if (tenant == null)
             {
-                tenant = await _db.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == 1);
+                tenant = await _context.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == 1);
                 _logger.LogWarning("Tenant not found for key '{TenantKey}', fallback to default.", tenantKey);
             }
 
