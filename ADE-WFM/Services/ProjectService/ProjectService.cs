@@ -668,6 +668,9 @@ namespace ADE_WFM.Services.ProjectService
                 if (projectUsersCount <= 1)
                     return ServiceResult<ProjectResponseDto>.Failure("Cannot remove the last user from the project");
 
+                _context.ProjectUsers.Remove(projectUser);
+                await _context.SaveChangesAsync();
+
                 var response = new ProjectResponseDto
                 {
                     ProjectId = project.Id,
@@ -706,9 +709,6 @@ namespace ADE_WFM.Services.ProjectService
                         }).ToList() ?? new List<ProjectTodoSubTasksInfoDto>(),
                     }).ToList()
                 };
-
-                _context.ProjectUsers.Remove(projectUser);
-                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("User ID '{UserId}' removed from project ID '{ProjectId}' successfully", dto.UserId, dto.ProjectId);
 
