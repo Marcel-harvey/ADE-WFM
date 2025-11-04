@@ -41,29 +41,23 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all projects
-        [HttpGet("Get/All")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var result = await _projectService.GetAllProjects();
 
-            if (!result.Succeeded)
-                return NotFound(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 
         // Get project by Id
-        [HttpGet("Get/{projectId}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{projectId}")]
+        public async Task<IActionResult> GetById(int projectId)
         {
-            var dto = new GetProjectDto { ProjectId = id };
+            var dto = new GetProjectDto { ProjectId = projectId };
             var result = await _projectService.GetProjectById(dto);
 
-            if (!result.Succeeded)
-                return NotFound(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 

@@ -307,11 +307,12 @@ namespace ADE_WFM.Services.ProjectService
                     .Include(pt => pt.PorjectTodos!)
                         .ThenInclude(pt => pt.SubTasks)
                     .OrderByDescending(p => p.DateCreated)
+                    .Where(p => p.TenantId == _tenantContext.TenantId)
                     .ToListAsync();
 
                 if (!projects.Any())
                 {
-                    _logger.LogWarning("No projects found in the database.");
+                    _logger.LogWarning($"No projects found for tenant {_tenantContext.TenantName}.");
                     return ServiceResult<List<ProjectResponseDto>>.Failure("No projects found");
                 }
 
@@ -387,7 +388,7 @@ namespace ADE_WFM.Services.ProjectService
                     .Include(pc => pc.Comment)
                     .Include(pt => pt.PorjectTodos!)
                         .ThenInclude(pt => pt.SubTasks)
-                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
 
                 if (project == null)
                 {
