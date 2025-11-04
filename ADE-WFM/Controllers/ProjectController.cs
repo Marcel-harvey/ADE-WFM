@@ -30,9 +30,14 @@ namespace ADE_WFM.Controllers
 
 
         // Add user to a project
-        [HttpPost("user/add")]
-        public async Task<IActionResult> AddUserToProject([FromBody] AddUserToProjectDto dto)
+        [HttpPost("{projectId:int}user/{userId}")]
+        public async Task<IActionResult> AddUserToProject(int projectId, string userId)
         {
+            var dto = new AddUserToProjectDto
+            {
+                ProjectId = projectId,
+                UserId = userId
+            };
             var result = await _projectService.AddUserToProject(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -63,9 +68,10 @@ namespace ADE_WFM.Controllers
 
         // UPDATE API's
         // Update project info
-        [HttpPut]
-        public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto)
+        [HttpPut("{projectId?}")]
+        public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto, int? projectId = null)
         {
+            dto.ProjectId = projectId ?? dto.ProjectId;
             var result = await _projectService.UpdateProjectInfo(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
