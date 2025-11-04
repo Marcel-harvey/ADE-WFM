@@ -21,104 +21,87 @@ namespace ADE_WFM.Controllers
 
         // CREATE API's
         // Create a new workflow
-        [HttpPost("Create")]
+        [HttpPost]
         public async Task<IActionResult> CreateWorkFlow([FromBody] CreateWorkFlowDto dto)
         {
             var result = await _workFlowService.AddWorkFlow(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // Add multiple users to a workflow
-        [HttpPost("User/Add")]
-        public async Task<IActionResult> AddUsersToWorkFlow([FromBody] AddUserWorkFlowDto dto)
+        [HttpPost("{id:int}/users/add")]
+        public async Task<IActionResult> AddUsers(int id, [FromBody] AddUserWorkFlowDto dto)
         {
+            if (id != dto.WorkFlowId)
+                return BadRequest("Workflow ID in URL does not match body.");
+
             var result = await _workFlowService.AddUserToWorkFlow(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // GET API's
         // Return all workflows
-        [HttpGet("Get/All")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var result = await _workFlowService.GetAllWorkFlows();
 
-            if (!result.Succeeded)
-                return NotFound(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 
         // Return workflow by ID
-        [HttpGet("Get/{id}")]
-        public async Task<IActionResult> GetWorkFlowById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
         {
             var dto = new GetWorkFlowInfoDto { WorkFlowId = id };
             var result = await _workFlowService.GetWorkFlowById(dto);
 
-            if (!result.Succeeded)
-            {
-                return NotFound(result);
-            }
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 
         // UPDATE API's
-        [HttpPut("Update")]
-        public async Task<IActionResult> UpdateWorkFlowName([FromBody] UpdateWorkFlowNameDto dto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateName(int id, [FromBody] UpdateWorkFlowNameDto dto)
         {
+            if (id != dto.WorkFlowId)
+                return BadRequest("Workflow ID in URL does not match body.");
+
             var result = await _workFlowService.UpdateWorkFlowName(dto);
 
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-
-            return Ok(result);            
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // DELETE API's
         // Delete a workflow via id
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> DeleteWorkFlow([FromBody] GetWorkFlowInfoDto dto)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
         {
+            var dto = new GetWorkFlowInfoDto { WorkFlowId = id };
             var result = await _workFlowService.DeleteWorkFlow(dto);
 
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // Remove a user from a workflow
-        [HttpDelete("User/Remove")]
-        public async Task<IActionResult> RemoveUser([FromBody] RemoveUserFromWorkFlowDto dto)
+        [HttpDelete("{id:int}/users/{userId}")]
+        public async Task<IActionResult> RemoveUser(int id, string userId)
         {
+            var dto = new RemoveUserFromWorkFlowDto
+            {
+                WorkFlowId = id,
+                UserId = userId
+            };
             var result = await _workFlowService.RemoveUserFromWorkFlow(dto);
 
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
     }
 }

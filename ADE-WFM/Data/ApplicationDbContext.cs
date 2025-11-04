@@ -1,27 +1,52 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using ADE_WFM.Models; 
+using ADE_WFM.Models;
+using ADE_WFM.Services.TenantService;
+using Microsoft.AspNetCore.Http;
 
 namespace ADE_WFM.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options) { }
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            IHttpContextAccessor httpContextAccessor
+        ) : base(options)
+        {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        // ==============================================
+        //                  DbSets
+        // ==============================================
+        public DbSet<WorkFlow> WorkFlows { get; set; }
+        public DbSet<Todo> Todos { get; set; }
+        public DbSet<Project> Projects { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<StickyNote> StickyNotes { get; set; }
+        public DbSet<WorkFlowUser> WorkFlowUsers { get; set; }
+        public DbSet<ProjectUser> ProjectUsers { get; set; }
+        public DbSet<SubTask> SubTasks { get; set; }
+        public DbSet<Tenant> Tenants { get; set; }
+
+        // ==============================================
+        //                  OnModelCreating
+        // ==============================================
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            // Composite key
-            builder.Entity<WorkFlowUser>()
-                .HasKey(wu => new { wu.WorkFlowId, wu.UserId }); 
+            // ===========================
+            //  COMPOSITE KEYS
+            // ===========================
+            builder.Entity<WorkFlowUser>().HasKey(wu => new { wu.WorkFlowId, wu.UserId });
+            builder.Entity<ProjectUser>().HasKey(pu => new { pu.ProjectId, pu.UserId });
 
-            builder.Entity<ProjectUser>()
-                .HasKey(wu => new { wu.ProjectId, wu.UserId });
-
-            // Cascade deletes
-            // Cascade deletes for WorkFlow related entities
+            // ===========================
+            //  WORKFLOW RELATIONSHIPS
+            // ===========================
             builder.Entity<WorkFlowUser>()
                 .HasOne(wu => wu.WorkFlow)
                 .WithMany(w => w.WorkFlowUsers)
@@ -35,88 +60,129 @@ namespace ADE_WFM.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<WorkFlow>()
-              .HasMany(wf => wf.Comments)
-              .WithOne(c => c.WorkFlow)
-              .HasForeignKey(c => c.WorkFlowId)
-              .OnDelete(DeleteBehavior.Cascade);
-
-            // WorkFlow relationships
-            builder.Entity<WorkFlow>()
-                .HasMany(wf => wf.Project)
-                .WithOne(p => p.WorkFlows)
-                .HasForeignKey(p => p.WorkFlowId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<WorkFlow>()
                 .HasMany(wf => wf.Comments)
                 .WithOne(c => c.WorkFlow)
                 .HasForeignKey(c => c.WorkFlowId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ProjectUser relationships
+            builder.Entity<WorkFlow>()
+                .HasMany(wf => wf.Project)
+                .WithOne(p => p.WorkFlows)
+                .HasForeignKey(p => p.WorkFlowId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ===========================
+            //  PROJECT RELATIONSHIPS
+            // ===========================
             builder.Entity<ProjectUser>()
-                .HasOne(wu => wu.Project)
-                .WithMany(w => w.ProjectUsers)
-                .HasForeignKey(wu => wu.ProjectId)
+                .HasOne(pu => pu.Project)
+                .WithMany(p => p.ProjectUsers)
+                .HasForeignKey(pu => pu.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<ProjectUser>()
-                .HasOne(wu => wu.User)
+                .HasOne(pu => pu.User)
                 .WithMany(u => u.ProjectUsers)
-                .HasForeignKey(wu => wu.UserId)
+                .HasForeignKey(pu => pu.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Cascade deletes for Project related entities
-            // Project - Comments
             builder.Entity<Project>()
                 .HasMany(p => p.Comment)
                 .WithOne(c => c.Project)
                 .HasForeignKey(c => c.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            //  Project - Todos (if linked)
             builder.Entity<Project>()
                 .HasMany(p => p.PorjectTodos)
-                .WithOne(c => c.Project)
+                .WithOne(t => t.Project)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Project - TaskPlanning (if linked)
             builder.Entity<Project>()
                 .HasMany(p => p.Task)
-                .WithOne(c => c.Project)
+                .WithOne(t => t.Project)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // DO NOT CASCADE — because multiple Projects share a WorkFlow
-            builder.Entity<Project>()
-                .HasOne(p => p.WorkFlows)
-                .WithMany(wf => wf.Project) // if WorkFlow has a Projects collection
-                .HasForeignKey(p => p.WorkFlowId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // When deleting user will cascade delete their StickyNotes - NOT otherway around
+            // ===========================
+            //  STICKY NOTE RELATIONSHIP
+            // ===========================
             builder.Entity<StickyNote>()
                 .HasOne(sn => sn.User)
                 .WithMany(u => u.StickyNote)
                 .HasForeignKey(sn => sn.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Cascade deletes for Todo related entities
+            // ===========================
+            //  TODO RELATIONSHIPS
+            // ===========================
             builder.Entity<Todo>()
                 .HasMany(t => t.SubTasks)
                 .WithOne(st => st.Todo)
                 .HasForeignKey(st => st.TodoId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ===========================
+            //  TENANT RELATIONSHIPS
+            // ===========================
+            builder.Entity<Tenant>()
+                .HasMany(t => t.Projects)
+                .WithOne(p => p.Tenant)
+                .HasForeignKey(p => p.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Tenant>()
+                .HasMany(t => t.WorkFlows)
+                .WithOne(wf => wf.Tenant)
+                .HasForeignKey(wf => wf.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Tenant>()
+                .HasMany(t => t.Todos)
+                .WithOne(td => td.Tenant)
+                .HasForeignKey(td => td.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ===========================
+            //  GLOBAL TENANT FILTERS
+            // ===========================
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                if (typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType) &&
+                    entityType.ClrType != typeof(Tenant)) // <-- exclude Tenant itself
+                {
+                    var method = typeof(ApplicationDbContext)
+                        .GetMethod(nameof(SetTenantFilter), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        ?.MakeGenericMethod(entityType.ClrType);
+
+                    method?.Invoke(this, new object[] { builder });
+                }
+            }
+
         }
 
-        // Company Info
-        public DbSet<WorkFlow> WorkFlows { get; set; }
-        public DbSet<Todo> Todos { get; set; }
-        public DbSet<Project> Projects { get; set; }
-        public DbSet<Comment> Comments { get; set; }
-        public DbSet<StickyNote> StickyNotes { get; set; }
-        public DbSet<WorkFlowUser> WorkFlowUsers { get; set; }
-        public DbSet<ProjectUser> ProjectUsers { get; set; }
-        public DbSet<SubTask> SubTasks { get; set; }
-        public DbSet<Tenant> Tenants { get; set; }
+        // =========================================================
+        // Applies Tenant filter automatically for all ITenantEntity
+        // =========================================================
+        private void SetTenantFilter<T>(ModelBuilder builder) where T : class, ITenantEntity
+        {
+            builder.Entity<T>().HasQueryFilter(e => e.TenantId == CurrentTenantId || CurrentTenantId == null);
+        }
+
+        // =========================================================
+        //  Determine current tenant from context or middleware
+        // =========================================================
+        private int? CurrentTenantId
+        {
+            get
+            {
+                // Prefer middleware tenant context (set in HttpContext.Items)
+                var tenantContext = _httpContextAccessor.HttpContext?.Items["TenantContext"] as TenantContext;
+                if (tenantContext != null && tenantContext.TenantId > 0)
+                    return tenantContext.TenantId;
+
+                // Fallback: read from user claims (for APIs)
+                var tenantClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("tenant_id")?.Value;
+                return int.TryParse(tenantClaim, out var id) ? id : null;
+            }
+        }
     }
 }

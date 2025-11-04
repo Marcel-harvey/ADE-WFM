@@ -1,10 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ADE_WFM.Services.TenantService;
+using System.ComponentModel.DataAnnotations;
 
 namespace ADE_WFM.Models
 {
-    public class Tenant
+    public class Tenant : ITenantEntity
     {
         public int Id { get; set; }
+        // Interface ITenantEntity implementation
+        int ITenantEntity.TenantId
+        {
+            get => Id;
+            set => Id = value;
+        }
 
         [Required]
         public string Name { get; set; } = string.Empty;

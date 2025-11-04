@@ -11,24 +11,18 @@ using ADE_WFM.Services.TenantService;
 using ADE_WFM.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ======================================
-// 1️⃣ Core Framework Services
-// ======================================
-builder.Services.AddControllers(); // API only, no MVC Views
+// 1️⃣ Core services
+builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 
-// ======================================
-// 2️⃣ Database Context (Single DB setup)
-// ======================================
+// 2️⃣ Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ======================================
-// 3️⃣ Identity (Core Authentication)
-// ======================================
+// 3️⃣ Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -41,9 +35,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// ======================================
-// 4️⃣ Custom App Services
-// ======================================
+// 4️⃣ App services
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
@@ -51,17 +43,15 @@ builder.Services.AddScoped<IStickyNoteService, StickyNoteService>();
 builder.Services.AddScoped<ITodoService, TodoService>();
 builder.Services.AddScoped<ISubTaskService, SubTaskService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITenantResolver, TenantResolver>();
+builder.Services.AddScoped<TenantDbContextFactory>();
 builder.Services.AddScoped<TenantContext>();
 
-// ======================================
-// 5️⃣ Swagger (Docs & Testing)
-// ======================================
+// 5️⃣ Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ======================================
-// 6️⃣ CORS (Allow Angular / Frontend access)
-// ======================================
+// 6️⃣ CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -72,22 +62,18 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ======================================
-// 7️⃣ Development Environment Config
-// ======================================
+// 7️⃣ Swagger dev
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "ADE-WFM API v1");
-        options.RoutePrefix = string.Empty; // Serve Swagger UI at root "/"
+        options.RoutePrefix = string.Empty;
     });
 }
 
-// ======================================
-// 8️⃣ Database Setup & Default Data
-// ======================================
+// 8️⃣ Database setup & seed
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -95,7 +81,6 @@ using (var scope = app.Services.CreateScope())
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     string[] roles = { "Admin", "Standard", "View" };
-
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -116,7 +101,6 @@ using (var scope = app.Services.CreateScope())
             Email = adminEmail,
             EmailConfirmed = true
         };
-
         var result = await userManager.CreateAsync(adminUser, adminPassword);
         if (result.Succeeded)
             await userManager.AddToRoleAsync(adminUser, adminRole);
@@ -125,28 +109,20 @@ using (var scope = app.Services.CreateScope())
                 string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 
-    // Run DB seeder
-    var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    await DbSeeder.SeedAsync(ctx, logger);
+    await DbSeeder.SeedAsync(db, logger);
 }
 
-// ======================================
-// 9️⃣ Middleware Pipeline
-// ======================================
+// 9️⃣ Middleware
 app.UseHttpsRedirection();
 app.UseRouting();
-
-app.UseMiddleware<TenantMiddleware>(); // 🏢 Identify tenant
-
+app.UseMiddleware<TenantMiddleware>();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
-// Health Check Endpoint
+// Health check
 app.MapGet("/health", () => Results.Ok("ADE-WFM API is running ✅"));
 
-// ======================================
 app.Run();
