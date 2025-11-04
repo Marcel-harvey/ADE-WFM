@@ -31,12 +31,9 @@ namespace ADE_WFM.Controllers
 
 
         // Add multiple users to a workflow
-        [HttpPost("{id:int}/users/add")]
-        public async Task<IActionResult> AddUsers(int id, [FromBody] AddUserWorkFlowDto dto)
+        [HttpPost("users/add")]
+        public async Task<IActionResult> AddUsers([FromBody] AddUserWorkFlowDto dto)
         {
-            if (id != dto.WorkFlowId)
-                return BadRequest("Workflow ID in URL does not match body.");
-
             var result = await _workFlowService.AddUserToWorkFlow(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
