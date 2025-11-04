@@ -3,6 +3,7 @@ using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
+using ADE_WFM.Services.TenantService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SQLitePCL;
@@ -14,15 +15,18 @@ namespace ADE_WFM.Services.WorkFlowService
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<WorkFlowService> _logger;
+        private readonly TenantContext _tenantContext;
 
         public WorkFlowService(
             ApplicationDbContext context, 
             UserManager<ApplicationUser> userManager, 
-            ILogger<WorkFlowService> logger)
+            ILogger<WorkFlowService> logger,
+            TenantContext tenantContext)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _tenantContext = tenantContext;
         }
 
 
@@ -33,7 +37,6 @@ namespace ADE_WFM.Services.WorkFlowService
             // General validation
             if (string.IsNullOrWhiteSpace(dto.WorkFlowName))
                 return ServiceResult<WorkFlowResponseDto>.Failure("Work flow name is required.");
-
             if (string.IsNullOrEmpty(dto.CurrentUserId))
                 return ServiceResult<WorkFlowResponseDto>.Failure("Current user ID is required.");
 
@@ -42,7 +45,8 @@ namespace ADE_WFM.Services.WorkFlowService
                 var workFlow = new WorkFlow
                 {
                     WorkFlowName = dto.WorkFlowName,
-                    WorkFlowUsers = new List<WorkFlowUser>()
+                    WorkFlowUsers = new List<WorkFlowUser>(),
+                    TenantId = _tenantContext.TenantId  // Set tenant-----------------------------------
                 };
 
                 // Add creator as admin
@@ -71,13 +75,13 @@ namespace ADE_WFM.Services.WorkFlowService
                 _context.WorkFlows.Add(workFlow);
                 await _context.SaveChangesAsync();
 
-                // Reload for username en response
+                // Reload workflow for response
                 var createdWorkflow = await _context.WorkFlows
+                    .Where(wf => wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
                     .Include(wf => wf.Project)
                     .FirstOrDefaultAsync(wf => wf.Id == workFlow.Id);
-
 
                 _logger.LogInformation("Workflow '{WorkFlowName}' created successfully by user ID {UserId}",
                     dto.WorkFlowName, dto.CurrentUserId);
@@ -88,7 +92,7 @@ namespace ADE_WFM.Services.WorkFlowService
                     {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
-                        Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto
+                        Projects = createdWorkflow?.Project?.Select(p => new GetWorkFlowProjectsDto
                         {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -125,7 +129,6 @@ namespace ADE_WFM.Services.WorkFlowService
             if (dto == null)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
 
-            // List of user IDs to add - check for if valid
             if (dto.UserIds == null || !dto.UserIds.Any())
                 return ServiceResult<WorkFlowResponseDto>.Failure("No user IDs were provided.");
 
@@ -134,23 +137,22 @@ namespace ADE_WFM.Services.WorkFlowService
 
             try
             {
-                // Check if the workflow exists
+                // Check if the workflow exists for current tenant
                 var workFlow = await _context.WorkFlows
+                    .Where(wf => wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
+                    .Include(wf => wf.Project)
                     .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
+
                 if (workFlow == null)
                     return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found.");
 
                 // Get existing user IDs to avoid duplicates
-                var existingUserIds = workFlow.WorkFlowUsers
-                    .Select(wfUser => wfUser.UserId)
-                    .ToList();
+                var existingUserIds = workFlow.WorkFlowUsers.Select(wfUser => wfUser.UserId).ToList();
 
-                // For errors in users added
                 var errors = new List<string>();
 
-                // Loop through new users
                 foreach (var userId in dto.UserIds)
                 {
                     if (existingUserIds.Contains(userId))
@@ -173,14 +175,15 @@ namespace ADE_WFM.Services.WorkFlowService
                         UserId = userId,
                         Role = "Standard"
                     };
-
                     _context.WorkFlowUsers.Add(wfUser);
                 }
 
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
-                    "Added new users to workflow '{WorkFlowName}' (ID: {WorkFlowId})", workFlow.WorkFlowName, workFlow.Id);
+                    "Added new users to workflow '{WorkFlowName}' (ID: {WorkFlowId})",
+                    workFlow.WorkFlowName, workFlow.Id
+                );
 
                 return ServiceResult<WorkFlowResponseDto>.Success(
                     new WorkFlowResponseDto
@@ -198,9 +201,7 @@ namespace ADE_WFM.Services.WorkFlowService
                             UserName = wu.User?.UserName ?? ""
                         }).ToList() ?? new List<GetWorkFlowUsersDto>()
                     },
-                    errors.Any()
-                        ? "Completed with warnings."
-                        : "Users added successfully."
+                    errors.Any() ? "Completed with warnings." : "Users added successfully."
                 );
             }
             catch (DbUpdateException ex)
@@ -227,17 +228,19 @@ namespace ADE_WFM.Services.WorkFlowService
             try
             {
                 var workFlows = await _context.WorkFlows
+                    .Where(wf => wf.TenantId == _tenantContext.TenantId) // Tenant filter
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
                     .ToListAsync();
+
                 if (workFlows == null || !workFlows.Any())
                 {
-                    _logger.LogWarning("No workflows found in the system.");
+                    _logger.LogWarning("No workflows found in the system for tenant ID {TenantId}.", _tenantContext.TenantId);
                     return ServiceResult<List<WorkFlowResponseDto>>.Failure("No workflows found.");
                 }
 
-                _logger.LogInformation("Retrieved all workflows successfully.");
+                _logger.LogInformation("Retrieved all workflows successfully for tenant ID {TenantId}.", _tenantContext.TenantId);
 
                 return ServiceResult<List<WorkFlowResponseDto>>.Success(
                     workFlows.Select(wf => new WorkFlowResponseDto
@@ -258,10 +261,9 @@ namespace ADE_WFM.Services.WorkFlowService
                     "Workflows retrieved successfully."
                 );
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving workflows.");
-
+                _logger.LogError(ex, "Error retrieving workflows for tenant ID {TenantId}.", _tenantContext.TenantId);
                 return ServiceResult<List<WorkFlowResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving workflows.",
                     new[] { ex.Message });
@@ -275,26 +277,29 @@ namespace ADE_WFM.Services.WorkFlowService
             // General validation
             if (dto == null)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
-
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
 
             try
             {
                 var workFlow = await _context.WorkFlows
+                    .Where(wf => wf.Id == dto.WorkFlowId
+                                 && wf.TenantId == _tenantContext.TenantId) // tenant filter
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
+                    .FirstOrDefaultAsync();
 
                 if (workFlow == null)
                 {
-                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found.", dto.WorkFlowId);
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
+                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found for tenant ID {TenantId}.",
+                        dto.WorkFlowId, _tenantContext.TenantId);
+                    return ServiceResult<WorkFlowResponseDto>.Failure(
+                        $"Workflow with ID {dto.WorkFlowId} was not found.");
                 }
 
-                _logger.LogInformation("Retrieved workflow '{WorkFlowName}' (ID: {WorkFlowId}) successfully.",
-                    workFlow.WorkFlowName, workFlow.Id);
+                _logger.LogInformation("Retrieved workflow '{WorkFlowName}' (ID: {WorkFlowId}) successfully for tenant ID {TenantId}.",
+                    workFlow.WorkFlowName, workFlow.Id, _tenantContext.TenantId);
 
                 return ServiceResult<WorkFlowResponseDto>.Success(
                     new WorkFlowResponseDto
@@ -317,8 +322,8 @@ namespace ADE_WFM.Services.WorkFlowService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving workflow with ID {WorkFlowId}.", dto.WorkFlowId);
-
+                _logger.LogError(ex, "Error retrieving workflow with ID {WorkFlowId} for tenant ID {TenantId}.",
+                    dto.WorkFlowId, _tenantContext.TenantId);
                 return ServiceResult<WorkFlowResponseDto>.Failure(
                     "An unexpected error occurred while retrieving the workflow.",
                     new[] { ex.Message });
@@ -328,24 +333,25 @@ namespace ADE_WFM.Services.WorkFlowService
 
         //UPDATE:
         // Update workflow's name
-        public async Task <ServiceResult<WorkFlowResponseDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto)
+        public async Task<ServiceResult<WorkFlowResponseDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto)
         {
             if (dto == null)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
-
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
-
             if (string.IsNullOrWhiteSpace(dto.WorkFlowName))
                 return ServiceResult<WorkFlowResponseDto>.Failure("New workflow name cannot be empty.");
 
             try
             {
                 var workFlow = await _context.WorkFlows
+                    .Where(wf => wf.Id == dto.WorkFlowId
+                                 && wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
+                    .FirstOrDefaultAsync();
+
                 if (workFlow == null)
                 {
                     _logger.LogWarning("Workflow with ID {WorkFlowId} not found for update.", dto.WorkFlowId);
@@ -353,7 +359,6 @@ namespace ADE_WFM.Services.WorkFlowService
                 }
 
                 workFlow.WorkFlowName = dto.WorkFlowName.Trim();
-
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Workflow name updated to '{NewName}' for ID {WorkFlowId}", dto.WorkFlowName, dto.WorkFlowId);
@@ -376,7 +381,6 @@ namespace ADE_WFM.Services.WorkFlowService
                     },
                     $"Workflow name updated successfully to {dto.WorkFlowName}."
                 );
-                
             }
             catch (DbUpdateException ex)
             {
@@ -399,22 +403,22 @@ namespace ADE_WFM.Services.WorkFlowService
         // Delete workflow
         public async Task<ServiceResult<WorkFlowResponseDto>> DeleteWorkFlow(GetWorkFlowInfoDto dto)
         {
-            // Genral validation
+            // General validation
             if (dto == null)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
-
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID.");
 
             try
             {
-
+                // Include tenant filtering
                 var workFlow = await _context.WorkFlows
+                    .Where(w => w.Id == dto.WorkFlowId  && w.TenantId == _tenantContext.TenantId)
                     .Include(w => w.Comments)
                     .Include(w => w.Project)
                     .Include(w => w.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
-                    .FirstOrDefaultAsync(w => w.Id == dto.WorkFlowId);
+                    .FirstOrDefaultAsync();
 
                 if (workFlow == null)
                 {
@@ -422,6 +426,7 @@ namespace ADE_WFM.Services.WorkFlowService
                     return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
                 }
 
+                // Prepare response before deletion
                 var response = new WorkFlowResponseDto
                 {
                     WorkFlowId = workFlow.Id,
@@ -447,14 +452,14 @@ namespace ADE_WFM.Services.WorkFlowService
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error while updating workflow name for ID {WorkFlowId}", dto.WorkFlowId);
+                _logger.LogError(ex, "Database error while deleting workflow with ID {WorkFlowId}", dto.WorkFlowId);
                 return ServiceResult<WorkFlowResponseDto>.Failure(
                     "A database error occurred while deleting the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting workflow with ID {WorkFlowId}", dto.WorkFlowId);
+                _logger.LogError(ex, "Unexpected error while deleting workflow with ID {WorkFlowId}", dto.WorkFlowId);
                 return ServiceResult<WorkFlowResponseDto>.Failure(
                     "An unexpected error occurred while deleting the workflow.",
                     new[] { ex.Message });
@@ -467,39 +472,46 @@ namespace ADE_WFM.Services.WorkFlowService
         {
             if (dto == null)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
-
             if (string.IsNullOrWhiteSpace(dto.UserId))
                 return ServiceResult<WorkFlowResponseDto>.Failure("User ID is required.");
-
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
 
             try
             {
+                // Find the user in the workflow, ensuring tenant ownership
                 var workFlowUser = await _context.WorkFlowUsers
                     .Include(wfu => wfu.User)
-                    .FirstOrDefaultAsync(wfu => wfu.UserId == dto.UserId && wfu.WorkFlowId == dto.WorkFlowId);
+                    .Where(wfu => wfu.UserId == dto.UserId &&
+                                  wfu.WorkFlowId == dto.WorkFlowId &&
+                                  wfu.WorkFlow.TenantId == _tenantContext.TenantId)
+                    .FirstOrDefaultAsync();
+
                 if (workFlowUser == null)
                 {
-                    _logger.LogWarning("User with ID {UserId} not found in workflow ID {WorkFlowId}.", dto.UserId, dto.WorkFlowId);
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"User with ID {dto.UserId} not found in the specified workflow.");
+                    _logger.LogWarning("User with ID {UserId} not found in workflow ID {WorkFlowId} for tenant {TenantId}.",
+                        dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
+                    return ServiceResult<WorkFlowResponseDto>.Failure($"User with ID {dto.UserId} not found in the specified workflow for your tenant.");
                 }
 
-                var user = await _userManager
-                    .FindByIdAsync(dto.UserId);
+                // Ensure user exists in Identity
+                var user = await _userManager.FindByIdAsync(dto.UserId);
                 if (user == null)
                 {
                     _logger.LogWarning("User with ID {UserId} not found in Identity.", dto.UserId);
                     return ServiceResult<WorkFlowResponseDto>.Failure($"User with ID {dto.UserId} not found.");
                 }
 
+                // Load workflow with projects and users for response
                 var workFlow = await _context.WorkFlows
+                    .Where(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
+                    .FirstOrDefaultAsync();
+
                 if (workFlow == null)
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found.");
+                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found for your tenant.");
 
                 _context.WorkFlowUsers.Remove(workFlowUser);
                 await _context.SaveChangesAsync();
@@ -514,25 +526,29 @@ namespace ADE_WFM.Services.WorkFlowService
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
                         }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
-                        Users = workFlow.WorkFlowUsers?.Where(wu => wu.UserId != dto.UserId).Select(wu => new GetWorkFlowUsersDto
-                        {
-                            Id = wu.UserId,
-                            UserName = wu.User?.UserName ?? ""
-                        }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                        Users = workFlow.WorkFlowUsers?
+                            .Where(wu => wu.UserId != dto.UserId)
+                            .Select(wu => new GetWorkFlowUsersDto
+                            {
+                                Id = wu.UserId,
+                                UserName = wu.User?.UserName ?? ""
+                            }).ToList() ?? new List<GetWorkFlowUsersDto>()
                     },
                     "User removed from workflow successfully."
                 );
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error while removing user from the workflow with ID user ID = {userId}", dto.UserId);
+                _logger.LogError(ex, "Database error while removing user {UserId} from workflow {WorkFlowId} for tenant {TenantId}.",
+                    dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
                 return ServiceResult<WorkFlowResponseDto>.Failure(
-                    "A database error occurred while removing the user from the workflow .",
+                    "A database error occurred while removing the user from the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error removing user from the workflow with ID user ID = {userId}", dto.UserId);
+                _logger.LogError(ex, "Unexpected error while removing user {UserId} from workflow {WorkFlowId} for tenant {TenantId}.",
+                    dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
                 return ServiceResult<WorkFlowResponseDto>.Failure(
                     "An unexpected error occurred while removing the user from the workflow.",
                     new[] { ex.Message });
