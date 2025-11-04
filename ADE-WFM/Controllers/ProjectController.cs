@@ -63,28 +63,22 @@ namespace ADE_WFM.Controllers
 
         // UPDATE API's
         // Update project info
-        [HttpPut("Update")]
+        [HttpPut]
         public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto)
         {
             var result = await _projectService.UpdateProjectInfo(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
         // DELETE API's
         // Delete a project
-        [HttpDelete("Delete")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteProject([FromBody] GetProjectDto dto)
         {
             var result = await _projectService.DeleteProject(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 

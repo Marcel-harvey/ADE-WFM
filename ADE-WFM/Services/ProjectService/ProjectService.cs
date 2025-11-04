@@ -460,20 +460,19 @@ namespace ADE_WFM.Services.ProjectService
             if (dto.ProjectId <= 0)
                 return ServiceResult<ProjectResponseDto>.Failure("Invalid Project ID provided");
 
-
-            var project = await _context.Projects
-                .Include(p => p.WorkFlows)
-                .Include(pu => pu.ProjectUsers)
-                    .ThenInclude(u => u.User)
-                .Include(pc => pc.Comment)
-                .Include(pt => pt.PorjectTodos!)
-                    .ThenInclude(pt => pt.SubTasks)
-                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
-            if (project == null)
-                return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
-
             try
             {
+                var project = await _context.Projects
+                    .Include(p => p.WorkFlows)
+                    .Include(pu => pu.ProjectUsers)
+                        .ThenInclude(u => u.User)
+                    .Include(pc => pc.Comment)
+                    .Include(pt => pt.PorjectTodos!)
+                        .ThenInclude(pt => pt.SubTasks)
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
+                if (project == null)
+                    return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
+
                 // Update fields if provided
                 if (!string.IsNullOrWhiteSpace(dto.Title))
                     project.ProjectTitle = dto.Title;
@@ -558,18 +557,18 @@ namespace ADE_WFM.Services.ProjectService
             if (dto.ProjectId <= 0)
                 return ServiceResult<ProjectResponseDto>.Failure("Invalid Project ID provided");
 
-            var project = await _context.Projects
-                .Include(p => p.WorkFlows)
-                .Include(pu => pu.ProjectUsers)
-                    .ThenInclude(u => u.User)
-                .Include(pc => pc.Comment)
-                .Include(pt => pt.PorjectTodos!)
-                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
-            if (project == null)
-                return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: '{dto.ProjectId}' was not found");
-
             try
             {
+                var project = await _context.Projects
+                    .Include(p => p.WorkFlows)
+                    .Include(pu => pu.ProjectUsers)
+                        .ThenInclude(u => u.User)
+                    .Include(pc => pc.Comment)
+                    .Include(pt => pt.PorjectTodos!)
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
+                if (project == null)
+                    return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: '{dto.ProjectId}' was not found");
+
                 var response = new ProjectResponseDto
                 {
                     ProjectId = project.Id,
