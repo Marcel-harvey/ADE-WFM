@@ -643,26 +643,25 @@ namespace ADE_WFM.Services.ProjectService
 
             if (string.IsNullOrWhiteSpace(dto.UserId))
                 return ServiceResult<ProjectResponseDto>.Failure("User ID cannot be empty");
-
-            // Entity used to remove the user
-            var projectUser = await _context.ProjectUsers
-                .FirstOrDefaultAsync(pu => pu.ProjectId == dto.ProjectId && pu.UserId == dto.UserId);
-            if (projectUser == null)
-                return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.UserId} is not part of project ID: {dto.ProjectId}");
-
-            var project = await _context.Projects
-                .Include(p => p.WorkFlows)
-                .Include(pu => pu.ProjectUsers)
-                    .ThenInclude(u => u.User)
-                .Include(pc => pc.Comment)
-                .Include(pt => pt.PorjectTodos!)
-                    .ThenInclude(pt => pt.SubTasks)
-                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
-            if (project == null)
-                return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
-
+                    
             try
             {
+                // Entity used to remove the user
+                var projectUser = await _context.ProjectUsers
+                    .FirstOrDefaultAsync(pu => pu.ProjectId == dto.ProjectId && pu.UserId == dto.UserId);
+                if (projectUser == null)
+                    return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.UserId} is not part of project ID: {dto.ProjectId}");
+
+                var project = await _context.Projects
+                    .Include(p => p.WorkFlows)
+                    .Include(pu => pu.ProjectUsers)
+                        .ThenInclude(u => u.User)
+                    .Include(pc => pc.Comment)
+                    .Include(pt => pt.PorjectTodos!)
+                        .ThenInclude(pt => pt.SubTasks)
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
+                if (project == null)
+                    return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
                 // Check if user is last user in project
                 var projectUsersCount = await _context.ProjectUsers
                     .CountAsync(pu => pu.ProjectId == dto.ProjectId);

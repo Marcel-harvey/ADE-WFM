@@ -83,15 +83,17 @@ namespace ADE_WFM.Controllers
 
 
         // Remove user from a project
-        [HttpDelete("User/Remove")]
-        public async Task<IActionResult> RemoveUserFromProject([FromBody] GetProjectDto dto)
+        [HttpDelete("{projectId:int}/user/{userId}")]
+        public async Task<IActionResult> RemoveUserFromProject(int projectId, string userId)
         {
+            var dto = new GetProjectDto
+            {
+                ProjectId = projectId,
+                UserId = userId
+            };
             var result = await _projectService.RemoveUserFromProject(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
     }
 }
