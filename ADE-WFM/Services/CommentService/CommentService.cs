@@ -378,7 +378,7 @@ namespace ADE_WFM.Services.CommentService
                     .Include(c => c.User)
                     .Include(c => c.Project)
                     .Include(c => c.WorkFlow)
-                    .FirstOrDefaultAsync(c => c.Id == dto.CommentId);
+                    .FirstOrDefaultAsync(c => c.Id == dto.CommentId && c.TenantId == _tenantContext.TenantId);
                 if (comment == null)
                 {
                     _logger.LogInformation("Comment not found for Comment ID: {CommentId}", dto.CommentId);

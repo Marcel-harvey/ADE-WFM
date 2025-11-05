@@ -83,15 +83,13 @@ namespace ADE_WFM.Controllers
 
         // UPDATE API's
         // Mark comment as viewed/unviewed
-        [HttpPut("Update/Is-Viewed")]
-        public async Task<IActionResult> MarkCommentAsViewed([FromBody] UpdateCommentViewedDto dto)
+        [HttpPut("Is-Viewed")]
+        public async Task<IActionResult> MarkCommentAsViewed([FromBody] UpdateCommentViewedDto dto, [FromQuery] int? commentId = null)
         {
+            dto.CommentId = commentId ?? dto.CommentId;
             var result = await _commentService.MarkCommentAsViewed(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
         // DELETE API's
