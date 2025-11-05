@@ -7,6 +7,7 @@ using ADE_WFM.Models.DTOs;
 using Microsoft.AspNetCore.Identity;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 using Microsoft.JSInterop.Infrastructure;
+using ADE_WFM.Services.TenantService;
 
 namespace ADE_WFM.Services.SubTaskService
 {
@@ -15,14 +16,18 @@ namespace ADE_WFM.Services.SubTaskService
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<SubTaskService> _logger;
+        private readonly TenantContext _tenantContext;
+
         public SubTaskService(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger<SubTaskService> logger)
+            ILogger<SubTaskService> logger,
+            TenantContext tenantContext)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _tenantContext = tenantContext;
         }
 
 
@@ -44,7 +49,7 @@ namespace ADE_WFM.Services.SubTaskService
             {
                 // Confirm if the Todo exists
                 var todo = await _context.Todos
-                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
+                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId && t.TenantId == _tenantContext.TenantId);
 
                 if (todo == null)
                     return ServiceResult<SubTaskResponseDto>.Failure($"Todo with ID {dto.TodoId} not found.");
@@ -53,7 +58,8 @@ namespace ADE_WFM.Services.SubTaskService
                 {
                     Description = dto.Description,
                     IsCompleted = false,
-                    TodoId = dto.TodoId
+                    TodoId = dto.TodoId,
+                    TenantId = _tenantContext.TenantId
                 };
 
                 _context.SubTasks.Add(subTask);
