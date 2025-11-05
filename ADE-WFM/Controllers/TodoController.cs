@@ -84,7 +84,7 @@ namespace ADE_WFM.Controllers
         [HttpDelete("{todoId}")]
         public async Task<IActionResult> DeleteTodo([FromBody] GetToDoDto dto, int? todoId)
         {
-            dto.ToDoId = todoId ?? dto.ToDoId;
+            dto.TodoId = todoId ?? dto.TodoId;
             var result = await _todoService.DeleteTodo(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);

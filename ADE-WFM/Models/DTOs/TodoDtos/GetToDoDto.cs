@@ -2,7 +2,7 @@
 {
     public class GetToDoDto
     {
-        public int? ToDoId { get; set; }
+        public int? TodoId { get; set; }
         public string? UserId { get; set; }
         public int? ProjectId { get; set; }
     }
