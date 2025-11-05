@@ -5,6 +5,7 @@ using ADE_WFM.Models.DTOs.TodoDtos;
 using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 using Microsoft.AspNetCore.Identity;
+using ADE_WFM.Services.TenantService;
 
 namespace ADE_WFM.Services.TodoService
 {
@@ -13,15 +14,18 @@ namespace ADE_WFM.Services.TodoService
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<TodoService> _logger;
+        private readonly TenantContext _tenantContext;
 
         public TodoService(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger<TodoService> logger)
+            ILogger<TodoService> logger,
+            TenantContext tenantContext)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _tenantContext = tenantContext;
         }
 
 
@@ -41,16 +45,16 @@ namespace ADE_WFM.Services.TodoService
             if (string.IsNullOrWhiteSpace(dto.Description))
                 return ServiceResult<ToDoResponseDto>.Failure("Description is required.");
 
-            var user = await _userManager
-                .FindByIdAsync(dto.UserId);
-            if (user == null)
-            {
-                _logger.LogWarning("User with ID {UserId} does not exist.", dto.UserId);
-                return ServiceResult<ToDoResponseDto>.Failure("User does not exist.");
-            }
-
             try
             {
+                var user = await _userManager
+                    .FindByIdAsync(dto.UserId);
+                if (user == null)
+                {
+                    _logger.LogWarning("User with ID {UserId} does not exist.", dto.UserId);
+                    return ServiceResult<ToDoResponseDto>.Failure("User does not exist.");
+                }
+
                 var todo = new Todo
                 {
                     Title = dto.Title,
@@ -60,6 +64,7 @@ namespace ADE_WFM.Services.TodoService
                     IsComplete = false,
                     UserId = dto.UserId,
                     ProjectId = dto.ProjectId,
+                    TenantId = _tenantContext.TenantId
                 };
 
                 _context.Todos.Add(todo);
