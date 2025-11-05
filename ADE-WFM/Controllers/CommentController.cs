@@ -22,26 +22,28 @@ namespace ADE_WFM.Controllers
 
         // CREATE API's
         // Add comment to selected work flow
+        // Added id field as query parameter for easier access and made optional
+        // Work flow id can be passed as query parameter or in the body dto
         [HttpPost("WorkFlow")]
         public async Task<IActionResult> AddCommentToWorkFlow([FromBody] AddCommentDto dto, [FromQuery] int? workFlowId = null)
         {
             dto.WorkFlowId = workFlowId ?? dto.WorkFlowId;
             var result = await _commentService.AddCommentToWorkFlow(dto);
 
-            return !result.Succeeded ? BadRequest(result) : Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // Add comment to selected project
-        [HttpPost("Project/Add")]
-        public async Task<IActionResult> AddCommentToProject([FromBody] AddCommentDto dto)
+        // Added id field as query parameter for easier access and made optional
+        // Project flow id can be passed as query parameter or in the body dto
+        [HttpPost("Project")]
+        public async Task<IActionResult> AddCommentToProject([FromBody] AddCommentDto dto, [FromQuery] int? projectId = null)
         {
+            dto.ProjectId = projectId ?? dto.ProjectId;
             var result = await _commentService.AddCommentToProject(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 

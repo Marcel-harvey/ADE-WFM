@@ -122,20 +122,19 @@ namespace ADE_WFM.Services.CommentService
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<CommentResponseDto>.Failure("Valid Work flow ID is required.");
 
-
-            var user = await _userManager
-                .FindByIdAsync(dto.UserId);
-            if (user == null)
-                return ServiceResult<CommentResponseDto>.Failure("User not found.");
-
-            var project = await _context.Projects
-                .Include(wf => wf.WorkFlows)
-                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId);
-            if (project == null)
-                return ServiceResult<CommentResponseDto>.Failure("Project not found.");
-
             try
             {
+                var user = await _userManager
+                    .FindByIdAsync(dto.UserId);
+                if (user == null)
+                    return ServiceResult<CommentResponseDto>.Failure("User not found.");
+
+                var project = await _context.Projects
+                    .Include(wf => wf.WorkFlows)
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
+                if (project == null)
+                    return ServiceResult<CommentResponseDto>.Failure("Project not found.");
+
                 // Need to supply work flow id for relationship
                 var comment = new Comment
                 {
@@ -145,6 +144,7 @@ namespace ADE_WFM.Services.CommentService
                     ProjectId = dto.ProjectId,
                     WorkFlowId = project.WorkFlowId,
                     IsViewed = false,
+                    TenantId =_tenantContext.TenantId,
                 };
 
                 _context.Comments.Add(comment);
