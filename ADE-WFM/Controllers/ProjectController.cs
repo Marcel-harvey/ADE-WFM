@@ -68,8 +68,8 @@ namespace ADE_WFM.Controllers
 
         // UPDATE API's
         // Update project info
-        [HttpPut("{projectId?}")]
-        public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto, int? projectId = null)
+        [HttpPut]
+        public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto, [FromQuery] int? projectId = null)
         {
             dto.ProjectId = projectId ?? dto.ProjectId;
             var result = await _projectService.UpdateProjectInfo(dto);
