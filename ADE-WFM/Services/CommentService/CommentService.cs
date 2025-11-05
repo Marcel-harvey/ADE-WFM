@@ -218,6 +218,7 @@ namespace ADE_WFM.Services.CommentService
                 _logger.LogInformation("Successfully retrieved all comments in work flow {workFlowName}", workflow.WorkFlowName);
                 return ServiceResult<List<CommentResponseDto>>.Success(
                     workflow.Comments
+                        .Where(c => c.ProjectId == null) // Only workflow comments, not project comments
                         .Select(c => new CommentResponseDto
                         {
                             CommentId = c.Id,
