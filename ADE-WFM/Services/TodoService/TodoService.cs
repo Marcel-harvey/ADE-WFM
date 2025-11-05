@@ -316,7 +316,7 @@ namespace ADE_WFM.Services.TodoService
                 var todo = await _context.Todos
                     .Include(t => t.User)
                     .Include(t => t.SubTasks)
-                    .FirstOrDefaultAsync(t => t.Id == dto.ToDoId);
+                    .FirstOrDefaultAsync(t => t.Id == dto.ToDoId && t.TenantId == _tenantContext.TenantId);
 
                 if (todo == null)
                 {
@@ -328,9 +328,7 @@ namespace ADE_WFM.Services.TodoService
                 await _context.SaveChangesAsync();
 
                 var status = dto.IsComplete ? "complete" : "incomplete";
-                _logger.LogInformation(
-                    "Todo with ID {TodoId} marked as {Status} by user {UserName}.",
-                    dto.ToDoId, status, todo.User?.UserName ?? "Unknown");
+                _logger.LogInformation("Todo with ID {TodoId} marked as {Status} by user {UserName}.", dto.ToDoId, status, todo.User?.UserName ?? "Unknown");
 
                 return ServiceResult<ToDoResponseDto>.Success(
                     new ToDoResponseDto
