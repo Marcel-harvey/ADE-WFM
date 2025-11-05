@@ -71,16 +71,13 @@ namespace ADE_WFM.Controllers
 
 
         // Get all comments made by a user
-        [HttpGet("User/Get/All/{userId}")]
+        [HttpGet("User/{userId}")]
         public async Task<IActionResult> GetUserComments(string userId)
         {
             var dto = new GetCommentInfoDto { UserId = userId };
             var result = await _commentService.GetUserComments(dto);
 
-            if (!result.Succeeded)
-                return NotFound(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 
