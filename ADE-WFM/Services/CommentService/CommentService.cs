@@ -89,14 +89,16 @@ namespace ADE_WFM.Services.CommentService
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Database error adding comment to work flow");
-                return ServiceResult<CommentResponseDto>.Failure("A database error occurred while adding new comment to work flow.",
+                return ServiceResult<CommentResponseDto>.Failure(
+                    "A database error occurred while adding new comment to work flow.",
                     new[] { ex.Message }
                 );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error adding comment to work flow");
-                return ServiceResult<CommentResponseDto>.Failure("An unexpected error occurred while adding new comment to work flow.",
+                return ServiceResult<CommentResponseDto>.Failure(
+                    "An unexpected error occurred while adding new comment to work flow.",
                     new[] { ex.Message }
                 );
             }
@@ -465,7 +467,7 @@ namespace ADE_WFM.Services.CommentService
                     .Include(c => c.User)
                     .Include(c => c.Project)
                     .Include(c => c.WorkFlow)
-                    .FirstOrDefaultAsync(c => c.Id == dto.CommentId && c.UserId == dto.UserId);
+                    .FirstOrDefaultAsync(c => c.Id == dto.CommentId && c.UserId == dto.UserId && c.TenantId == _tenantContext.TenantId);
 
                 if (comment == null)
                 {
