@@ -34,15 +34,13 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all todos for a user
-        [HttpPost("User/Get/All")]
-        public async Task<IActionResult> GetAllUserTodos([FromBody] GetToDoDto dto)
+        [HttpGet("User/{userId}")]
+        public async Task<IActionResult> GetAllUserTodos([FromBody] GetToDoDto dto, string userId)
         {
+            dto.UserId = userId ?? dto.UserId;
             var result = await _todoService.GetAllUserTodos(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
