@@ -18,57 +18,56 @@ namespace ADE_WFM.Controllers
         }
 
         // CREATE API's
-        [HttpPost("User/Create")]
+        [HttpPost]
         public async Task<IActionResult> CreateStickyNote([FromBody] CreateStickyNoteDto dto)
         {
             var result = await _stickyNoteService.AddStickyNote(dto);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-            return Ok(result);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // GET API's
         // Get all users sticky notes
-        [HttpPost("User/All")]
-        public async Task<IActionResult> GetAllUserStickyNotes([FromBody] GetStickyNoteInfoDto dto)
+        [HttpGet("{stickyNoteId}")]
+        public async Task<IActionResult> GetAllUserStickyNotes(int stickyNoteId)
         {
-            var result = await _stickyNoteService.GetAllStickyNotes(dto);
-            if (!result.Succeeded)
+            var dto = new GetStickyNoteInfoDto
             {
-                return BadRequest(result);
-            }
-            return Ok(result);
+                StickyNoteId = stickyNoteId
+            };
+
+            var result = await _stickyNoteService.GetAllStickyNotes(dto);
+
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 
         // UPDATE API's
         // Update selected sticky note
-        [HttpPut("User/Update")]
-        public async Task<IActionResult> UpdateStickyNote([FromBody] GetStickyNoteInfoDto dto)
+        [HttpPut]
+        public async Task<IActionResult> UpdateStickyNote([FromBody] GetStickyNoteInfoDto dto, [FromQuery] int? sitckyNoteId = null)
         {
+            dto.StickyNoteId = sitckyNoteId ?? dto.StickyNoteId;
             var result = await _stickyNoteService.UpdateStickyNote(dto);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-            return Ok(result);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // DELETE API's
         // Delete selected sticky note
-        [HttpDelete("User/Delete")]
-        public async Task<IActionResult> DeleteStickyNote([FromBody] GetStickyNoteInfoDto dto)
+        [HttpDelete("{stickyNoteId}")]
+        public async Task<IActionResult> DeleteStickyNote(int stickyNoteId)
         {
-            var result = await _stickyNoteService.DeleteStickyNote(dto);
-            if (!result.Succeeded)
+            var dto = new GetStickyNoteInfoDto
             {
-                return BadRequest(result);
-            }
-            return Ok(result);
+                StickyNoteId = stickyNoteId
+            };
+
+            var result = await _stickyNoteService.DeleteStickyNote(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
     }
 }

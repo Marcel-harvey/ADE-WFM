@@ -3,6 +3,7 @@ using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 using ADE_WFM.Models.DTOs.StickyNoteDto;
+using ADE_WFM.Services.TenantService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,15 +14,18 @@ namespace ADE_WFM.Services.StickyNoteService
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<StickyNoteService> _logger;
+        private readonly TenantContext _tenantContext;
 
         public StickyNoteService(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger<StickyNoteService> logger)
+            ILogger<StickyNoteService> logger,
+            TenantContext tenantContext)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _tenantContext = tenantContext;
         }
 
 
@@ -38,17 +42,18 @@ namespace ADE_WFM.Services.StickyNoteService
             if (string.IsNullOrEmpty(dto.Content))
                 return ServiceResult<StickyNoteResponseDto>.Failure("Content is required.");
 
-            var user = await _userManager
-                .FindByIdAsync(dto.UserId);
-            if (user == null)
-                return ServiceResult<StickyNoteResponseDto>.Failure($"User with Id {dto.UserId} not found.");
-
             try
             {
+                var user = await _userManager
+                    .FindByIdAsync(dto.UserId);
+                if (user == null)
+                    return ServiceResult<StickyNoteResponseDto>.Failure($"User with Id {dto.UserId} not found.");
+
                 var stickyNote = new StickyNote
                 {
                     Content = dto.Content,
-                    UserId = dto.UserId
+                    UserId = dto.UserId,
+                    TenantId = _tenantContext.TenantId
                 };
 
                 _context.StickyNotes.Add(stickyNote);
@@ -67,14 +72,14 @@ namespace ADE_WFM.Services.StickyNoteService
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Database error while adding sticky note to user '{UserName}'", user.UserName);
+                _logger.LogError(ex, "Database error while adding sticky note to user");
                 return ServiceResult<StickyNoteResponseDto>.Failure(
                     "A database error occurred while adding the sticky note.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error while adding sticky note to user '{UserName}'", user.UserName);
+                _logger.LogError(ex, "Unexpected error while adding sticky note to user");
                 return ServiceResult<StickyNoteResponseDto>.Failure(
                     "An unexpected error occurred while adding the sticky note.",
                     new[] { ex.Message });
@@ -96,15 +101,15 @@ namespace ADE_WFM.Services.StickyNoteService
             try
             {
                 var stickyNotes = await _context.StickyNotes
-                    .Where(sn => sn.UserId == dto.UserId)
+                    .Where(sn => sn.UserId == dto.UserId && sn.TenantId == _tenantContext.TenantId)
                     .Include(u => u.User)
                     .ToListAsync();
-
                 if (!stickyNotes.Any())
                 {
                     _logger.LogWarning("No sticky notes found for user with ID: {UserId}", dto.UserId);
                     return ServiceResult<List<StickyNoteResponseDto>>.Failure("No sticky notes found for user");
                 }
+
                 _logger.LogInformation("Retrieved {Count} sticky notes for user with ID: {UserId}", stickyNotes.Count, dto.UserId);
 
                 return ServiceResult<List<StickyNoteResponseDto>>.Success(
@@ -147,8 +152,7 @@ namespace ADE_WFM.Services.StickyNoteService
             {
                 var stickyNote = await _context.StickyNotes
                     .Include(sn => sn.User)
-                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == dto.UserId);
-
+                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == dto.UserId && sn.TenantId == _tenantContext.TenantId);
                 if (stickyNote == null)
                 {
                     _logger.LogWarning("Sticky note with ID {StickyNoteId} not found for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
@@ -202,7 +206,7 @@ namespace ADE_WFM.Services.StickyNoteService
             {
                 var stickyNote = await _context.StickyNotes
                     .Include(sn => sn.User)
-                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == dto.UserId);
+                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == dto.UserId && sn.TenantId == _tenantContext.TenantId);
                 if (stickyNote == null)
                 {
                     _logger.LogWarning("Sticky note with ID {StickyNoteId} not found for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
