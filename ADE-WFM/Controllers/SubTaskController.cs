@@ -31,15 +31,12 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all subtasks for a specific todo
-        [HttpGet("Todo/Get/All")]
+        [HttpGet("Todo")]
         public async Task<IActionResult> GetTodoSubTasks([FromQuery] GetSubTasksDto dto)
         {
             var result = await _subTaskService.GetTodoSubTasks(dto);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-            return Ok(result);
+
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 
