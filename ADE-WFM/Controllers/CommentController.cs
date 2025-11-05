@@ -22,16 +22,15 @@ namespace ADE_WFM.Controllers
 
         // CREATE API's
         // Add comment to selected work flow
-        [HttpPost("WorkFlow/Add")]
-        public async Task<IActionResult> AddCommentToWorkFlow([FromBody] AddCommentDto dto)
+        [HttpPost("WorkFlow")]
+        public async Task<IActionResult> AddCommentToWorkFlow([FromBody] AddCommentDto dto, [FromQuery] int? workFlowId = null)
         {
+            dto.WorkFlowId = workFlowId ?? dto.WorkFlowId;
             var result = await _commentService.AddCommentToWorkFlow(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return !result.Succeeded ? BadRequest(result) : Ok(result);
         }
+
 
         // Add comment to selected project
         [HttpPost("Project/Add")]

@@ -6,6 +6,7 @@ using ADE_WFM.Models.DTOs.CommentDtos;
 using Microsoft.AspNetCore.Identity;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 using Microsoft.Extensions.Logging;
+using ADE_WFM.Services.TenantService;
 
 namespace ADE_WFM.Services.CommentService
 {
@@ -14,16 +15,18 @@ namespace ADE_WFM.Services.CommentService
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<CommentService> _logger;
+        private readonly TenantContext _tenantContext;
 
         public CommentService(
-
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger<CommentService> logger)
+            ILogger<CommentService> logger,
+            TenantContext tenantContext)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _tenantContext = tenantContext;
         }
 
 
@@ -44,19 +47,18 @@ namespace ADE_WFM.Services.CommentService
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<CommentResponseDto>.Failure("Valid Work flow ID is required.");
 
-
-            var user = await _userManager
-                .FindByIdAsync(dto.UserId);
-            if (user == null)
-                return ServiceResult<CommentResponseDto>.Failure("User not found.");
-
-            var workFlow = await _context.WorkFlows
-                .FindAsync(dto.WorkFlowId);
-            if (workFlow == null)
-                return ServiceResult<CommentResponseDto>.Failure("Work flow not found.");
-
             try
             {
+                var user = await _userManager
+                    .FindByIdAsync(dto.UserId);
+                if (user == null)
+                    return ServiceResult<CommentResponseDto>.Failure("User not found.");
+
+                var workFlow = await _context.WorkFlows
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
+                if (workFlow == null)
+                    return ServiceResult<CommentResponseDto>.Failure("Work flow not found.");
+
                 var comment = new Comment
                 {
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -64,6 +66,7 @@ namespace ADE_WFM.Services.CommentService
                     UserId = dto.UserId,
                     WorkFlowId = workFlow.Id,
                     IsViewed = false,
+                    TenantId = _tenantContext.TenantId,
                 };
 
                 _context.Comments.Add(comment);
@@ -86,16 +89,14 @@ namespace ADE_WFM.Services.CommentService
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Database error adding comment to work flow");
-                return ServiceResult<CommentResponseDto>.Failure(
-                    "A database error occurred while adding new comment to work flow.",
+                return ServiceResult<CommentResponseDto>.Failure("A database error occurred while adding new comment to work flow.",
                     new[] { ex.Message }
                 );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error adding comment to work flow");
-                return ServiceResult<CommentResponseDto>.Failure(
-                    "An unexpected error occurred while adding new comment to work flow.",
+                return ServiceResult<CommentResponseDto>.Failure("An unexpected error occurred while adding new comment to work flow.",
                     new[] { ex.Message }
                 );
             }
