@@ -369,8 +369,6 @@ namespace ADE_WFM.Services.TodoService
         }
 
 
-
-
         // DELETE service
         public async Task<ServiceResult<ToDoResponseDto>> DeleteTodo(GetToDoDto dto)
         {
@@ -385,8 +383,7 @@ namespace ADE_WFM.Services.TodoService
                 var todo = await _context.Todos
                     .Include(t => t.User)
                     .Include(t => t.SubTasks)
-                    .FirstOrDefaultAsync(t => t.Id == dto.ToDoId);
-
+                    .FirstOrDefaultAsync(t => t.Id == dto.ToDoId && t.TenantId == _tenantContext.TenantId);
                 if (todo == null)
                 {
                     _logger.LogInformation("Todo with ID {TodoId} not found.", dto.ToDoId);

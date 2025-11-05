@@ -81,15 +81,13 @@ namespace ADE_WFM.Controllers
 
         // DELETE API's
         // Delete a todo
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> DeleteTodo([FromBody] GetToDoDto dto)
+        [HttpDelete("{todoId}")]
+        public async Task<IActionResult> DeleteTodo([FromBody] GetToDoDto dto, int? todoId)
         {
+            dto.ToDoId = todoId ?? dto.ToDoId;
             var result = await _todoService.DeleteTodo(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
     }
 }
