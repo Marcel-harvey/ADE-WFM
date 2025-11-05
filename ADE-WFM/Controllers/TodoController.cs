@@ -45,7 +45,7 @@ namespace ADE_WFM.Controllers
 
 
         // Get all todos for a project
-        [HttpPost("Project/{projectId}")]
+        [HttpGet("Project/{projectId}")]
         public async Task<IActionResult> GetAllProjectTodos([FromBody] GetToDoDto dto, int? projectId)
         {
             dto.ProjectId = projectId ?? dto.ProjectId;
@@ -57,15 +57,13 @@ namespace ADE_WFM.Controllers
 
         // UPDATE API's
         // Update a todo
-        [HttpPut("Update")]
-        public async Task<IActionResult> UpdateTodo([FromBody] UpdateTodoDto dto)
+        [HttpPut]
+        public async Task<IActionResult> UpdateTodo([FromBody] UpdateTodoDto dto, [FromQuery] int? todoId = null)
         {
+            dto.TodoId = todoId ?? dto.TodoId;
             var result = await _todoService.UpdateTodo(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 

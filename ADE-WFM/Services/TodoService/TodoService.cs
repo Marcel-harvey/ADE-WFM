@@ -237,32 +237,32 @@ namespace ADE_WFM.Services.TodoService
             if (dto.TodoId <= 0)
                 return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
 
-            var todo = await _context.Todos
-                .Include(t => t.User)
-                .Include(t => t.SubTasks)
-                .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
-
-            if (todo == null)
-            {
-                _logger.LogInformation("Todo with ID {TodoId} not found.", dto.TodoId);
-                return ServiceResult<ToDoResponseDto>.Failure("Todo not found.");
-            }
-
             try
             {
+                var todo = await _context.Todos
+                    .Include(t => t.User)
+                    .Include(t => t.SubTasks)
+                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId && t.TenantId == _tenantContext.TenantId);
+                if (todo == null)
+                {
+                    _logger.LogInformation("Todo with ID {TodoId} not found.", dto.TodoId);
+                    return ServiceResult<ToDoResponseDto>.Failure("Todo not found.");
+                }
+
+                // Update fields if provided
                 if (!string.IsNullOrWhiteSpace(dto.Title))
                     todo.Title = dto.Title.Trim();
+
                 if (!string.IsNullOrWhiteSpace(dto.Description))
                     todo.Description = dto.Description.Trim();
+
                 if (dto.DueDate != default(DateTime))
                     todo.DueDate = dto.DueDate;
 
                 _context.Todos.Update(todo);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation(
-                    "Todo with ID {TodoId} updated successfully by user {UserName}.",
-                    dto.TodoId, todo.User.UserName);
+                _logger.LogInformation("Todo with ID {TodoId} updated successfully by user {UserName}.", dto.TodoId, todo.User.UserName);
 
                 return ServiceResult<ToDoResponseDto>.Success(
                     new ToDoResponseDto
@@ -301,7 +301,6 @@ namespace ADE_WFM.Services.TodoService
                     new[] { ex.Message });
             }
         }
-
 
 
         // Mark todo as complete
