@@ -29,12 +29,13 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all users sticky notes
-        [HttpGet("{stickyNoteId}")]
-        public async Task<IActionResult> GetAllUserStickyNotes(int stickyNoteId)
+        [HttpGet("{userId}/{stickyNoteId}")]
+        public async Task<IActionResult> GetAllUserStickyNotes(string userId, int stickyNoteId)
         {
             var dto = new GetStickyNoteInfoDto
             {
-                StickyNoteId = stickyNoteId
+                StickyNoteId = stickyNoteId,
+                UserId = userId
             };
 
             var result = await _stickyNoteService.GetAllStickyNotes(dto);
@@ -46,9 +47,10 @@ namespace ADE_WFM.Controllers
         // UPDATE API's
         // Update selected sticky note
         [HttpPut]
-        public async Task<IActionResult> UpdateStickyNote([FromBody] GetStickyNoteInfoDto dto, [FromQuery] int? sitckyNoteId = null)
+        public async Task<IActionResult> UpdateStickyNote([FromBody] GetStickyNoteInfoDto dto, [FromQuery] int? sitckyNoteId = null, [FromQuery] string? userId = null)
         {
             dto.StickyNoteId = sitckyNoteId ?? dto.StickyNoteId;
+            dto.UserId = userId ?? dto.UserId;
             var result = await _stickyNoteService.UpdateStickyNote(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -57,12 +59,13 @@ namespace ADE_WFM.Controllers
 
         // DELETE API's
         // Delete selected sticky note
-        [HttpDelete("{stickyNoteId}")]
-        public async Task<IActionResult> DeleteStickyNote(int stickyNoteId)
+        [HttpDelete("{userId}/{stickyNoteId}")]
+        public async Task<IActionResult> DeleteStickyNote(string userId, int stickyNoteId)
         {
             var dto = new GetStickyNoteInfoDto
             {
-                StickyNoteId = stickyNoteId
+                StickyNoteId = stickyNoteId,
+                UserId = userId
             };
 
             var result = await _stickyNoteService.DeleteStickyNote(dto);
