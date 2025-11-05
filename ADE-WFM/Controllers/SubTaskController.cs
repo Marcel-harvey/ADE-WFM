@@ -42,42 +42,35 @@ namespace ADE_WFM.Controllers
 
         // UPDATE API's
         // Update a subtask description
-        [HttpPut("Update/Description")]
-        public async Task<IActionResult> UpdateSubTaskDescription([FromBody] UpdateSubTaskDto dto)
+        [HttpPut("Description")]
+        public async Task<IActionResult> UpdateSubTaskDescription([FromBody] UpdateSubTaskDto dto, [FromQuery] int? todoId = null, [FromQuery] int? subTaskIs = null)
         {
+            dto.TodoId = todoId ?? dto.TodoId;
+            dto.SubTaskId = subTaskIs ?? dto.SubTaskId;
             var result = await _subTaskService.UpdateSubTask(dto);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-            return Ok(result);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // Mark a subtask as completed or not completed
-        [HttpPut("Update/Completion")]
-        public async Task<IActionResult> MarkSubTaskCompletion([FromBody] MarkSubTaskCompletionDto dto)
+        [HttpPut("is-complete")]
+        public async Task<IActionResult> MarkSubTaskCompletion([FromQuery] MarkSubTaskCompletionDto dto)
         {
             var result = await _subTaskService.MarkSubTaskCompletion(dto);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-            return Ok(result);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // DELETE API's
         // Delete a subtask
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> DeleteSubTask([FromBody] GetSubTasksDto dto)
+        [HttpDelete()]
+        public async Task<IActionResult> DeleteSubTask([FromQuery] GetSubTasksDto dto)
         {
             var result = await _subTaskService.DeleteSubTask(dto);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result);
-            }
-            return Ok(result);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
     }
 }

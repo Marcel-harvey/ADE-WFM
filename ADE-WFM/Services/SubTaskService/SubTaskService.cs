@@ -169,7 +169,7 @@ namespace ADE_WFM.Services.SubTaskService
             {
                 // Confirm if Todo exists
                 var todo = await _context.Todos
-                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
+                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId && t.TenantId == _tenantContext.TenantId);
                 if (todo == null)
                 {
                     _logger.LogInformation("Todo with ID {TodoId} not found", dto.TodoId);
@@ -178,7 +178,7 @@ namespace ADE_WFM.Services.SubTaskService
 
                 // Find the subtask belonging to this todo
                 var subTask = await _context.SubTasks
-                    .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId);
+                    .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId && st.TenantId == _tenantContext.TenantId);
                 if (subTask == null)
                 {
                     _logger.LogInformation("SubTask with ID {SubTaskId} not found for Todo ID {TodoId}", dto.SubTaskId, dto.TodoId);
@@ -237,7 +237,7 @@ namespace ADE_WFM.Services.SubTaskService
             try
             {
                 var todo = await _context.Todos
-                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
+                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId && t.TenantId == _tenantContext.TenantId);
                 if (todo == null)
                 {
                     _logger.LogInformation("Todo with ID {TodoId} not found", dto.TodoId);
@@ -245,7 +245,7 @@ namespace ADE_WFM.Services.SubTaskService
                 }
 
                 var subTask = await _context.SubTasks
-                    .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId);
+                    .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId && st.TenantId == _tenantContext.TenantId);
                 if (subTask == null)
                 {
                     _logger.LogInformation("SubTask with ID {SubTaskId} not found for Todo ID {TodoId}", dto.SubTaskId, dto.TodoId);
@@ -304,7 +304,7 @@ namespace ADE_WFM.Services.SubTaskService
             try
             {
                 var todo = await _context.Todos
-                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId);
+                    .FirstOrDefaultAsync(t => t.Id == dto.TodoId && t.TenantId == _tenantContext.TenantId);
                 if (todo == null)
                 {
                     _logger.LogInformation("Todo with ID {TodoId} not found", dto.TodoId);
@@ -312,7 +312,7 @@ namespace ADE_WFM.Services.SubTaskService
                 }
 
                 var subTask = await _context.SubTasks
-                    .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId);
+                    .FirstOrDefaultAsync(st => st.Id == dto.SubTaskId && st.TodoId == dto.TodoId && st.TenantId == _tenantContext.TenantId);
                 if (subTask == null)
                 {
                     _logger.LogInformation("SubTask with ID {SubTaskId} not found for Todo ID {TodoId}", dto.SubTaskId, dto.TodoId);
