@@ -50,16 +50,16 @@ namespace ADE_WFM.Services.ProjectService
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<ProjectResponseDto>.Failure("Workflow ID cannot be empty");
 
-            // Get users in work flow - can not add users outside of work flow
-            var workFlow = await _context.WorkFlows
-                .Include(u => u.WorkFlowUsers)
-                    .ThenInclude(wfu => wfu.User)
-                .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId  == _tenantContext.TenantId);
-            if (workFlow == null)
-                return ServiceResult<ProjectResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} does not exist");
-
             try
             {
+                // Get users in work flow - can not add users outside of work flow
+                var workFlow = await _context.WorkFlows
+                    .Include(u => u.WorkFlowUsers)
+                        .ThenInclude(wfu => wfu.User)
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
+                if (workFlow == null)
+                    return ServiceResult<ProjectResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} does not exist");
+
                 // Models.Project use for some weird error
                 var project = new Models.Project
                 {
