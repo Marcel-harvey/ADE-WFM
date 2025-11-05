@@ -200,7 +200,7 @@ namespace ADE_WFM.Services.CommentService
                 var workflow = await _context.WorkFlows
                     .Include(wf => wf.Comments!)
                         .ThenInclude(c => c.User)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
+                    .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
 
                 // Check if workflow exists first before accessing comments
                 if (workflow == null)

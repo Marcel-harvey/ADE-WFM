@@ -49,16 +49,13 @@ namespace ADE_WFM.Controllers
 
         // GET API's
         // Get all comments in selected work flow
-        [HttpGet("WorkFlow/Get/All/{workFlowId}")]
-        public async Task<IActionResult> GetWorkFlowComments(int id)
+        [HttpGet("WorkFlow/{workFlowId}")]
+        public async Task<IActionResult> GetWorkFlowComments(int workFlowId)
         {
-            var dto = new GetCommentInfoDto { WorkFlowId = id };
+            var dto = new GetCommentInfoDto { WorkFlowId = workFlowId };
             var result = await _commentService.GetWorkFlowComments(dto);
 
-            if (!result.Succeeded)
-                return NotFound(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 
