@@ -60,16 +60,13 @@ namespace ADE_WFM.Controllers
 
 
         // Get all comments in selected project
-        [HttpGet("Project/Get/All/{projectId}")]
-        public async Task<IActionResult> GetProjectComments(int id)
+        [HttpGet("Project/{projectId}")]
+        public async Task<IActionResult> GetProjectComments(int projectId)
         {
-            var dto = new GetCommentInfoDto { ProjectId = id };
+            var dto = new GetCommentInfoDto { ProjectId = projectId };
             var result = await _commentService.GetProjectComments(dto);
 
-            if (!result.Succeeded)
-                return NotFound(result);
-
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
 

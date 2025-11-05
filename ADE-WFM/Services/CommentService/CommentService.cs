@@ -257,8 +257,8 @@ namespace ADE_WFM.Services.CommentService
                 var project = await _context.Projects
                     .Include(p => p.Comment!)
                         .ThenInclude(c => c.User)
-                    .Include(p => p.WorkFlows)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.ProjectId);
+                    .Include(wf => wf.WorkFlows)
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
 
                 // Check if project exists first before accessing comments
                 if (project == null)
