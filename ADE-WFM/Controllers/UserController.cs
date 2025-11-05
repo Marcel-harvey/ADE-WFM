@@ -18,43 +18,32 @@ namespace ADE_WFM.Controllers
 
 
         // CREATE:
-        [HttpPost("Create")]
+        [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ServiceResult<object>.Failure("Invalid data provided.",
-                    ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))));
-
             var result = await _userService.AddUser(dto);
-            if (!result.Succeeded)
-                return BadRequest(result);
 
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // GET:
-        [HttpGet("Get/All")]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var result = await _userService.GetAllUsers();
-            if (!result.Succeeded)
-                return NotFound(result);
 
-            return Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
         // DELETE:
-        [HttpDelete("Delete")]
-        public async Task<IActionResult> Delete([FromBody] DeleteUserDto dto)
+        [HttpDelete]
+        public async Task<IActionResult> Delete([FromQuery] DeleteUserDto dto)
         {
             var result = await _userService.DeleteUser(dto);
 
-            if (!result.Succeeded)
-                return BadRequest(new { message = result.Message, errors = result.Errors });
-
-            return Ok(new { message = result.Message, data = result.Data });
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
     }
 }
