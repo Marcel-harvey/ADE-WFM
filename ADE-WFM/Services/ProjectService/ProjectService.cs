@@ -39,13 +39,10 @@ namespace ADE_WFM.Services.ProjectService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<ProjectResponseDto>.Failure("CreateProjectDto cannot be null");
+                return ServiceResult<ProjectResponseDto>.Failure("No information provided");
 
             if (string.IsNullOrWhiteSpace(dto.ProjectTitle))
                 return ServiceResult<ProjectResponseDto>.Failure("Project title cannot be empty");
-
-            if (string.IsNullOrWhiteSpace(dto.CurrentUserId))
-                return ServiceResult<ProjectResponseDto>.Failure("Current user ID cannot be empty");
 
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<ProjectResponseDto>.Failure("Workflow ID cannot be empty");
@@ -77,15 +74,15 @@ namespace ADE_WFM.Services.ProjectService
                 var skippedUsers = new List<ProjectUsersInfoDto>();
 
                 // Add creator of project
-                project.ProjectUsers.Add(new ProjectUser { UserId = dto.CurrentUserId });
+                project.ProjectUsers.Add(new ProjectUser { UserId = _tenantContext.UserId });
 
                 // Get the user entity for username
                 var creator = await _context.Users
-                    .FindAsync(dto.CurrentUserId);
+                    .FindAsync(_tenantContext.UserId);
 
                 addedUsers.Add(new ProjectUsersInfoDto
                 {
-                    UserId = dto.CurrentUserId,
+                    UserId = _tenantContext.UserId,
                     UserName = creator?.UserName ?? "Unknown"
                 });
 
@@ -97,7 +94,7 @@ namespace ADE_WFM.Services.ProjectService
                 // Add valid users and collect skipped ones
                 foreach (var userId in dto.UserIds)
                 {
-                    if (userId == dto.CurrentUserId)
+                    if (userId == _tenantContext.UserId)
                         continue;
 
                     var user = await _context.Users.FindAsync(userId);
@@ -127,7 +124,7 @@ namespace ADE_WFM.Services.ProjectService
 
                 _logger.LogInformation(
                     "Project '{ProjectTitle}' created successfully by {UserId}. Added {AddedCount} users, skipped {SkippedCount}",
-                    project.ProjectTitle, dto.CurrentUserId, addedUsers.Count, skippedUsers.Count
+                    project.ProjectTitle, _tenantContext.UserId, addedUsers.Count, skippedUsers.Count
                 );
 
                 return ServiceResult<ProjectResponseDto>.Success(
@@ -168,12 +165,12 @@ namespace ADE_WFM.Services.ProjectService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<ProjectResponseDto>.Failure("AddUserToProjectDto cannot be null");
+                return ServiceResult<ProjectResponseDto>.Failure("No information provided");
 
             if (dto.ProjectId <= 0)
                 return ServiceResult<ProjectResponseDto>.Failure("Invalid Project ID provided");
 
-            if (string.IsNullOrWhiteSpace(dto.UserId))
+            if (string.IsNullOrWhiteSpace(dto.AddUserId))
                 return ServiceResult<ProjectResponseDto>.Failure("User ID cannot be empty");
                       
             try
@@ -191,9 +188,9 @@ namespace ADE_WFM.Services.ProjectService
                     return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
 
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == dto.UserId);
+                    .FirstOrDefaultAsync(u => u.Id == dto.AddUserId);
                 if (user == null)
-                    return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.UserId} was not found");
+                    return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.AddUserId} was not found");
 
                 // Get users in workflow - cannot add users outside of workflow
                 var workFlow = await _context.WorkFlows
@@ -207,14 +204,14 @@ namespace ADE_WFM.Services.ProjectService
                     .Select(wfu => wfu.UserId)
                     .ToHashSet();
 
-                if (!workflowUserIds.Contains(dto.UserId))
+                if (!workflowUserIds.Contains(dto.AddUserId))
                 {
                     return ServiceResult<ProjectResponseDto>.Failure(
                         $"User '{user.UserName}' cannot be added because they are not part of the workflow '{workFlow.WorkFlowName}'.");
                 }
 
                 // Prevent duplicate users
-                if (project.ProjectUsers.Any(pu => pu.UserId == dto.UserId))
+                if (project.ProjectUsers.Any(pu => pu.UserId == dto.AddUserId))
                 {
                     return ServiceResult<ProjectResponseDto>.Failure(
                         $"User '{user.UserName}' is already part of this project."
@@ -225,7 +222,7 @@ namespace ADE_WFM.Services.ProjectService
                 var projectUser = new ProjectUser
                 {
                     ProjectId = dto.ProjectId,
-                    UserId = dto.UserId
+                    UserId = dto.AddUserId
                 };
 
                 await _context.ProjectUsers.AddAsync(projectUser);
@@ -374,7 +371,7 @@ namespace ADE_WFM.Services.ProjectService
         public async Task<ServiceResult<ProjectResponseDto>> GetProjectById(GetProjectDto dto)
         {
             if (dto == null)
-                return ServiceResult<ProjectResponseDto>.Failure("GetProjectByIdDto cannot be null");
+                return ServiceResult<ProjectResponseDto>.Failure("No information provided");
 
             if (dto.ProjectId <= 0)
                 return ServiceResult<ProjectResponseDto>.Failure("Invalid project ID provided");
@@ -552,7 +549,7 @@ namespace ADE_WFM.Services.ProjectService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<ProjectResponseDto>.Failure("DeleteProjectDto cannot be null");
+                return ServiceResult<ProjectResponseDto>.Failure("No information provided");
 
             if (dto.ProjectId <= 0)
                 return ServiceResult<ProjectResponseDto>.Failure("Invalid Project ID provided");
@@ -641,6 +638,7 @@ namespace ADE_WFM.Services.ProjectService
             if (dto.ProjectId <= 0)
                 return ServiceResult<ProjectResponseDto>.Failure("Invalid Project ID provided");
 
+            // UserId = user to be deleted
             if (string.IsNullOrWhiteSpace(dto.UserId))
                 return ServiceResult<ProjectResponseDto>.Failure("User ID cannot be empty");
                     
