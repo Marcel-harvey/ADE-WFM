@@ -34,8 +34,9 @@ namespace ADE_WFM.Services.TodoService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
+                return ServiceResult<ToDoResponseDto>.Failure("No information provided.");
 
+            // UserId = user that todo is assigned to (Not current user)
             if (string.IsNullOrWhiteSpace(dto.UserId))
                 return ServiceResult<ToDoResponseDto>.Failure("User id required.");
 
@@ -119,7 +120,7 @@ namespace ADE_WFM.Services.TodoService
                 if (!todos.Any())
                 {
                     _logger.LogInformation("No todo's found for user {UserId}.", _tenantContext.UserId);
-                    return ServiceResult<List<ToDoResponseDto>>.Failure("No todo's found for the given user.");
+                    return ServiceResult<List<ToDoResponseDto>>.Failure($"No todo's found for user {_tenantContext.UserName}.");
                 }
 
                 return ServiceResult<List<ToDoResponseDto>>.Success(
@@ -161,7 +162,7 @@ namespace ADE_WFM.Services.TodoService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<List<ToDoResponseDto>>.Failure("Input data is null.");
+                return ServiceResult<List<ToDoResponseDto>>.Failure("No information provided.");
 
             if (dto.ProjectId <= 0)
                 return ServiceResult<List<ToDoResponseDto>>.Failure("Valid Project id required.");
@@ -226,9 +227,9 @@ namespace ADE_WFM.Services.TodoService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
+                return ServiceResult<ToDoResponseDto>.Failure("No information provided.");
             if (dto.TodoId <= 0)
-                return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
+                return ServiceResult<ToDoResponseDto>.Failure("Valid ID required.");
 
             try
             {
@@ -300,9 +301,9 @@ namespace ADE_WFM.Services.TodoService
         public async Task<ServiceResult<ToDoResponseDto>> MarkTodoCompletion(MarkTodoCompletionDto dto)
         {
             if (dto == null)
-                return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
+                return ServiceResult<ToDoResponseDto>.Failure("No information provided.");
             if (dto.ToDoId <= 0)
-                return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
+                return ServiceResult<ToDoResponseDto>.Failure("Valid ID required.");
 
             try
             {
@@ -367,9 +368,9 @@ namespace ADE_WFM.Services.TodoService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<ToDoResponseDto>.Failure("Input data is null.");
+                return ServiceResult<ToDoResponseDto>.Failure("No information provided.");
             if (dto.TodoId <= 0)
-                return ServiceResult<ToDoResponseDto>.Failure("Valid Todo id required.");
+                return ServiceResult<ToDoResponseDto>.Failure("Valid ID required.");
 
             try
             {
