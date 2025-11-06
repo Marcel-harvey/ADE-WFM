@@ -106,26 +106,19 @@ namespace ADE_WFM.Services.TodoService
 
         // GET service
         // Get all todos for a user
-        public async Task<ServiceResult<List<ToDoResponseDto>>> GetAllUserTodos(GetToDoDto dto)
+        public async Task<ServiceResult<List<ToDoResponseDto>>> GetAllUserTodos()
         {
-            // General validation
-            if (dto == null)
-                return ServiceResult<List<ToDoResponseDto>>.Failure("Input data is null.");
-
-            if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<List<ToDoResponseDto>>.Failure("User id required.");
-
             try
             {
                 var todos = await _context.Todos
-                    .Where(t => t.UserId == dto.UserId)
+                    .Where(t => t.UserId == _tenantContext.UserId)
                     .Include(t => t.User)
                     .Include(t => t.SubTasks)
                     .ToListAsync();
 
                 if (!todos.Any())
                 {
-                    _logger.LogInformation("No todo's found for user {UserId}.", dto.UserId);
+                    _logger.LogInformation("No todo's found for user {UserId}.", _tenantContext.UserId);
                     return ServiceResult<List<ToDoResponseDto>>.Failure("No todo's found for the given user.");
                 }
 
@@ -154,7 +147,7 @@ namespace ADE_WFM.Services.TodoService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving todo's for user {UserId}.", dto.UserId);
+                _logger.LogError(ex, "Error retrieving todo's for user {UserId}.", _tenantContext.UserId);
 
                 return ServiceResult<List<ToDoResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving todo's.",

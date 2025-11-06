@@ -11,7 +11,7 @@ namespace ADE_WFM.Services.TodoService
 
 
         // GET service
-        Task<ServiceResult<List<ToDoResponseDto>>> GetAllUserTodos(GetToDoDto dto);
+        Task<ServiceResult<List<ToDoResponseDto>>> GetAllUserTodos();
         Task<ServiceResult<List<ToDoResponseDto>>> GetAllProjectTodos(GetToDoDto dto);
 
 

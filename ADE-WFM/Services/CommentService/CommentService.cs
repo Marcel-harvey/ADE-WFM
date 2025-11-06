@@ -36,10 +36,7 @@ namespace ADE_WFM.Services.CommentService
         {
             // General validations
             if (dto == null)
-                return ServiceResult<CommentResponseDto>.Failure("Invalid request data.");
-
-            if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<CommentResponseDto>.Failure("User ID is required.");
+                return ServiceResult<CommentResponseDto>.Failure("No information provided.");
 
             if (string.IsNullOrWhiteSpace(dto.CommentContent))
                 return ServiceResult<CommentResponseDto>.Failure("Comment content cannot be empty.");
@@ -49,11 +46,6 @@ namespace ADE_WFM.Services.CommentService
 
             try
             {
-                var user = await _userManager
-                    .FindByIdAsync(dto.UserId);
-                if (user == null)
-                    return ServiceResult<CommentResponseDto>.Failure("User not found.");
-
                 var workFlow = await _context.WorkFlows
                     .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
                 if (workFlow == null)
@@ -63,7 +55,7 @@ namespace ADE_WFM.Services.CommentService
                 {
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                     CommentContent = dto.CommentContent,
-                    UserId = dto.UserId,
+                    UserId = _tenantContext.UserId,
                     WorkFlowId = workFlow.Id,
                     IsViewed = false,
                     TenantId = _tenantContext.TenantId,
@@ -78,8 +70,8 @@ namespace ADE_WFM.Services.CommentService
                         CommentId = comment.Id,
                         DateCreated = comment.DateCreated,
                         CommentContent = comment.CommentContent,
-                        UserId = user.Id,
-                        UserName = user.UserName ?? "Unknown",
+                        UserId = _tenantContext.UserId,
+                        UserName = _tenantContext.UserName ?? "Unknown",
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
                     },
@@ -110,10 +102,7 @@ namespace ADE_WFM.Services.CommentService
         {
             // General validations
             if (dto == null)
-                return ServiceResult<CommentResponseDto>.Failure("Invalid request data.");
-
-            if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<CommentResponseDto>.Failure("User ID is required.");
+                return ServiceResult<CommentResponseDto>.Failure("No information provided.");
 
             if (string.IsNullOrWhiteSpace(dto.CommentContent))
                 return ServiceResult<CommentResponseDto>.Failure("Comment content cannot be empty.");
@@ -126,11 +115,6 @@ namespace ADE_WFM.Services.CommentService
 
             try
             {
-                var user = await _userManager
-                    .FindByIdAsync(dto.UserId);
-                if (user == null)
-                    return ServiceResult<CommentResponseDto>.Failure("User not found.");
-
                 var project = await _context.Projects
                     .Include(wf => wf.WorkFlows)
                     .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
@@ -142,7 +126,7 @@ namespace ADE_WFM.Services.CommentService
                 {
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                     CommentContent = dto.CommentContent,
-                    UserId = dto.UserId,
+                    UserId = _tenantContext.UserId,
                     ProjectId = dto.ProjectId,
                     WorkFlowId = project.WorkFlowId,
                     IsViewed = false,
@@ -158,8 +142,8 @@ namespace ADE_WFM.Services.CommentService
                         CommentId = comment.Id,
                         DateCreated = comment.DateCreated,
                         CommentContent = comment.CommentContent,
-                        UserId = user.Id,
-                        UserName = user.UserName ?? "Unknown",
+                        UserId = _tenantContext.UserId,
+                        UserName = _tenantContext.UserName ?? "Unknown",
                         ProjectId = comment.ProjectId,
                         ProjectTitle = project.ProjectTitle,
                         WorkFlowId = project.WorkFlowId,
@@ -192,7 +176,7 @@ namespace ADE_WFM.Services.CommentService
         public async Task<ServiceResult<List<CommentResponseDto>>> GetWorkFlowComments(GetCommentInfoDto dto)
         {
             if (dto == null)
-                return ServiceResult<List<CommentResponseDto>>.Failure("Invalid request data.");
+                return ServiceResult<List<CommentResponseDto>>.Failure("No information provided.");
 
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<List<CommentResponseDto>>.Failure("Invalid WorkFlow ID.");
@@ -249,7 +233,7 @@ namespace ADE_WFM.Services.CommentService
         public async Task<ServiceResult<List<CommentResponseDto>>> GetProjectComments(GetCommentInfoDto dto)
         {
             if (dto == null)
-                return ServiceResult<List<CommentResponseDto>>.Failure("Invalid request data.");
+                return ServiceResult<List<CommentResponseDto>>.Failure("No information provided.");
 
             if (dto.ProjectId <= 0)
                 return ServiceResult<List<CommentResponseDto>>.Failure("Invalid Project ID.");
@@ -305,14 +289,8 @@ namespace ADE_WFM.Services.CommentService
 
 
         // Get all comments a user made
-        public async Task<ServiceResult<List<CommentResponseDto>>> GetUserComments(GetCommentInfoDto dto)
+        public async Task<ServiceResult<List<CommentResponseDto>>> GetUserComments()
         {
-            if (dto == null)
-                return ServiceResult<List<CommentResponseDto>>.Failure("Invalid request data.");
-
-            if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<List<CommentResponseDto>>.Failure("Invalid User ID.");
-
             try
             {
                 var user = await _context.Users
@@ -320,19 +298,19 @@ namespace ADE_WFM.Services.CommentService
                         .ThenInclude(c => c.Project)
                     .Include(u => u.Comment!)
                         .ThenInclude(c => c.WorkFlow)
-                    .FirstOrDefaultAsync(wf => wf.Id == dto.UserId);
+                    .FirstOrDefaultAsync(wf => wf.Id == _tenantContext.UserId);
 
                 // Check if user exists first before accessing comments
                 if (user == null)
                 {
-                    _logger.LogInformation("User not found for user ID: {UserId}", dto.UserId);
+                    _logger.LogInformation("User not found for user ID: {UserId}", _tenantContext.UserId);
                     return ServiceResult<List<CommentResponseDto>>.Failure("User not found.");
                 }
 
 
                 if (user.Comment == null || !user.Comment.Any())
                 {
-                    _logger.LogInformation("No comments found for user ID: {UserId}", dto.UserId);
+                    _logger.LogInformation("No comments found for user ID: {UserId}", _tenantContext.UserId);
                     return ServiceResult<List<CommentResponseDto>>.Success(new List<CommentResponseDto>(), "No comments found for the specified User.");
                 }
 
@@ -357,7 +335,7 @@ namespace ADE_WFM.Services.CommentService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving user comments for user ID {UserId}", dto.UserId);
+                _logger.LogError(ex, "Error retrieving user comments for user ID {UserId}", _tenantContext.UserId);
                 return ServiceResult<List<CommentResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving project comments.",
                     new[] { ex.Message });
@@ -369,7 +347,7 @@ namespace ADE_WFM.Services.CommentService
         public async Task<ServiceResult<CommentResponseDto>> MarkCommentAsViewed(UpdateCommentViewedDto dto)
         {
             if (dto == null)
-                return ServiceResult<CommentResponseDto>.Failure("Invalid request data.");
+                return ServiceResult<CommentResponseDto>.Failure("No information provided.");
 
             if (dto.CommentId <= 0)
                 return ServiceResult<CommentResponseDto>.Failure("Invalid Comment ID.");
@@ -458,16 +436,13 @@ namespace ADE_WFM.Services.CommentService
             if (dto.CommentId <= 0)
                 return ServiceResult<CommentResponseDto>.Failure("Invalid Comment ID.");
 
-            if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<CommentResponseDto>.Failure("Invalid User ID.");
-
             try
             {
                 var comment = await _context.Comments
                     .Include(c => c.User)
                     .Include(c => c.Project)
                     .Include(c => c.WorkFlow)
-                    .FirstOrDefaultAsync(c => c.Id == dto.CommentId && c.UserId == dto.UserId && c.TenantId == _tenantContext.TenantId);
+                    .FirstOrDefaultAsync(c => c.Id == dto.CommentId && c.UserId == _tenantContext.UserId && c.TenantId == _tenantContext.TenantId);
 
                 if (comment == null)
                 {
