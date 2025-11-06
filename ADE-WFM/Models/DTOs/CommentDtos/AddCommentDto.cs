@@ -4,7 +4,6 @@
     {
         // DTO used for work flow, project etc
         public string CommentContent { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
 
         // Optional selections
         public int? ProjectId { get; set; }
