@@ -36,7 +36,7 @@ namespace ADE_WFM.Controllers
             var dto = new AddUserToProjectDto
             {
                 ProjectId = projectId,
-                UserId = userId
+                AddUserId = userId
             };
             var result = await _projectService.AddUserToProject(dto);
 
