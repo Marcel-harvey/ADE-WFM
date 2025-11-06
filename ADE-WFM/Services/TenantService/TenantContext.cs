@@ -11,6 +11,7 @@ namespace ADE_WFM.Services.TenantService
         private int? _manualTenantId;
         private string? _manualTenantName;
         private string? _manualUserId;
+        private string? _manualUserName;
 
         public TenantContext(IHttpContextAccessor httpContextAccessor)
         {
@@ -61,6 +62,22 @@ namespace ADE_WFM.Services.TenantService
             }
         }
 
+        public string UserName
+        {
+            get
+            {
+                var claim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)
+                            ?? _httpContextAccessor.HttpContext?.User?.FindFirst("user_name");
+                if (claim != null)
+                    return claim.Value;
+
+                if (!string.IsNullOrEmpty(_manualUserName))
+                    return _manualUserName;
+
+                return string.Empty; // fallback
+            }
+        }
+
         public string? ConnectionString { get; private set; }
 
         public void SetTenant(int id, string name, string? connectionString = null)
@@ -70,9 +87,11 @@ namespace ADE_WFM.Services.TenantService
             ConnectionString = connectionString;
         }
 
-        public void SetUser(string userId)
+        public void SetUser(string userId, string? userName = null)
         {
             _manualUserId = userId;
+            if (!string.IsNullOrEmpty(userName))
+                _manualUserName = UserName;
         }
     }
 }
