@@ -18,17 +18,14 @@ namespace ADE_WFM.Controllers
 
 
         // CREATE:
-        [HttpPost]
+        // Register new user
+        [HttpPost("Register")]
         public async Task<IActionResult> RegisterUser([FromBody] CreateUserDto dto)
         {
             var result = await _userService.RegisterNewUser(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
         }
-
-
-        // Register new user
-
 
 
         // GET:
@@ -38,6 +35,16 @@ namespace ADE_WFM.Controllers
             var result = await _userService.GetAllUsers();
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
+
+        // Login User
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginUserDto dto)
+        {
+            var result = await _userService.LoginUser(dto);
+
+            return !result.Succeeded ? BadRequest(result) : Ok(result);
         }
 
 

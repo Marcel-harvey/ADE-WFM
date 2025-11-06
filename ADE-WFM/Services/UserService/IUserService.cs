@@ -10,6 +10,7 @@ namespace ADE_WFM.Services.UserService
 
         // GET service
         Task<ServiceResult<List<UserResponseDto>>> GetAllUsers();
+        Task<ServiceResult<LoginResponseDto>> LoginUser(LoginUserDto loginUser);
 
         // UPDATE service (To be added later)
 

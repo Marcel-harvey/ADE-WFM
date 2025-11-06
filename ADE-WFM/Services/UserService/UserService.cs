@@ -4,6 +4,7 @@ using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.TodoDtos;
 using ADE_WFM.Models.DTOs.UserDtos;
 using ADE_WFM.Services.TenantService;
+using ADE_WFM.Services.JwtService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -18,19 +19,22 @@ namespace ADE_WFM.Services.UserService
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<UserService> _logger;
         private readonly TenantContext _tenantContext;
+        private readonly IJwtService _jwtService;
 
         public UserService(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ILogger<UserService> logger,
-            TenantContext tenantContext)
+            TenantContext tenantContext,
+            IJwtService jwtService)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
             _tenantContext = tenantContext;
+            _jwtService = jwtService;
         }
 
         // CREATE:
@@ -145,6 +149,65 @@ namespace ADE_WFM.Services.UserService
                     new[] { ex.Message });
             }
         }
+
+
+        public async Task<ServiceResult<LoginResponseDto>> LoginUser(LoginUserDto dto)
+        {
+            // Basic validation
+            if (dto == null)
+                return ServiceResult<LoginResponseDto>.Failure("Invalid login request.");
+
+            if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+                return ServiceResult<LoginResponseDto>.Failure("Email and password are required.");
+
+            try
+            {
+                // Find user by email
+                var user = await _userManager.FindByEmailAsync(dto.Email);
+                if (user == null)
+                    return ServiceResult<LoginResponseDto>.Failure("Invalid credentials.");
+
+                // Verify password
+                var isPasswordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
+                if (!isPasswordValid)
+                    return ServiceResult<LoginResponseDto>.Failure("Invalid credentials.");
+
+                // Get Tenant info
+                var tenant = await _context.Tenants.FindAsync(user.TenantId);
+                if (tenant == null)
+                    return ServiceResult<LoginResponseDto>.Failure("Tenant not found for user.");
+
+                // Get roles
+                var roles = await _userManager.GetRolesAsync(user);
+                var userRole = roles.FirstOrDefault() ?? "User";
+
+                // Generate JWT
+                var token = _jwtService.GenerateToken(user, tenant, userRole);
+
+                // Return response
+                return ServiceResult<LoginResponseDto>.Success(
+                    new LoginResponseDto
+                    {
+                        Token = token,
+                        Email = user.Email ?? string.Empty,
+                        UserId = user.Id,
+                        TenantId = tenant.Id,
+                        TenantName = tenant.Name,
+                        Role = userRole
+                    },
+                    "Login successful."
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error occurred during login for user {Email}", dto.Email);
+                return ServiceResult<LoginResponseDto>.Failure(
+                    "An unexpected error occurred while logging in.",
+                    new[] { ex.Message }
+                );
+            }
+        }
+
 
 
         // GET ALL:
