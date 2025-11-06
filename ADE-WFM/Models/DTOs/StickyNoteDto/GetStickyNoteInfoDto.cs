@@ -4,6 +4,5 @@
     {
         public int StickyNoteId { get; set; }
         public string NewContent { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
     }
 }
