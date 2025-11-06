@@ -34,32 +34,24 @@ namespace ADE_WFM.Services.StickyNoteService
         {
             // General validations
             if (dto == null)
-                return ServiceResult<StickyNoteResponseDto>.Failure("Input data is null.");
-
-            if (string.IsNullOrEmpty(dto.UserId))
-                return ServiceResult<StickyNoteResponseDto>.Failure("UserId is required.");
+                return ServiceResult<StickyNoteResponseDto>.Failure("No information provided.");
 
             if (string.IsNullOrEmpty(dto.Content))
                 return ServiceResult<StickyNoteResponseDto>.Failure("Content is required.");
 
             try
             {
-                var user = await _userManager
-                    .FindByIdAsync(dto.UserId);
-                if (user == null)
-                    return ServiceResult<StickyNoteResponseDto>.Failure($"User with Id {dto.UserId} not found.");
-
                 var stickyNote = new StickyNote
                 {
                     Content = dto.Content,
-                    UserId = dto.UserId,
+                    UserId = _tenantContext.UserId,
                     TenantId = _tenantContext.TenantId
                 };
 
                 _context.StickyNotes.Add(stickyNote);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Sticky note created successfully for user with ID: {UserId}", dto.UserId);
+                _logger.LogInformation("Sticky note created successfully for user with ID: {UserId}", _tenantContext.UserId);
 
                 return ServiceResult<StickyNoteResponseDto>.Success(
                     new StickyNoteResponseDto
@@ -93,24 +85,21 @@ namespace ADE_WFM.Services.StickyNoteService
         {
             // General validations
             if (dto == null)
-                return ServiceResult<List<StickyNoteResponseDto>>.Failure("Input data is null.");
-
-            if (string.IsNullOrEmpty(dto.UserId))
-                return ServiceResult<List<StickyNoteResponseDto>>.Failure("UserId is required.");
+                return ServiceResult<List<StickyNoteResponseDto>>.Failure("No information provided.");
 
             try
             {
                 var stickyNotes = await _context.StickyNotes
-                    .Where(sn => sn.UserId == dto.UserId && sn.TenantId == _tenantContext.TenantId)
+                    .Where(sn => sn.UserId == _tenantContext.UserId && sn.TenantId == _tenantContext.TenantId)
                     .Include(u => u.User)
                     .ToListAsync();
                 if (!stickyNotes.Any())
                 {
-                    _logger.LogWarning("No sticky notes found for user with ID: {UserId}", dto.UserId);
+                    _logger.LogWarning("No sticky notes found for user with ID: {UserId}", _tenantContext.UserId);
                     return ServiceResult<List<StickyNoteResponseDto>>.Failure("No sticky notes found for user");
                 }
 
-                _logger.LogInformation("Retrieved {Count} sticky notes for user with ID: {UserId}", stickyNotes.Count, dto.UserId);
+                _logger.LogInformation("Retrieved {Count} sticky notes for user with ID: {UserId}", stickyNotes.Count, _tenantContext.UserId);
 
                 return ServiceResult<List<StickyNoteResponseDto>>.Success(
                     stickyNotes.Select(sn => new StickyNoteResponseDto
@@ -137,7 +126,7 @@ namespace ADE_WFM.Services.StickyNoteService
         {
             // General validations
             if (dto == null)
-                return ServiceResult<StickyNoteResponseDto>.Failure("Input data is null.");
+                return ServiceResult<StickyNoteResponseDto>.Failure("No information provided.");
 
             if (string.IsNullOrEmpty(dto.NewContent))
                 return ServiceResult<StickyNoteResponseDto>.Failure("Updated content is required.");
@@ -145,24 +134,21 @@ namespace ADE_WFM.Services.StickyNoteService
             if (dto.StickyNoteId <= 0)
                 return ServiceResult<StickyNoteResponseDto>.Failure("Valid StickyNoteId is required.");
 
-            if (string.IsNullOrEmpty(dto.UserId))
-                return ServiceResult<StickyNoteResponseDto>.Failure("UserId is required.");
-
             try
             {
                 var stickyNote = await _context.StickyNotes
                     .Include(sn => sn.User)
-                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == dto.UserId && sn.TenantId == _tenantContext.TenantId);
+                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == _tenantContext.UserId && sn.TenantId == _tenantContext.TenantId);
                 if (stickyNote == null)
                 {
-                    _logger.LogWarning("Sticky note with ID {StickyNoteId} not found for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
+                    _logger.LogWarning("Sticky note with ID {StickyNoteId} not found for user with ID: {UserId}", dto.StickyNoteId, _tenantContext.UserId);
                     return ServiceResult<StickyNoteResponseDto>.Failure("Sticky note not found.");
                 }
 
                 stickyNote.Content = dto.NewContent;
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Sticky note with ID {StickyNoteId} updated successfully for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
+                _logger.LogInformation("Sticky note with ID {StickyNoteId} updated successfully for user with ID: {UserId}", dto.StickyNoteId, _tenantContext.UserId);
 
                 return ServiceResult<StickyNoteResponseDto>.Success(
                     new StickyNoteResponseDto
@@ -194,29 +180,26 @@ namespace ADE_WFM.Services.StickyNoteService
         {
             // General validations
             if (dto == null)
-                return ServiceResult<StickyNoteResponseDto>.Failure("Input data is null.");
+                return ServiceResult<StickyNoteResponseDto>.Failure("No information provided.");
 
             if (dto.StickyNoteId <= 0)
-                return ServiceResult<StickyNoteResponseDto>.Failure("Valid StickyNoteId is required.");
-
-            if (string.IsNullOrEmpty(dto.UserId))
-                return ServiceResult<StickyNoteResponseDto>.Failure("UserId is required.");
+                return ServiceResult<StickyNoteResponseDto>.Failure("Valid ID is required.");
 
             try
             {
                 var stickyNote = await _context.StickyNotes
                     .Include(sn => sn.User)
-                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == dto.UserId && sn.TenantId == _tenantContext.TenantId);
+                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == _tenantContext.UserId && sn.TenantId == _tenantContext.TenantId);
                 if (stickyNote == null)
                 {
-                    _logger.LogWarning("Sticky note with ID {StickyNoteId} not found for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
+                    _logger.LogWarning("Sticky note with ID {StickyNoteId} not found for user with ID: {UserId}", dto.StickyNoteId, _tenantContext.UserId);
                     return ServiceResult<StickyNoteResponseDto>.Failure("Sticky note not found.");
                 }
 
                 _context.StickyNotes.Remove(stickyNote);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Sticky note with ID {StickyNoteId} deleted successfully for user with ID: {UserId}", dto.StickyNoteId, dto.UserId);
+                _logger.LogInformation("Sticky note with ID {StickyNoteId} deleted successfully for user with ID: {UserId}", dto.StickyNoteId, _tenantContext.UserId);
 
                 return ServiceResult<StickyNoteResponseDto>.Success(
                     new StickyNoteResponseDto
@@ -241,7 +224,6 @@ namespace ADE_WFM.Services.StickyNoteService
                     "An unexpected error occurred while deleting the sticky note.",
                     new[] { ex.Message });
             }
-
         }
     }
 }
