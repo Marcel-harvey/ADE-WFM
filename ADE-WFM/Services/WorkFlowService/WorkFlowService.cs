@@ -35,10 +35,11 @@ namespace ADE_WFM.Services.WorkFlowService
         public async Task<ServiceResult<WorkFlowResponseDto>> AddWorkFlow(CreateWorkFlowDto dto)
         {
             // General validation
+            if (dto == null)
+                return ServiceResult<WorkFlowResponseDto>.Failure("No information provided");
+
             if (string.IsNullOrWhiteSpace(dto.WorkFlowName))
                 return ServiceResult<WorkFlowResponseDto>.Failure("Work flow name is required.");
-            if (string.IsNullOrEmpty(dto.CurrentUserId))
-                return ServiceResult<WorkFlowResponseDto>.Failure("Current user ID is required.");
 
             try
             {
@@ -46,13 +47,13 @@ namespace ADE_WFM.Services.WorkFlowService
                 {
                     WorkFlowName = dto.WorkFlowName,
                     WorkFlowUsers = new List<WorkFlowUser>(),
-                    TenantId = _tenantContext.TenantId  // Set tenant-----------------------------------
+                    TenantId = _tenantContext.TenantId
                 };
 
                 // Add creator as admin
                 workFlow.WorkFlowUsers.Add(new WorkFlowUser
                 {
-                    UserId = dto.CurrentUserId,
+                    UserId = _tenantContext.UserId,
                     Role = "Admin"
                 });
 
@@ -61,7 +62,7 @@ namespace ADE_WFM.Services.WorkFlowService
                 {
                     foreach (var userId in dto.UserIds)
                     {
-                        if (userId != dto.CurrentUserId)
+                        if (userId != _tenantContext.UserId)
                         {
                             workFlow.WorkFlowUsers.Add(new WorkFlowUser
                             {
@@ -83,8 +84,8 @@ namespace ADE_WFM.Services.WorkFlowService
                     .Include(wf => wf.Project)
                     .FirstOrDefaultAsync(wf => wf.Id == workFlow.Id);
 
-                _logger.LogInformation("Workflow '{WorkFlowName}' created successfully by user ID {UserId}",
-                    dto.WorkFlowName, dto.CurrentUserId);
+                _logger.LogInformation("Workflow '{WorkFlowName}' created successfully by user {UserId}",
+                    dto.WorkFlowName, _tenantContext.UserId);
 
                 // Return success
                 return ServiceResult<WorkFlowResponseDto>.Success(
@@ -149,7 +150,9 @@ namespace ADE_WFM.Services.WorkFlowService
                     return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found.");
 
                 // Get existing user IDs to avoid duplicates
-                var existingUserIds = workFlow.WorkFlowUsers.Select(wfUser => wfUser.UserId).ToList();
+                var existingUserIds = workFlow.WorkFlowUsers
+                    .Select(wfUser => wfUser.UserId)
+                    .ToList();
 
                 var errors = new List<string>();
 
@@ -345,8 +348,7 @@ namespace ADE_WFM.Services.WorkFlowService
             try
             {
                 var workFlow = await _context.WorkFlows
-                    .Where(wf => wf.Id == dto.WorkFlowId
-                                 && wf.TenantId == _tenantContext.TenantId)
+                    .Where(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
@@ -472,8 +474,11 @@ namespace ADE_WFM.Services.WorkFlowService
         {
             if (dto == null)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
+
+            // UserId = User to be removed
             if (string.IsNullOrWhiteSpace(dto.UserId))
                 return ServiceResult<WorkFlowResponseDto>.Failure("User ID is required.");
+
             if (dto.WorkFlowId <= 0)
                 return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
 
