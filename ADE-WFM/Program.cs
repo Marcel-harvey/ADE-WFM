@@ -11,18 +11,22 @@ using ADE_WFM.Services.TenantService;
 using ADE_WFM.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ADE_WFM.Services.JwtService;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1️⃣ Core services
+// Core services
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 
-// 2️⃣ Database
+// Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 3️⃣ Identity
+// Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -35,7 +39,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// 4️⃣ App services
+// App services
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
@@ -45,13 +49,37 @@ builder.Services.AddScoped<ISubTaskService, SubTaskService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<TenantDbContextFactory>();
-builder.Services.AddScoped<TenantContext>();
+builder.Services.AddScoped<TenantContext>(); 
+builder.Services.AddScoped<IJwtService, JwtService>();
 
-// 5️⃣ Swagger
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
+    };
+});
+
+
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 6️⃣ CORS
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -62,7 +90,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 7️⃣ Swagger dev
+// Swagger dev
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -73,7 +101,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// 8️⃣ Database setup & seed
+// Database setup & seed
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -113,7 +141,7 @@ using (var scope = app.Services.CreateScope())
     await DbSeeder.SeedAsync(db, logger);
 }
 
-// 9️⃣ Middleware
+// Middleware
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseMiddleware<TenantMiddleware>();
