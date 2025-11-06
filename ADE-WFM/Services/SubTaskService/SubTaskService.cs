@@ -37,7 +37,7 @@ namespace ADE_WFM.Services.SubTaskService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
+                return ServiceResult<SubTaskResponseDto>.Failure("No information provided.");
 
             if (string.IsNullOrWhiteSpace(dto.Description))
                 return ServiceResult<SubTaskResponseDto>.Failure("Description cannot be empty.");
@@ -101,7 +101,7 @@ namespace ADE_WFM.Services.SubTaskService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<List<SubTaskResponseDto>>.Failure("Input data is null.");
+                return ServiceResult<List<SubTaskResponseDto>>.Failure("No information provided.");
 
             if (dto.TodoId <= 0)
                 return ServiceResult<List<SubTaskResponseDto>>.Failure("Invalid Todo ID.");
@@ -154,7 +154,7 @@ namespace ADE_WFM.Services.SubTaskService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
+                return ServiceResult<SubTaskResponseDto>.Failure("No information provided.");
 
             if (dto.TodoId <= 0)
                 return ServiceResult<SubTaskResponseDto>.Failure("Invalid Todo ID.");
@@ -226,7 +226,7 @@ namespace ADE_WFM.Services.SubTaskService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
+                return ServiceResult<SubTaskResponseDto>.Failure("No information provided.");
 
             if (dto.TodoId <= 0)
                 return ServiceResult<SubTaskResponseDto>.Failure("Invalid Todo ID.");
@@ -293,7 +293,7 @@ namespace ADE_WFM.Services.SubTaskService
         {
             // General validation
             if (dto == null)
-                return ServiceResult<SubTaskResponseDto>.Failure("Input data is null.");
+                return ServiceResult<SubTaskResponseDto>.Failure("No information provided.");
 
             if (dto.TodoId <= 0)
                 return ServiceResult<SubTaskResponseDto>.Failure("Invalid Todo ID.");
