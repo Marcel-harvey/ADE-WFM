@@ -21,7 +21,8 @@ namespace ADE_WFM.Services.JwtService
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+                new Claim(JwtRegisteredClaimNames.Name, user.UserName ?? ""),
+                new Claim("user_name", user.UserName ?? ""),
                 new Claim("tenant_id", tenant.Id.ToString()),
                 new Claim(ClaimTypes.Role, role)
             };
