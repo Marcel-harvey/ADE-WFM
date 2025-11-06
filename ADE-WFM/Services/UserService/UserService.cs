@@ -1,6 +1,9 @@
-﻿using ADE_WFM.Models;
+﻿using ADE_WFM.Data;
+using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs;
+using ADE_WFM.Models.DTOs.TodoDtos;
 using ADE_WFM.Models.DTOs.UserDtos;
+using ADE_WFM.Services.TenantService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -10,48 +13,56 @@ namespace ADE_WFM.Services.UserService
 {
     public class UserService : IUserService
     {
+        private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<UserService> _logger;
+        private readonly TenantContext _tenantContext;
 
         public UserService(
+            ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            ILogger<UserService> logger)
+            ILogger<UserService> logger,
+            TenantContext tenantContext)
         {
+            _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
+            _tenantContext = tenantContext;
         }
 
         // CREATE:
-        public async Task<ServiceResult<UserResponseDto>> AddUser(CreateUserDto dto)
+        public async Task<ServiceResult<UserResponseDto>> RegisterNewUser(CreateUserDto dto)
         {
+            // General validation
+            if (dto == null)
+                return ServiceResult<UserResponseDto>.Failure("CreateUserDto cannot be null.");
+
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return ServiceResult<UserResponseDto>.Failure("Email is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.Password))
+                return ServiceResult<UserResponseDto>.Failure("Password is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.TenantName))
+                return ServiceResult<UserResponseDto>.Failure("TenantName is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.UserName))
+            {
+                dto.UserName = dto.Email;
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
             try
             {
-                // Check if email is provided, and set username to email if not provided
-                if (string.IsNullOrWhiteSpace(dto.Email))
-                {
-                    return ServiceResult<UserResponseDto>.Failure("Email is required.");
-                }
-
-                if (string.IsNullOrWhiteSpace(dto.UserName))
-                {
-                    dto.UserName = dto.Email;
-                }
-
-                if (string.IsNullOrWhiteSpace(dto.Password))
-                {
-                    return ServiceResult<UserResponseDto>.Failure("Password is required.");
-                }
-
                 // Check if user exists with the same email
-                var existing = await _userManager
+                var existingUser = await _userManager
                     .FindByEmailAsync(dto.Email);
-                if (existing != null)
-                {
+                if (existingUser != null)
                     return ServiceResult<UserResponseDto>.Failure("A user with that email already exists.");
-                }
 
                 var user = new ApplicationUser
                 {
@@ -63,13 +74,30 @@ namespace ADE_WFM.Services.UserService
                 // Optional mapping for extra properties
                 var userType = user.GetType();
                 if (!string.IsNullOrEmpty(dto.FirstName) && userType.GetProperty("FirstName") != null)
-                {
                     userType.GetProperty("FirstName")!.SetValue(user, dto.FirstName);
-                }
 
                 if (!string.IsNullOrEmpty(dto.LastName) && userType.GetProperty("LastName") != null)
-                {
                     userType.GetProperty("LastName")!.SetValue(user, dto.LastName);
+
+                var existingTenant = await _context.Tenants
+                    .FirstOrDefaultAsync(t => t.Name == dto.TenantName);
+                if (existingTenant != null)
+                {
+                    user.TenantId = existingTenant.Id;
+                }
+                else
+                {
+                    var tenant = new Tenant
+                    {
+                        Name = dto.TenantName,
+                        Domain = dto.TenantDomain,
+                        ConnectionString = dto.TenantConnectionString
+                    };
+
+                    await _context.Tenants.AddAsync(tenant);
+                    await _context.SaveChangesAsync();
+
+                    user.TenantId = tenant.Id;
                 }
 
                 // --- Create user ---
@@ -83,8 +111,11 @@ namespace ADE_WFM.Services.UserService
                     return ServiceResult<UserResponseDto>.Failure("User creation failed.", errors);
                 }
 
-                _logger.LogInformation("User created successfully with ID {UserId}", user.Id);
+                await _userManager.AddToRoleAsync(user, "Admin");
 
+                _logger.LogInformation("User created successfully with ID {UserId} with role 'Admin'", user.Id);
+
+                await transaction.CommitAsync();
                 return ServiceResult<UserResponseDto>.Success(
                     new UserResponseDto
                     {
@@ -95,8 +126,19 @@ namespace ADE_WFM.Services.UserService
                     "User created successfully."
                 );
             }
+            catch (DbUpdateException ex)
+            {
+                await transaction.RollbackAsync();
+
+                _logger.LogError(ex, "Unexpected error occurred while adding user {Email} to database", dto.Email);
+                return ServiceResult<UserResponseDto>.Failure(
+                    "An unexpected error occurred while creating the user.",
+                    new[] { ex.Message });
+            }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
+
                 _logger.LogError(ex, "Unexpected error occurred while creating user {Email}", dto.Email);
                 return ServiceResult<UserResponseDto>.Failure(
                     "An unexpected error occurred while creating the user.",

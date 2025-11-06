@@ -19,12 +19,16 @@ namespace ADE_WFM.Controllers
 
         // CREATE:
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
+        public async Task<IActionResult> RegisterUser([FromBody] CreateUserDto dto)
         {
-            var result = await _userService.AddUser(dto);
+            var result = await _userService.RegisterNewUser(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
         }
+
+
+        // Register new user
+
 
 
         // GET:

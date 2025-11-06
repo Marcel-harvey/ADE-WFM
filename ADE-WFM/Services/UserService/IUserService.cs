@@ -6,7 +6,7 @@ namespace ADE_WFM.Services.UserService
     public interface IUserService
     {
         // CREATE service
-        Task<ServiceResult<UserResponseDto>> AddUser(CreateUserDto dto);
+        Task<ServiceResult<UserResponseDto>> RegisterNewUser(CreateUserDto dto);
 
         // GET service
         Task<ServiceResult<List<UserResponseDto>>> GetAllUsers();
