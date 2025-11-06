@@ -144,9 +144,9 @@ using (var scope = app.Services.CreateScope())
 // Middleware
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseMiddleware<TenantMiddleware>();
 app.UseCors("AllowAll");
 app.UseAuthentication();
+app.UseMiddleware<TenantMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 
