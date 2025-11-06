@@ -63,12 +63,10 @@ namespace ADE_WFM.Controllers
 
 
         // UPDATE API's
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateName(int id, [FromBody] UpdateWorkFlowNameDto dto)
+        [HttpPut("{workFlowId:int}")]
+        public async Task<IActionResult> UpdateName([FromBody] UpdateWorkFlowNameDto dto, int? workFlowId = null)
         {
-            if (id != dto.WorkFlowId)
-                return BadRequest("Workflow ID in URL does not match body.");
-
+            dto.WorkFlowId = workFlowId ?? dto.WorkFlowId;
             var result = await _workFlowService.UpdateWorkFlowName(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -77,10 +75,10 @@ namespace ADE_WFM.Controllers
 
         // DELETE API's
         // Delete a workflow via id
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{workFlowId:int}")]
+        public async Task<IActionResult> Delete(int workFlowId)
         {
-            var dto = new GetWorkFlowInfoDto { WorkFlowId = id };
+            var dto = new GetWorkFlowInfoDto { WorkFlowId = workFlowId };
             var result = await _workFlowService.DeleteWorkFlow(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -88,12 +86,12 @@ namespace ADE_WFM.Controllers
 
 
         // Remove a user from a workflow
-        [HttpDelete("{id:int}/users/{userId}")]
-        public async Task<IActionResult> RemoveUser(int id, string userId)
+        [HttpDelete("{workFlowId:int}/users/{userId}")]
+        public async Task<IActionResult> RemoveUser(int workFlowId, string userId)
         {
             var dto = new RemoveUserFromWorkFlowDto
             {
-                WorkFlowId = id,
+                WorkFlowId = workFlowId,
                 UserId = userId
             };
             var result = await _workFlowService.RemoveUserFromWorkFlow(dto);
