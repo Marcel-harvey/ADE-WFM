@@ -33,5 +33,6 @@ namespace ADE_WFM.Models
         public ICollection<TaskPlanning>? Tasks { get; set; }
         public ICollection<SubTask>? SubTasks { get; set; }
         public ICollection<StickyNote>? StickyNotes { get; set; }
+        public ICollection<TenantInvite>? TenantInvites { get; set;}
     }
 }
