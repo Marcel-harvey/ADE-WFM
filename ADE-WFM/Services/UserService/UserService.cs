@@ -163,12 +163,14 @@ namespace ADE_WFM.Services.UserService
             try
             {
                 // Find user by email
-                var user = await _userManager.FindByEmailAsync(dto.Email);
+                var user = await _userManager
+                    .FindByEmailAsync(dto.Email);
                 if (user == null)
                     return ServiceResult<LoginResponseDto>.Failure("Invalid credentials.");
 
                 // Verify password
-                var isPasswordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
+                var isPasswordValid = await _userManager
+                    .CheckPasswordAsync(user, dto.Password);
                 if (!isPasswordValid)
                     return ServiceResult<LoginResponseDto>.Failure("Invalid credentials.");
 
@@ -209,7 +211,6 @@ namespace ADE_WFM.Services.UserService
         }
 
 
-
         // GET ALL:
         public async Task<ServiceResult<List<UserResponseDto>>> GetAllUsers()
         {
@@ -242,6 +243,80 @@ namespace ADE_WFM.Services.UserService
 
                 return ServiceResult<List<UserResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving users.",
+                    new[] { ex.Message });
+            }
+        }
+
+
+        // UPDATE:
+        // Change user password
+        public async Task<ServiceResult<LoginResponseDto>> ChangePassword(ChangePasswordDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<LoginResponseDto>.Failure("No information provided");
+
+            if (dto.OldPassword == dto.NewPassword)
+                return ServiceResult<LoginResponseDto>.Failure("Old and new password can not be identical");
+
+            try
+            {
+                var user = await _userManager
+                    .FindByIdAsync(_tenantContext.UserId);
+                if (user == null)
+                    return ServiceResult<LoginResponseDto>.Failure("User does not exist");
+
+                // Verify password
+                var isPasswordValid = await _userManager
+                    .CheckPasswordAsync(user, dto.OldPassword);
+                if (!isPasswordValid)
+                    return ServiceResult<LoginResponseDto>.Failure("Old password is incorrect.");
+
+                var passwordResult = await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
+                if (!passwordResult.Succeeded)
+                {
+                    _logger.LogWarning("Could not update password for User {UserId} - {UserName}", _tenantContext.UserId, _tenantContext.UserName);
+                    return ServiceResult<LoginResponseDto>.Failure("An error occured when trying to update your password");
+                }
+
+                // Get Tenant info
+                var tenant = await _context.Tenants.FindAsync(user.TenantId);
+                if (tenant == null)
+                    return ServiceResult<LoginResponseDto>.Failure("Tenant not found for user.");
+
+                // Get roles
+                var roles = await _userManager.GetRolesAsync(user);
+                var userRole = roles.FirstOrDefault() ?? "User";
+
+                // Generate JWT
+                var token = _jwtService.GenerateToken(user, tenant, userRole);
+
+                _logger.LogInformation("User password updated successfully for user {UserId} - {UserName}", _tenantContext.UserId, _tenantContext.UserName);
+
+                return ServiceResult<LoginResponseDto>.Success(
+                    new LoginResponseDto
+                    {
+                        Token = token,
+                        Email = user.Email ?? string.Empty,
+                        UserId = user.Id,
+                        TenantId = tenant.Id,
+                        TenantName = tenant.Name,
+                        Role = userRole
+                    },
+                    "Login successful."
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "An error occured when trying to update your password");
+                return ServiceResult<LoginResponseDto>.Failure(
+                    "An unexpected error occurred while creating the user.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured when trying to update your password");
+                return ServiceResult<LoginResponseDto>.Failure(
+                    "An unexpected error occurred while creating the user.",
                     new[] { ex.Message });
             }
         }

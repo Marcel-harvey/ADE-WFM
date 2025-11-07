@@ -13,6 +13,7 @@ namespace ADE_WFM.Services.UserService
         Task<ServiceResult<LoginResponseDto>> LoginUser(LoginUserDto loginUser);
 
         // UPDATE service (To be added later)
+        Task<ServiceResult<LoginResponseDto>> ChangePassword(ChangePasswordDto dto);
 
         // DELETE service
         Task<ServiceResult<UserResponseDto>> DeleteUser(DeleteUserDto dto);

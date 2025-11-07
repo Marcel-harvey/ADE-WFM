@@ -44,7 +44,18 @@ namespace ADE_WFM.Controllers
         {
             var result = await _userService.LoginUser(dto);
 
-            return !result.Succeeded ? BadRequest(result) : Ok(result);
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
+
+        // UPDATE:
+        // Update user password
+        [HttpPut("password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            var result = await _userService.ChangePassword(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
 
