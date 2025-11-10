@@ -9,11 +9,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NuGet.Common;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ADE_WFM.Services.UserService
 {
     public class UserService : IUserService
     {
+        private readonly IConfiguration _config;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -22,6 +25,7 @@ namespace ADE_WFM.Services.UserService
         private readonly IJwtService _jwtService;
 
         public UserService(
+            IConfiguration config,
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
@@ -29,6 +33,7 @@ namespace ADE_WFM.Services.UserService
             TenantContext tenantContext,
             IJwtService jwtService)
         {
+            _config = config;
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
@@ -38,6 +43,7 @@ namespace ADE_WFM.Services.UserService
         }
 
         // CREATE:
+        // Register a new user
         public async Task<ServiceResult<UserResponseDto>> RegisterNewUser(CreateUserDto dto)
         {
             // General validation
@@ -151,6 +157,7 @@ namespace ADE_WFM.Services.UserService
         }
 
 
+        // Login a current user
         public async Task<ServiceResult<LoginResponseDto>> LoginUser(LoginUserDto dto)
         {
             // Basic validation
@@ -208,6 +215,71 @@ namespace ADE_WFM.Services.UserService
                     new[] { ex.Message }
                 );
             }
+        }
+
+
+        // Create an invite link - invite user to Tenant work flow
+        public async Task<ServiceResult<InviteTokenResponseDto>> CreateTenantInvite(InviteTokenDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<InviteTokenResponseDto>.Failure("No information provided");
+
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return ServiceResult<InviteTokenResponseDto>.Failure("Email field required");
+
+            if (string.IsNullOrWhiteSpace(dto.Role))
+                return ServiceResult<InviteTokenResponseDto>.Failure("Role field required");
+
+            try
+            {
+                var inviteToken = new TenantInvite
+                {
+                    Email = dto.Email,
+                    Role = dto.Role,
+                    ExpiryDate = DateTime.UtcNow.AddDays(1),
+                    IsUsed = false,
+                    TenantId = _tenantContext.TenantId
+                };
+
+                _context.TenantInvites.Add(inviteToken);
+                await _context.SaveChangesAsync();
+
+
+                _logger.LogInformation("Token {Token} generated for user {UserEmail}", inviteToken.Id, dto.Email);
+
+                return ServiceResult<InviteTokenResponseDto>.Success(
+                    new InviteTokenResponseDto
+                    {
+                        UserId = _tenantContext.UserId,
+                        UserName = _tenantContext.UserName,
+                        InviteUserEmail = dto.Email,
+                        InviteUrl = $"{_config["App:FrontendUrl"]}/invite?token={inviteToken.Id}"
+                    }
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Unexpected error occured when creating token");
+                return ServiceResult<InviteTokenResponseDto>.Failure(
+                    "Unexpected error occured when creating token",
+                    new[] { ex.Message });
+            }
+            // Thrown by JwtService
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Unexpected error occured when creating token");
+                return ServiceResult<InviteTokenResponseDto>.Failure(
+                    "Unexpected error occured when creating token",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error occured when creating token");
+                return ServiceResult<InviteTokenResponseDto>.Failure(
+                    "Unexpected error occured when creating token",
+                    new[] { ex.Message });
+            }
+
         }
 
 
