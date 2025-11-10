@@ -48,16 +48,6 @@ namespace ADE_WFM.Controllers
         }
 
 
-        // Create an invite link - invite user to Tenant work flow
-        [HttpGet("Invite")]
-        public async Task<IActionResult> CreateInviteLink([FromQuery] InviteTokenDto dto)
-        {
-            var result = await _userService.CreateTenantInvite(dto);
-
-            return result.Succeeded ? Ok(result) : BadRequest(result);
-        }
-
-
         // UPDATE:
         // Update user password
         [HttpPut("password")]

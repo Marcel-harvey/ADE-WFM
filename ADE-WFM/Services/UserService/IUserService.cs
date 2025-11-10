@@ -7,8 +7,6 @@ namespace ADE_WFM.Services.UserService
     {
         // CREATE service
         Task<ServiceResult<UserResponseDto>> RegisterNewUser(CreateUserDto dto);
-        Task<ServiceResult<InviteTokenResponseDto>> CreateTenantInvite(InviteTokenDto dto);
-        Task<ServiceResult<RegisterUserResponseDto>> AcceptTenantInvite(RegisterUserDto dto);
 
         // GET service
         Task<ServiceResult<List<UserResponseDto>>> GetAllUsers();

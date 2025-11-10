@@ -48,8 +48,10 @@ namespace ADE_WFM.Services.UserService
         {
             if (dto == null)
                 return ServiceResult<UserResponseDto>.Failure("CreateUserDto cannot be null.");
+
             if (string.IsNullOrWhiteSpace(dto.Email))
                 return ServiceResult<UserResponseDto>.Failure("Email is required.");
+
             if (string.IsNullOrWhiteSpace(dto.Password))
                 return ServiceResult<UserResponseDto>.Failure("Password is required.");
 
@@ -92,7 +94,6 @@ namespace ADE_WFM.Services.UserService
                     user.TenantId = dto.TenantId;
                 }
 
-                // Optional mapping (if ApplicationUser has these)
                 var userType = user.GetType();
                 if (!string.IsNullOrEmpty(dto.FirstName) && userType.GetProperty("FirstName") != null) 
                     userType.GetProperty("FirstName")!.SetValue(user, dto.FirstName); 
@@ -109,7 +110,7 @@ namespace ADE_WFM.Services.UserService
                     return ServiceResult<UserResponseDto>.Failure("User creation failed.", errors);
                 }
 
-                // Assign roles AFTER creation
+                // Assign roles 
                 if (tenantToken != null)
                 {
                     await _userManager.AddToRoleAsync(user, tenantToken.Role);
@@ -119,7 +120,6 @@ namespace ADE_WFM.Services.UserService
                     await _userManager.AddToRoleAsync(user, dto.Role);
                 }
 
-                // Mark invite as used
                 if (tenantToken != null)
                 {
                     tenantToken.IsUsed = true;
@@ -209,131 +209,6 @@ namespace ADE_WFM.Services.UserService
                     "An unexpected error occurred while logging in.",
                     new[] { ex.Message }
                 );
-            }
-        }
-
-
-        // Create an invite link - invite user to Tenant work flow
-        public async Task<ServiceResult<InviteTokenResponseDto>> CreateTenantInvite(InviteTokenDto dto)
-        {
-            if (dto == null)
-                return ServiceResult<InviteTokenResponseDto>.Failure("No information provided");
-
-            if (string.IsNullOrWhiteSpace(dto.Email))
-                return ServiceResult<InviteTokenResponseDto>.Failure("Email field required");
-
-            if (string.IsNullOrWhiteSpace(dto.Role))
-                return ServiceResult<InviteTokenResponseDto>.Failure("Role field required");
-
-            try
-            {
-                var inviteToken = new TenantInvite
-                {
-                    Email = dto.Email,
-                    Role = dto.Role,
-                    ExpiryDate = DateTime.UtcNow.AddDays(1),
-                    IsUsed = false,
-                    TenantId = _tenantContext.TenantId
-                };
-
-                _context.TenantInvites.Add(inviteToken);
-                await _context.SaveChangesAsync();
-
-
-                _logger.LogInformation("Token {Token} generated for user {UserEmail}", inviteToken.Id, dto.Email);
-
-                return ServiceResult<InviteTokenResponseDto>.Success(
-                    new InviteTokenResponseDto
-                    {
-                        UserId = _tenantContext.UserId,
-                        UserName = _tenantContext.UserName,
-                        InviteUserEmail = dto.Email,
-                        InviteUrl = $"{_config["App:FrontendUrl"]}/invite?token={inviteToken.Id}"
-                    }
-                );
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Unexpected error occured when creating token");
-                return ServiceResult<InviteTokenResponseDto>.Failure(
-                    "Unexpected error occured when creating token",
-                    new[] { ex.Message });
-            }
-            // Thrown by JwtService
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogError(ex, "Unexpected error occured when creating token");
-                return ServiceResult<InviteTokenResponseDto>.Failure(
-                    "Unexpected error occured when creating token",
-                    new[] { ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error occured when creating token");
-                return ServiceResult<InviteTokenResponseDto>.Failure(
-                    "Unexpected error occured when creating token",
-                    new[] { ex.Message });
-            }
-
-        }
-
-
-        // Accept tenant invite - when user clicks link
-        public async Task<ServiceResult<RegisterUserResponseDto>> AcceptTenantInvite(RegisterUserDto dto)
-        {
-            if (dto == null)
-                return ServiceResult<RegisterUserResponseDto>.Failure("No information provided");
-
-            if (string.IsNullOrWhiteSpace(dto.TenantId))
-                return ServiceResult<RegisterUserResponseDto>.Failure("No tenant id supplied");
-
-            try
-            {
-                var tenantToken = await _context.TenantInvites
-                    .FindAsync(dto.TenantId);
-
-                if (tenantToken == null)
-                {
-                    _logger.LogInformation("No tenant invite found for ID {TenantId}", dto.TenantId);
-                    return ServiceResult<RegisterUserResponseDto>.Failure("Invite does not exist");
-                }
-
-                if (DateTime.UtcNow <= tenantToken.ExpiryDate)
-                {
-                    _logger.LogInformation("Token expired");
-                    return ServiceResult<RegisterUserResponseDto>.Failure("Token expired");
-                }
-
-                if (tenantToken.IsUsed)
-                {
-                    _logger.LogInformation("Token was already used");
-                    return ServiceResult<RegisterUserResponseDto>.Failure("Token was already used");
-                }
-
-                return ServiceResult<RegisterUserResponseDto>.Success(
-                    new RegisterUserResponseDto
-                    {
-                        TenantId = dto.TenantId,
-                        TenantEmail = tenantToken.Email,
-                        Role = tenantToken.Role
-                    },
-                    "Invite accepted"
-                );
-
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "An error occured while trying to get tenant invite");
-                return ServiceResult<RegisterUserResponseDto>.Failure(
-                    "An unexpected error occured while trying to get tenant invite.",
-                    new[] { ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occured while trying to get tenant invite");
-                return ServiceResult<RegisterUserResponseDto>.Failure(
-                    "An unexpected error occurred while trying to get tenant invite.",
-                    new[] { ex.Message });
             }
         }
 
