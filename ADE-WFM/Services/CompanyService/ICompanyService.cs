@@ -1,0 +1,18 @@
+﻿using ADE_WFM.Models.DTOs;
+using ADE_WFM.Models.DTOs.CompanyDtos;
+
+namespace ADE_WFM.Services.CompanyService
+{
+    public interface ICompanyService
+    {
+        // CREATE
+        Task<ServiceResult<InviteToTenantResponseDto>> CreateTenantInvite(InviteToTenantDto dto);
+
+        // GET
+        Task<ServiceResult<AcceptTenantInviteResponseDto>> AcceptTenantInvite(TenantInfoDto dto);
+
+        // UPDATE
+
+        // DELETE
+    }
+}
