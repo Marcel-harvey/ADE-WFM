@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ADE_WFM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251019193317_AddedManyToManyRelationshipUserAndProject")]
-    partial class AddedManyToManyRelationshipUserAndProject
+    [Migration("20251110081735_InitRecreate")]
+    partial class InitRecreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,6 +70,9 @@ namespace ADE_WFM.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
@@ -85,6 +88,8 @@ namespace ADE_WFM.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -110,6 +115,9 @@ namespace ADE_WFM.Migrations
                     b.Property<int?>("ProjectId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -120,6 +128,8 @@ namespace ADE_WFM.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("UserId");
 
@@ -136,6 +146,9 @@ namespace ADE_WFM.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
+
                     b.Property<DateOnly>("DateCreated")
                         .HasColumnType("date");
 
@@ -149,10 +162,17 @@ namespace ADE_WFM.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("WorkFlowId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("WorkFlowId");
 
@@ -186,11 +206,16 @@ namespace ADE_WFM.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("UserId");
 
@@ -205,9 +230,6 @@ namespace ADE_WFM.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
@@ -215,16 +237,24 @@ namespace ADE_WFM.Migrations
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("TodoId")
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("TodoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("WorkFlowId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("TodoId");
 
-                    b.ToTable("SubTask");
+                    b.HasIndex("WorkFlowId");
+
+                    b.ToTable("SubTasks");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.TaskPlanning", b =>
@@ -235,14 +265,81 @@ namespace ADE_WFM.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ProjectId")
+                    b.Property<int>("ProjectId")
                         .HasColumnType("integer");
+
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
 
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId");
+
                     b.ToTable("TaskPlanning");
+                });
+
+            modelBuilder.Entity("ADE_WFM.Models.Tenant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConnectionString")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Domain")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tenants");
+                });
+
+            modelBuilder.Entity("ADE_WFM.Models.TenantInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("TenantInvites");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.Todo", b =>
@@ -266,7 +363,10 @@ namespace ADE_WFM.Migrations
                     b.Property<bool>("IsComplete")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("ProjectId")
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TenantId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
@@ -281,6 +381,8 @@ namespace ADE_WFM.Migrations
 
                     b.HasIndex("ProjectId");
 
+                    b.HasIndex("TenantId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Todos");
@@ -294,11 +396,16 @@ namespace ADE_WFM.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("WorkFlowName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("WorkFlows");
                 });
@@ -320,21 +427,6 @@ namespace ADE_WFM.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("WorkFlowUsers");
-                });
-
-            modelBuilder.Entity("ApplicationUserProject", b =>
-                {
-                    b.Property<int>("ProjectsId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("text");
-
-                    b.HasKey("ProjectsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("ApplicationUserProject");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -469,11 +561,27 @@ namespace ADE_WFM.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ADE_WFM.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("Users")
+                        .HasForeignKey("TenantId");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("ADE_WFM.Models.Comment", b =>
                 {
                     b.HasOne("ADE_WFM.Models.Project", "Project")
                         .WithMany("Comment")
-                        .HasForeignKey("ProjectId");
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("Comments")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ADE_WFM.Models.ApplicationUser", "User")
                         .WithMany("Comment")
@@ -489,6 +597,8 @@ namespace ADE_WFM.Migrations
 
                     b.Navigation("Project");
 
+                    b.Navigation("Tenant");
+
                     b.Navigation("User");
 
                     b.Navigation("WorkFlow");
@@ -496,11 +606,23 @@ namespace ADE_WFM.Migrations
 
             modelBuilder.Entity("ADE_WFM.Models.Project", b =>
                 {
+                    b.HasOne("ADE_WFM.Models.ApplicationUser", null)
+                        .WithMany("Projects")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("Projects")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ADE_WFM.Models.WorkFlow", "WorkFlows")
                         .WithMany("Project")
                         .HasForeignKey("WorkFlowId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Tenant");
 
                     b.Navigation("WorkFlows");
                 });
@@ -526,39 +648,79 @@ namespace ADE_WFM.Migrations
 
             modelBuilder.Entity("ADE_WFM.Models.StickyNote", b =>
                 {
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("StickyNotes")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ADE_WFM.Models.ApplicationUser", "User")
                         .WithMany("StickyNote")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Tenant");
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.SubTask", b =>
                 {
-                    b.HasOne("ADE_WFM.Models.WorkFlow", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("SubTasks")
+                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ADE_WFM.Models.Todo", "Todo")
                         .WithMany("SubTasks")
                         .HasForeignKey("TodoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.Navigation("Company");
+                    b.HasOne("ADE_WFM.Models.WorkFlow", "WorkFlow")
+                        .WithMany()
+                        .HasForeignKey("WorkFlowId");
+
+                    b.Navigation("Tenant");
 
                     b.Navigation("Todo");
+
+                    b.Navigation("WorkFlow");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.TaskPlanning", b =>
                 {
-                    b.HasOne("ADE_WFM.Models.Project", null)
+                    b.HasOne("ADE_WFM.Models.Project", "Project")
                         .WithMany("Task")
-                        .HasForeignKey("ProjectId");
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ADE_WFM.Models.Tenant", null)
+                        .WithMany("Tasks")
+                        .HasForeignKey("TenantId");
+
+                    b.HasOne("ADE_WFM.Models.ApplicationUser", "User")
+                        .WithMany("TaskPlanning")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ADE_WFM.Models.TenantInvite", b =>
+                {
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("TenantInvites")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.Todo", b =>
@@ -566,7 +728,12 @@ namespace ADE_WFM.Migrations
                     b.HasOne("ADE_WFM.Models.Project", "Project")
                         .WithMany("PorjectTodos")
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("Todos")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ADE_WFM.Models.ApplicationUser", "User")
@@ -577,7 +744,20 @@ namespace ADE_WFM.Migrations
 
                     b.Navigation("Project");
 
+                    b.Navigation("Tenant");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ADE_WFM.Models.WorkFlow", b =>
+                {
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("WorkFlows")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.WorkFlowUser", b =>
@@ -597,21 +777,6 @@ namespace ADE_WFM.Migrations
                     b.Navigation("User");
 
                     b.Navigation("WorkFlow");
-                });
-
-            modelBuilder.Entity("ApplicationUserProject", b =>
-                {
-                    b.HasOne("ADE_WFM.Models.Project", null)
-                        .WithMany()
-                        .HasForeignKey("ProjectsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ADE_WFM.Models.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -671,7 +836,11 @@ namespace ADE_WFM.Migrations
 
                     b.Navigation("ProjectUsers");
 
+                    b.Navigation("Projects");
+
                     b.Navigation("StickyNote");
+
+                    b.Navigation("TaskPlanning");
 
                     b.Navigation("Todo");
 
@@ -687,6 +856,27 @@ namespace ADE_WFM.Migrations
                     b.Navigation("ProjectUsers");
 
                     b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("ADE_WFM.Models.Tenant", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Projects");
+
+                    b.Navigation("StickyNotes");
+
+                    b.Navigation("SubTasks");
+
+                    b.Navigation("Tasks");
+
+                    b.Navigation("TenantInvites");
+
+                    b.Navigation("Todos");
+
+                    b.Navigation("Users");
+
+                    b.Navigation("WorkFlows");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.Todo", b =>
