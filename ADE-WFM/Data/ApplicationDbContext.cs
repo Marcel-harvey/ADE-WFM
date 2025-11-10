@@ -30,6 +30,7 @@ namespace ADE_WFM.Data
         public DbSet<ProjectUser> ProjectUsers { get; set; }
         public DbSet<SubTask> SubTasks { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<TenantInvite> TenantInvites { get; set; }
 
         // ==============================================
         //                  OnModelCreating
