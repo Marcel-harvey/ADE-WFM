@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ADE_WFM.Services.CompanyService
 {
-    public class CompanyService
+    public class CompanyService : ICompanyService
     {
         private readonly IConfiguration _config;
         private readonly ApplicationDbContext _context;
@@ -19,6 +19,7 @@ namespace ADE_WFM.Services.CompanyService
         private readonly ILogger<CompanyService> _logger;
         private readonly TenantContext _tenantContext;
         private readonly IJwtService _jwtService;
+
         public CompanyService(
             IConfiguration config,
             ApplicationDbContext context,
@@ -38,6 +39,67 @@ namespace ADE_WFM.Services.CompanyService
         }
 
         // CREATE services
+        // Create a new tenant
+        public async Task<ServiceResult<TenantResponseDto>> CreateTenant(CreateTenantDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<TenantResponseDto>.Failure("No information provided");
+
+            if (string.IsNullOrWhiteSpace(dto.CompanyName))
+                return ServiceResult<TenantResponseDto>.Failure("Company name is required");
+
+            try
+            {
+                var checkTenant = await _context.Tenants
+                    .FindAsync(dto.CompanyName);
+
+                if (checkTenant == null)
+                    return ServiceResult<TenantResponseDto>.Failure("Company with this name already exists");
+
+                var tenant = new Tenant
+                {
+                    Name = dto.CompanyName
+                };
+
+                if (!string.IsNullOrWhiteSpace(dto.Domain))
+                    tenant.Domain = dto.Domain;
+
+                if (!string.IsNullOrWhiteSpace(dto.ConnetctionString))
+                    tenant.ConnectionString = dto.ConnetctionString;
+
+                _context.Tenants.Add(tenant);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Tenant {TenantName} created successfully {TenantId}", tenant.Name, tenant.Id);
+
+                return ServiceResult<TenantResponseDto>.Success(
+                    new TenantResponseDto
+                    {
+                        TenantId = tenant.Id,
+                        CompanyName = tenant.Name,
+                        CreatedUser = _tenantContext.UserName
+                    },
+                    "Company profile created successfully"
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to add tenant ");
+                return ServiceResult<TenantResponseDto>.Failure(
+                    "An unexpected error occured while trying to add tenant.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to add tenant ");
+                return ServiceResult<TenantResponseDto>.Failure(
+                    "An unexpected error occurred while trying to add tenant.",
+                    new[] { ex.Message });
+            }
+        }
+
+
+        // Create a tenant invite token
         public async Task<ServiceResult<InviteToTenantResponseDto>> CreateTenantInvite(InviteToTenantDto dto)
         {
             if (dto == null)

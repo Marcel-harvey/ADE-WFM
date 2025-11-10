@@ -18,6 +18,16 @@ namespace ADE_WFM.Controllers
             _companyService = companyService;
         }
 
+        // CREATE
+        // Create a new tenant/company
+        [HttpPost]
+        public async Task<IActionResult> CreateNewTenant([FromBody] CreateTenantDto dto)
+        {
+            var result = await _companyService.CreateTenant(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
 
         // Create an invite link - invite user to Tenant work flow
         [HttpGet("Invite")]
@@ -27,5 +37,14 @@ namespace ADE_WFM.Controllers
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
         }
+
+
+        // GET
+
+
+        // UPDATE
+
+
+        // DELETE
     }
 }
