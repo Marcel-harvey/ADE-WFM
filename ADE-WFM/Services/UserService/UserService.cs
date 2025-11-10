@@ -46,31 +46,19 @@ namespace ADE_WFM.Services.UserService
         // Register a new user
         public async Task<ServiceResult<UserResponseDto>> RegisterNewUser(CreateUserDto dto)
         {
-            // General validation
             if (dto == null)
                 return ServiceResult<UserResponseDto>.Failure("CreateUserDto cannot be null.");
-
             if (string.IsNullOrWhiteSpace(dto.Email))
                 return ServiceResult<UserResponseDto>.Failure("Email is required.");
-
             if (string.IsNullOrWhiteSpace(dto.Password))
                 return ServiceResult<UserResponseDto>.Failure("Password is required.");
 
-            if (string.IsNullOrWhiteSpace(dto.TenantName))
-                return ServiceResult<UserResponseDto>.Failure("TenantName is required.");
-
             if (string.IsNullOrWhiteSpace(dto.UserName))
-            {
                 dto.UserName = dto.Email;
-            }
-
-            using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Check if user exists with the same email
-                var existingUser = await _userManager
-                    .FindByEmailAsync(dto.Email);
+                var existingUser = await _userManager.FindByEmailAsync(dto.Email);
                 if (existingUser != null)
                     return ServiceResult<UserResponseDto>.Failure("A user with that email already exists.");
 
@@ -81,56 +69,71 @@ namespace ADE_WFM.Services.UserService
                     EmailConfirmed = true
                 };
 
-                // Optional mapping for extra properties
-                var userType = user.GetType();
-                if (!string.IsNullOrEmpty(dto.FirstName) && userType.GetProperty("FirstName") != null)
-                    userType.GetProperty("FirstName")!.SetValue(user, dto.FirstName);
+                TenantInvite? tenantToken = null;
 
-                if (!string.IsNullOrEmpty(dto.LastName) && userType.GetProperty("LastName") != null)
-                    userType.GetProperty("LastName")!.SetValue(user, dto.LastName);
-
-                var existingTenant = await _context.Tenants
-                    .FirstOrDefaultAsync(t => t.Name == dto.TenantName);
-                if (existingTenant != null)
+                if (dto.TenantToken.HasValue && dto.TenantToken.Value != Guid.Empty)
                 {
-                    user.TenantId = existingTenant.Id;
+                    tenantToken = await _context.TenantInvites
+                        .FirstOrDefaultAsync(t => t.Id == dto.TenantToken.Value);
+
+                    if (tenantToken != null)
+                    {
+                        if (tenantToken.ExpiryDate < DateTime.UtcNow)
+                            return ServiceResult<UserResponseDto>.Failure("Invite token has expired.");
+
+                        if (tenantToken.IsUsed)
+                            return ServiceResult<UserResponseDto>.Failure("Invite token has already been used.");
+
+                        user.TenantId = tenantToken.TenantId;
+                    }
                 }
                 else
                 {
-                    var tenant = new Tenant
-                    {
-                        Name = dto.TenantName,
-                        Domain = dto.TenantDomain,
-                        ConnectionString = dto.TenantConnectionString
-                    };
-
-                    await _context.Tenants.AddAsync(tenant);
-                    await _context.SaveChangesAsync();
-
-                    user.TenantId = tenant.Id;
+                    user.TenantId = dto.TenantId;
                 }
 
-                // --- Create user ---
+                // Optional mapping (if ApplicationUser has these)
+                var userType = user.GetType();
+                if (!string.IsNullOrEmpty(dto.FirstName) && userType.GetProperty("FirstName") != null) 
+                    userType.GetProperty("FirstName")!.SetValue(user, dto.FirstName); 
+                
+                if (!string.IsNullOrEmpty(dto.LastName) && userType.GetProperty("LastName") != null) 
+                    userType.GetProperty("LastName")!.SetValue(user, dto.LastName);
+
+                // Create user
                 var createResult = await _userManager.CreateAsync(user, dto.Password);
                 if (!createResult.Succeeded)
                 {
                     var errors = createResult.Errors.Select(e => e.Description);
-                    _logger.LogWarning("Failed to create user {Email}: {Errors}",
-                        dto.Email, string.Join(", ", errors));
-
+                    _logger.LogWarning("Failed to create user {Email}: {Errors}", dto.Email, string.Join(", ", errors));
                     return ServiceResult<UserResponseDto>.Failure("User creation failed.", errors);
                 }
 
-                await _userManager.AddToRoleAsync(user, "Admin");
+                // Assign roles AFTER creation
+                if (tenantToken != null)
+                {
+                    await _userManager.AddToRoleAsync(user, tenantToken.Role);
+                }
+                else if (!string.IsNullOrEmpty(dto.Role))
+                {
+                    await _userManager.AddToRoleAsync(user, dto.Role);
+                }
 
-                _logger.LogInformation("User created successfully with ID {UserId} with role 'Admin'", user.Id);
+                // Mark invite as used
+                if (tenantToken != null)
+                {
+                    tenantToken.IsUsed = true;
+                    _context.TenantInvites.Update(tenantToken);
+                    await _context.SaveChangesAsync();
+                }
 
-                await transaction.CommitAsync();
+                _logger.LogInformation("User created successfully with ID {UserId}", user.Id);
+
                 return ServiceResult<UserResponseDto>.Success(
                     new UserResponseDto
                     {
                         UserName = dto.UserName,
-                        Email = dto.Email ?? dto.UserName,
+                        Email = dto.Email,
                         Id = user.Id
                     },
                     "User created successfully."
@@ -138,21 +141,13 @@ namespace ADE_WFM.Services.UserService
             }
             catch (DbUpdateException ex)
             {
-                await transaction.RollbackAsync();
-
-                _logger.LogError(ex, "Unexpected error occurred while adding user {Email} to database", dto.Email);
-                return ServiceResult<UserResponseDto>.Failure(
-                    "An unexpected error occurred while creating the user.",
-                    new[] { ex.Message });
+                _logger.LogError(ex, "Database error while creating user {Email}", dto.Email);
+                return ServiceResult<UserResponseDto>.Failure("Database error while creating user.", new[] { ex.Message });
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-
                 _logger.LogError(ex, "Unexpected error occurred while creating user {Email}", dto.Email);
-                return ServiceResult<UserResponseDto>.Failure(
-                    "An unexpected error occurred while creating the user.",
-                    new[] { ex.Message });
+                return ServiceResult<UserResponseDto>.Failure("Unexpected error occurred while creating user.", new[] { ex.Message });
             }
         }
 
@@ -280,6 +275,66 @@ namespace ADE_WFM.Services.UserService
                     new[] { ex.Message });
             }
 
+        }
+
+
+        // Accept tenant invite - when user clicks link
+        public async Task<ServiceResult<RegisterUserResponseDto>> AcceptTenantInvite(RegisterUserDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<RegisterUserResponseDto>.Failure("No information provided");
+
+            if (string.IsNullOrWhiteSpace(dto.TenantId))
+                return ServiceResult<RegisterUserResponseDto>.Failure("No tenant id supplied");
+
+            try
+            {
+                var tenantToken = await _context.TenantInvites
+                    .FindAsync(dto.TenantId);
+
+                if (tenantToken == null)
+                {
+                    _logger.LogInformation("No tenant invite found for ID {TenantId}", dto.TenantId);
+                    return ServiceResult<RegisterUserResponseDto>.Failure("Invite does not exist");
+                }
+
+                if (DateTime.UtcNow <= tenantToken.ExpiryDate)
+                {
+                    _logger.LogInformation("Token expired");
+                    return ServiceResult<RegisterUserResponseDto>.Failure("Token expired");
+                }
+
+                if (tenantToken.IsUsed)
+                {
+                    _logger.LogInformation("Token was already used");
+                    return ServiceResult<RegisterUserResponseDto>.Failure("Token was already used");
+                }
+
+                return ServiceResult<RegisterUserResponseDto>.Success(
+                    new RegisterUserResponseDto
+                    {
+                        TenantId = dto.TenantId,
+                        TenantEmail = tenantToken.Email,
+                        Role = tenantToken.Role
+                    },
+                    "Invite accepted"
+                );
+
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to get tenant invite");
+                return ServiceResult<RegisterUserResponseDto>.Failure(
+                    "An unexpected error occured while trying to get tenant invite.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to get tenant invite");
+                return ServiceResult<RegisterUserResponseDto>.Failure(
+                    "An unexpected error occurred while trying to get tenant invite.",
+                    new[] { ex.Message });
+            }
         }
 
 
