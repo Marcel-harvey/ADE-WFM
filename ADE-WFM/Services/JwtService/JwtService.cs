@@ -1,4 +1,5 @@
-﻿using ADE_WFM.Models;
+﻿using ADE_WFM.Data;
+using ADE_WFM.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,10 +11,14 @@ namespace ADE_WFM.Services.JwtService
     public class JwtService : IJwtService
     {
         private readonly IConfiguration _config;
+        private readonly ApplicationDbContext _context;
 
-        public JwtService(IConfiguration config)
+        public JwtService(
+            IConfiguration config,
+            ApplicationDbContext context)
         {
             _config = config;
+            _context = context;
         }
 
         public string GenerateToken(ApplicationUser user, Tenant tenant, string role)
@@ -39,6 +44,6 @@ namespace ADE_WFM.Services.JwtService
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+        }       
     }
 }

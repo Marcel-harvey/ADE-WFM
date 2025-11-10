@@ -1,12 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ADE_WFM.Models
 {
     public class TenantInvite
     {
-        public int Id { get; set; }
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string Email { get; set; } = string.Empty;
-        public string Token { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
         public DateTime ExpiryDate { get; set; }
         public bool IsUsed { get; set; } = false;
 
