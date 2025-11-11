@@ -43,8 +43,24 @@ namespace ADE_WFM.Controllers
 
 
         // UPDATE
+        // Update company infor
+        [HttpPut]
+        public async Task<IActionResult> UpdateCompanyInfo([FromBody] TenantInfoDto dto)
+        {
+            var result = await _companyService.UpdateTenantConnection(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
 
 
         // DELETE
+        // Remove a company
+        [HttpDelete]
+        public async Task<IActionResult> DeleteTenant([FromBody] TenantInfoDto dto)
+        {
+            var result = await _companyService.DeleteTenant(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
     }
 }

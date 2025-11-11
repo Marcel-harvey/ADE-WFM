@@ -16,5 +16,6 @@ namespace ADE_WFM.Services.CompanyService
         Task<ServiceResult<TenantResponseDto>> UpdateTenantConnection(TenantInfoDto dto);
 
         // DELETE
+        Task<ServiceResult<TenantResponseDto>> DeleteTenant(TenantInfoDto dto);
     }
 }

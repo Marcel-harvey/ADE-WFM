@@ -287,5 +287,49 @@ namespace ADE_WFM.Services.CompanyService
 
 
         // DELETE services
+        public async Task<ServiceResult<TenantResponseDto>> DeleteTenant(TenantInfoDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<TenantResponseDto>.Failure("No information provided");
+
+            if (dto.TenantId <= 0)
+                return ServiceResult<TenantResponseDto>.Failure("Tenant ID is required");
+
+            try
+            {
+                var tenant = await _context.Tenants
+                    .FindAsync(dto.TenantId);
+                if (tenant == null)
+                    return ServiceResult<TenantResponseDto>.Failure("No tenant found");
+
+                var response = new TenantResponseDto
+                {
+                    CompanyName = tenant.Name,
+                    UserName = _tenantContext.UserName,
+                    TenantId = dto.TenantId,
+                };
+
+                _context.Tenants.Remove(tenant);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Tenant removed succesfully");
+
+                return ServiceResult<TenantResponseDto>.Success(response, "Tenant removed succesfully");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to delete tenant");
+                return ServiceResult<TenantResponseDto>.Failure(
+                    "An unexpected error occured while trying to delete tenant.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to delete tenant");
+                return ServiceResult<TenantResponseDto>.Failure(
+                    "An unexpected error occurred while trying to delete tenant.",
+                    new[] { ex.Message });
+            }
+        }
     }
 }
