@@ -2,7 +2,7 @@
 {
     public class AcceptTenantInviteResponseDto
     {
-        public string TenantId { get; set; } = string.Empty;
+        public int TenantId { get; set; }
         public string TenantEmail { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
     }
