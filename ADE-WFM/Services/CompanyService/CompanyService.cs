@@ -77,7 +77,7 @@ namespace ADE_WFM.Services.CompanyService
                     {
                         TenantId = tenant.Id,
                         CompanyName = tenant.Name,
-                        CreatedUser = _tenantContext.UserName
+                        UserName = _tenantContext.UserName
                     },
                     "Company profile created successfully"
                 );
@@ -169,7 +169,7 @@ namespace ADE_WFM.Services.CompanyService
             if (dto == null)
                 return ServiceResult<AcceptTenantInviteResponseDto>.Failure("No information provided");
 
-            if (string.IsNullOrWhiteSpace(dto.TenantId))
+            if (dto.TenantId <= 0)
                 return ServiceResult<AcceptTenantInviteResponseDto>.Failure("No tenant id supplied");
 
             try
@@ -224,6 +224,66 @@ namespace ADE_WFM.Services.CompanyService
 
 
         // UPDATE services
+        // Update tenant connection properties
+        public async Task<ServiceResult<TenantResponseDto>> UpdateTenantConnection(TenantInfoDto dto)
+        {
+            if (dto == null)
+                return ServiceResult<TenantResponseDto>.Failure("No information provided");
+
+            if (dto.TenantId <= 0)
+                return ServiceResult<TenantResponseDto>.Failure("Tenant ID is required");
+
+            try
+            {
+                var tenant = await _context.Tenants
+                    .FindAsync(dto.TenantId);
+                if (tenant == null)
+                    return ServiceResult<TenantResponseDto>.Failure("No tenant with supplied ID found");
+
+                if (!string.IsNullOrWhiteSpace(dto.CompanyName))
+                {
+                    _logger.LogInformation("Tenant {OldName} has changed name to {NewName}", tenant.Name, dto.CompanyName);
+                    tenant.Name = dto.CompanyName;
+                }
+
+                if (!string.IsNullOrWhiteSpace(dto.Domain))
+                {
+                    bool domainExists = await _context.Tenants
+                        .AnyAsync(t => t.Domain == dto.Domain && t.Id != dto.TenantId);
+                    if (domainExists)
+                        return ServiceResult<TenantResponseDto>.Failure("Domain already in use by another tenant.");
+
+                    _logger.LogInformation("Tenant {TenantName} has updated domain successfully to {Domain}", tenant.Name, dto.Domain);
+                    tenant.Domain = dto.Domain;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return ServiceResult<TenantResponseDto>.Success(
+                    new TenantResponseDto
+                    {
+                        TenantId = dto.TenantId,
+                        CompanyName = tenant.Name,
+                        UserName = _tenantContext.UserName
+                    },
+                    "Tenant updated successfully"
+                );
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to update tenant");
+                return ServiceResult<TenantResponseDto>.Failure(
+                    "An unexpected error occured while trying to update tenant.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while trying to update tenant");
+                return ServiceResult<TenantResponseDto>.Failure(
+                    "An unexpected error occurred while trying to update tenant.",
+                    new[] { ex.Message });
+            }
+        }
 
 
         // DELETE services

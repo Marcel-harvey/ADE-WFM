@@ -2,6 +2,8 @@
 {
     public class TenantInfoDto
     {
-        public string TenantId { get; set; } = string.Empty;
+        public int TenantId { get; set; }
+        public string? Domain { get; set; }
+        public string? CompanyName { get; set; }
     }
 }

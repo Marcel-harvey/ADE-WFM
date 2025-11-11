@@ -13,6 +13,7 @@ namespace ADE_WFM.Services.CompanyService
         Task<ServiceResult<AcceptTenantInviteResponseDto>> AcceptTenantInvite(TenantInfoDto dto);
 
         // UPDATE
+        Task<ServiceResult<TenantResponseDto>> UpdateTenantConnection(TenantInfoDto dto);
 
         // DELETE
     }
