@@ -164,60 +164,74 @@ namespace ADE_WFM.Services.CompanyService
 
 
         // GET services
-        public async Task<ServiceResult<AcceptTenantInviteResponseDto>> AcceptTenantInvite(TenantInfoDto dto)
+        public async Task<ServiceResult<AcceptTenantInviteResponseDto>> AcceptTenantInvite(InviteTokenDto dto)
         {
             if (dto == null)
                 return ServiceResult<AcceptTenantInviteResponseDto>.Failure("No information provided");
 
-            if (dto.TenantId <= 0)
-                return ServiceResult<AcceptTenantInviteResponseDto>.Failure("No tenant id supplied");
+            if (dto.TenantId <= 0 && dto.InviteToken == Guid.Empty)
+                return ServiceResult<AcceptTenantInviteResponseDto>.Failure("No valid tenant invite token supplied");
 
             try
             {
-                var tenantToken = await _context.TenantInvites
-                    .FindAsync(dto.TenantId);
+                var tenantInvite = await _context.TenantInvites
+                    .FirstOrDefaultAsync(t => t.Id == dto.InviteToken);
 
-                if (tenantToken == null)
+                if (tenantInvite == null)
                 {
-                    _logger.LogInformation("No tenant invite found for ID {TenantId}", dto.TenantId);
+                    _logger.LogWarning("No tenant invite found for token {InviteToken}", dto.InviteToken);
                     return ServiceResult<AcceptTenantInviteResponseDto>.Failure("Invite does not exist");
                 }
 
-                if (DateTime.UtcNow <= tenantToken.ExpiryDate)
+                if (tenantInvite.ExpiryDate < DateTime.UtcNow)
                 {
-                    _logger.LogInformation("Token expired");
-                    return ServiceResult<AcceptTenantInviteResponseDto>.Failure("Token expired");
+                    _logger.LogInformation("Token expired for invite {InviteToken}", dto.InviteToken);
+                    return ServiceResult<AcceptTenantInviteResponseDto>.Failure("Invite token has expired");
                 }
 
-                if (tenantToken.IsUsed)
+                if (tenantInvite.IsUsed)
                 {
-                    _logger.LogInformation("Token was already used");
-                    return ServiceResult<AcceptTenantInviteResponseDto>.Failure("Token was already used");
+                    _logger.LogInformation("Invite token {InviteToken} already used", dto.InviteToken);
+                    return ServiceResult<AcceptTenantInviteResponseDto>.Failure("Invite token has already been used");
                 }
+
+                var tenant = await _context.Tenants.FindAsync(tenantInvite.TenantId);
+                if (tenant == null)
+                {
+                    _logger.LogWarning("Tenant not found for invite {InviteToken}", dto.InviteToken);
+                    return ServiceResult<AcceptTenantInviteResponseDto>.Failure("Associated tenant does not exist");
+                }
+
+                tenantInvite.IsUsed = true;
+                _context.TenantInvites.Update(tenantInvite);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Invite {InviteToken} accepted successfully for tenant {TenantName}", dto.InviteToken, tenant.Name);
 
                 return ServiceResult<AcceptTenantInviteResponseDto>.Success(
                     new AcceptTenantInviteResponseDto
                     {
-                        TenantId = dto.TenantId,
-                        TenantEmail = tenantToken.Email,
-                        Role = tenantToken.Role
-                    },
-                    "Invite accepted"
+                        TenantId = tenant.Id,
+                        TenantEmail = tenantInvite.Email,
+                        Role = tenantInvite.Role,
+                        CompanyName = tenant.Name,
+                        Domain = tenant.Domain
+                    }, 
+                    "Invite accepted successfully"
                 );
-
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "An error occured while trying to get tenant invite");
+                _logger.LogError(ex, "Database error while accepting tenant invite");
                 return ServiceResult<AcceptTenantInviteResponseDto>.Failure(
-                    "An unexpected error occured while trying to get tenant invite.",
+                    "A database error occurred while accepting the tenant invite.",
                     new[] { ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occured while trying to get tenant invite");
+                _logger.LogError(ex, "Unexpected error while accepting tenant invite");
                 return ServiceResult<AcceptTenantInviteResponseDto>.Failure(
-                    "An unexpected error occurred while trying to get tenant invite.",
+                    "An unexpected error occurred while accepting the tenant invite.",
                     new[] { ex.Message });
             }
         }
