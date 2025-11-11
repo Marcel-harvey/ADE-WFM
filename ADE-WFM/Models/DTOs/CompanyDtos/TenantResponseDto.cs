@@ -4,6 +4,6 @@
     {
         public int TenantId { get; set; }
         public string CompanyName { get; set; } = string.Empty;
-        public string CreatedUser { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
     }
 }
