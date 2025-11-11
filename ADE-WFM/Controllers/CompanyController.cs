@@ -40,6 +40,13 @@ namespace ADE_WFM.Controllers
 
 
         // GET
+        [HttpPost]
+        public async Task<IActionResult> AcceptTokenInvite([FromBody] InviteTokenDto dto)
+        {
+            var result = await _companyService.AcceptTenantInvite(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
 
 
         // UPDATE
