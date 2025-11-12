@@ -51,9 +51,8 @@ namespace ADE_WFM.Services.CompanyService
             try
             {
                 var checkTenant = await _context.Tenants
-                    .FindAsync(dto.CompanyName);
-
-                if (checkTenant == null)
+                    .FirstOrDefaultAsync(t => t.Name == dto.CompanyName);
+                if (checkTenant != null)
                     return ServiceResult<TenantResponseDto>.Failure("Company with this name already exists");
 
                 var tenant = new Tenant
