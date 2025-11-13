@@ -20,7 +20,7 @@ namespace ADE_WFM.Controllers
 
         // CREATE
         // Create a new tenant/company
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateNewTenant([FromBody] CreateTenantDto dto)
         {
             var result = await _companyService.CreateTenant(dto);
@@ -40,7 +40,7 @@ namespace ADE_WFM.Controllers
 
 
         // GET
-        [HttpPost]
+        [HttpPost("accept-invite")]
         public async Task<IActionResult> AcceptTokenInvite([FromBody] InviteTokenDto dto)
         {
             var result = await _companyService.AcceptTenantInvite(dto);
