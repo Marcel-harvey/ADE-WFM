@@ -1,11 +1,8 @@
-﻿using ADE_WFM.Models;
-using ADE_WFM.Models.DTOs;
+﻿using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.ProjectDtos;
 
-namespace ADE_WFM.Services.ProjectService
-{
-    public interface IProjectService
-    {
+namespace ADE_WFM.Services.ProjectService {
+    public interface IProjectService {
 
         // ADD services
         Task<ServiceResult<ProjectResponseDto>> CreateProject(CreateProjectDto dto);

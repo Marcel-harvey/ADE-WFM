@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Models
-{
-    public class WorkFlowUser
-    {
+﻿namespace ADE_WFM.Models {
+    public class WorkFlowUser {
         public string Role { get; set; } = "Standard";
 
         // Many to many relationship keys

@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Models.DTOs.UserDtos
-{
-    public class LoginResponseDto
-    {
+﻿namespace ADE_WFM.Models.DTOs.UserDtos {
+    public class LoginResponseDto {
         public string Token { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;

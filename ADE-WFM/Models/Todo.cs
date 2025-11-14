@@ -1,12 +1,9 @@
 ﻿using ADE_WFM.Services.TenantService;
-using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ADE_WFM.Models
-{
-    public class Todo : ITenantEntity
-    {
+namespace ADE_WFM.Models {
+    public class Todo : ITenantEntity {
         public int Id { get; set; }
         [Required]
         public bool IsComplete { get; set; }
@@ -30,8 +27,8 @@ namespace ADE_WFM.Models
         public string UserId { get; set; } = string.Empty;
         public ApplicationUser User { get; set; } = null!;
 
-       public int? ProjectId { get; set; }
-       public Project? Project { get; set; }
+        public int? ProjectId { get; set; }
+        public Project? Project { get; set; }
 
 
         // Tenand Setup

@@ -1,12 +1,9 @@
 ﻿using ADE_WFM.Services.TenantService;
-using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ADE_WFM.Models
-{
-    public class WorkFlow : ITenantEntity
-    {
+namespace ADE_WFM.Models {
+    public class WorkFlow : ITenantEntity {
         public int Id { get; set; }
         [Required]
         public string WorkFlowName { get; set; } = string.Empty;

@@ -2,21 +2,17 @@
 using ADE_WFM.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace ADE_WFM.Services.TenantService
-{
-    public class TenantResolver : ITenantResolver
-    {
+namespace ADE_WFM.Services.TenantService {
+    public class TenantResolver : ITenantResolver {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<TenantResolver> _logger;
 
-        public TenantResolver(ApplicationDbContext context, ILogger<TenantResolver> logger)
-        {
+        public TenantResolver(ApplicationDbContext context, ILogger<TenantResolver> logger) {
             _context = context;
             _logger = logger;
         }
 
-        public async Task<Tenant?> ResolveTenantAsync(HttpContext context)
-        {
+        public async Task<Tenant?> ResolveTenantAsync(HttpContext context) {
             // 1️⃣  Determine tenant key from host or header
             string? host = context.Request.Host.Host;
             string? subDomain = host?.Split('.')?.FirstOrDefault();
@@ -26,8 +22,7 @@ namespace ADE_WFM.Services.TenantService
 
             // 2️⃣  Lookup tenant in DB
             Tenant? tenant = null;
-            if (!string.IsNullOrEmpty(tenantKey))
-            {
+            if (!string.IsNullOrEmpty(tenantKey)) {
                 tenant = await _context.Tenants
                     .AsNoTracking()
                     .FirstOrDefaultAsync(t =>
@@ -36,8 +31,7 @@ namespace ADE_WFM.Services.TenantService
             }
 
             // 3️⃣  Fallback to default tenant
-            if (tenant == null)
-            {
+            if (tenant == null) {
                 tenant = await _context.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == 1);
                 _logger.LogWarning("Tenant not found for key '{TenantKey}', fallback to default.", tenantKey);
             }

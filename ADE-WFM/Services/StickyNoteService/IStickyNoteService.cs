@@ -1,11 +1,8 @@
-﻿using ADE_WFM.Models;
-using ADE_WFM.Models.DTOs;
+﻿using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.StickyNoteDto;
 
-namespace ADE_WFM.Services.StickyNoteService
-{
-    public interface IStickyNoteService
-    {
+namespace ADE_WFM.Services.StickyNoteService {
+    public interface IStickyNoteService {
         // ADD services
         Task<ServiceResult<StickyNoteResponseDto>> AddStickyNote(CreateStickyNoteDto dto);
 

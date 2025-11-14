@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Models.DTOs.ProjectDtos
-{
-    public class ProjectCommentsInfoDto
-    {
+﻿namespace ADE_WFM.Models.DTOs.ProjectDtos {
+    public class ProjectCommentsInfoDto {
         public int CommentId { get; set; }
         public string CommentContent { get; set; } = string.Empty;
         public DateOnly DateCreated { get; set; }

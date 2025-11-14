@@ -1,18 +1,14 @@
-﻿using ADE_WFM.Models.DTOs;
-using ADE_WFM.Models.DTOs.UserDtos;
+﻿using ADE_WFM.Models.DTOs.UserDtos;
 using ADE_WFM.Services.UserService;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ADE_WFM.Controllers
-{
+namespace ADE_WFM.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController : ControllerBase
-    {
+    public class UserController : ControllerBase {
         private readonly IUserService _userService;
 
-        public UserController(IUserService userService)
-        {
+        public UserController(IUserService userService) {
             _userService = userService;
         }
 
@@ -20,8 +16,7 @@ namespace ADE_WFM.Controllers
         // CREATE:
         // Register new user
         [HttpPost("Register")]
-        public async Task<IActionResult> RegisterUser([FromBody] CreateUserDto dto)
-        {
+        public async Task<IActionResult> RegisterUser([FromBody] CreateUserDto dto) {
             var result = await _userService.RegisterNewUser(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -30,8 +25,7 @@ namespace ADE_WFM.Controllers
 
         // GET:
         [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
+        public async Task<IActionResult> GetAll() {
             var result = await _userService.GetAllUsers();
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -40,8 +34,7 @@ namespace ADE_WFM.Controllers
 
         // Login User
         [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginUserDto dto)
-        {
+        public async Task<IActionResult> Login([FromBody] LoginUserDto dto) {
             var result = await _userService.LoginUser(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -51,8 +44,7 @@ namespace ADE_WFM.Controllers
         // UPDATE:
         // Update user password
         [HttpPut("password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
-        {
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto) {
             var result = await _userService.ChangePassword(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -61,8 +53,7 @@ namespace ADE_WFM.Controllers
 
         // DELETE:
         [HttpDelete]
-        public async Task<IActionResult> Delete([FromQuery] DeleteUserDto dto)
-        {
+        public async Task<IActionResult> Delete([FromQuery] DeleteUserDto dto) {
             var result = await _userService.DeleteUser(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);

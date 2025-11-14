@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ADE_WFM.Models
-{
-    public class ApplicationUser : IdentityUser
-    {
+namespace ADE_WFM.Models {
+    public class ApplicationUser : IdentityUser {
         // Navigation Properties
         public ICollection<Project>? Projects { get; set; }
         public ICollection<Todo>? Todo { get; set; }

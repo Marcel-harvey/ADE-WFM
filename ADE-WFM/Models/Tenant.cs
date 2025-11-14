@@ -1,21 +1,11 @@
 ﻿using ADE_WFM.Services.TenantService;
-using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql;
-using NuGet.Common;
 using System.ComponentModel.DataAnnotations;
-using static Microsoft.AspNetCore.Razor.Language.TagHelperMetadata;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Data;
-using System.Threading;
 
-namespace ADE_WFM.Models
-{
-    public class Tenant : ITenantEntity
-    {
+namespace ADE_WFM.Models {
+    public class Tenant : ITenantEntity {
         public int Id { get; set; }
         // Interface ITenantEntity implementation
-        int ITenantEntity.TenantId
-        {
+        int ITenantEntity.TenantId {
             get => Id;
             set => Id = value;
         }
@@ -40,6 +30,6 @@ namespace ADE_WFM.Models
         public ICollection<TaskPlanning>? Tasks { get; set; }
         public ICollection<SubTask>? SubTasks { get; set; }
         public ICollection<StickyNote>? StickyNotes { get; set; }
-        public ICollection<TenantInvite>? TenantInvites { get; set;}
+        public ICollection<TenantInvite>? TenantInvites { get; set; }
     }
 }

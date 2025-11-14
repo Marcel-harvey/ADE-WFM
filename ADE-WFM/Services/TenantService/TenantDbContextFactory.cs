@@ -1,31 +1,23 @@
 ﻿using ADE_WFM.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Http;
 
-namespace ADE_WFM.Services.TenantService
-{
-    public class TenantDbContextFactory
-    {
+namespace ADE_WFM.Services.TenantService {
+    public class TenantDbContextFactory {
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public TenantDbContextFactory(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
-        {
+        public TenantDbContextFactory(IConfiguration configuration, IHttpContextAccessor httpContextAccessor) {
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public ApplicationDbContext CreateDbContext(string? tenantConnectionString = null)
-        {
+        public ApplicationDbContext CreateDbContext(string? tenantConnectionString = null) {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
-            if (!string.IsNullOrEmpty(tenantConnectionString))
-            {
+            if (!string.IsNullOrEmpty(tenantConnectionString)) {
                 optionsBuilder.UseNpgsql(tenantConnectionString);
             }
-            else
-            {
+            else {
                 var defaultConnection = _configuration.GetConnectionString("DefaultConnection");
                 optionsBuilder.UseNpgsql(defaultConnection);
             }

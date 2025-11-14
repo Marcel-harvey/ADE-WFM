@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Models.DTOs.CommentDtos
-{
-    public class CommentResponseDto
-    {
+﻿namespace ADE_WFM.Models.DTOs.CommentDtos {
+    public class CommentResponseDto {
         public int CommentId { get; set; }
         public string CommentContent { get; set; } = string.Empty;
         public DateOnly DateCreated { get; set; }

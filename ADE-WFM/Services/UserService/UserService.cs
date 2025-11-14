@@ -1,21 +1,14 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs;
-using ADE_WFM.Models.DTOs.TodoDtos;
 using ADE_WFM.Models.DTOs.UserDtos;
-using ADE_WFM.Services.TenantService;
 using ADE_WFM.Services.JwtService;
+using ADE_WFM.Services.TenantService;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using NuGet.Common;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace ADE_WFM.Services.UserService
-{
-    public class UserService : IUserService
-    {
+namespace ADE_WFM.Services.UserService {
+    public class UserService : IUserService {
         private readonly IConfiguration _config;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -31,8 +24,7 @@ namespace ADE_WFM.Services.UserService
             RoleManager<IdentityRole> roleManager,
             ILogger<UserService> logger,
             TenantContext tenantContext,
-            IJwtService jwtService)
-        {
+            IJwtService jwtService) {
             _config = config;
             _context = context;
             _userManager = userManager;
@@ -44,8 +36,7 @@ namespace ADE_WFM.Services.UserService
 
         // CREATE:
         // Register a new user
-        public async Task<ServiceResult<UserResponseDto>> RegisterNewUser(CreateUserDto dto)
-        {
+        public async Task<ServiceResult<UserResponseDto>> RegisterNewUser(CreateUserDto dto) {
             if (dto == null)
                 return ServiceResult<UserResponseDto>.Failure("CreateUserDto cannot be null.");
 
@@ -58,14 +49,12 @@ namespace ADE_WFM.Services.UserService
             if (string.IsNullOrWhiteSpace(dto.UserName))
                 dto.UserName = dto.Email;
 
-            try
-            {
+            try {
                 var existingUser = await _userManager.FindByEmailAsync(dto.Email);
                 if (existingUser != null)
                     return ServiceResult<UserResponseDto>.Failure("A user with that email already exists.");
 
-                var user = new ApplicationUser
-                {
+                var user = new ApplicationUser {
                     UserName = dto.UserName,
                     Email = dto.Email,
                     EmailConfirmed = true
@@ -73,13 +62,11 @@ namespace ADE_WFM.Services.UserService
 
                 TenantInvite? tenantToken = null;
 
-                if (dto.TenantToken.HasValue && dto.TenantToken.Value != Guid.Empty)
-                {
+                if (dto.TenantToken.HasValue && dto.TenantToken.Value != Guid.Empty) {
                     tenantToken = await _context.TenantInvites
                         .FirstOrDefaultAsync(t => t.Id == dto.TenantToken.Value);
 
-                    if (tenantToken != null)
-                    {
+                    if (tenantToken != null) {
                         if (tenantToken.ExpiryDate < DateTime.UtcNow)
                             return ServiceResult<UserResponseDto>.Failure("Invite token has expired.");
 
@@ -89,39 +76,34 @@ namespace ADE_WFM.Services.UserService
                         user.TenantId = tenantToken.TenantId;
                     }
                 }
-                else
-                {
+                else {
                     user.TenantId = dto.TenantId;
                 }
 
                 var userType = user.GetType();
-                if (!string.IsNullOrEmpty(dto.FirstName) && userType.GetProperty("FirstName") != null) 
-                    userType.GetProperty("FirstName")!.SetValue(user, dto.FirstName); 
-                
-                if (!string.IsNullOrEmpty(dto.LastName) && userType.GetProperty("LastName") != null) 
+                if (!string.IsNullOrEmpty(dto.FirstName) && userType.GetProperty("FirstName") != null)
+                    userType.GetProperty("FirstName")!.SetValue(user, dto.FirstName);
+
+                if (!string.IsNullOrEmpty(dto.LastName) && userType.GetProperty("LastName") != null)
                     userType.GetProperty("LastName")!.SetValue(user, dto.LastName);
 
                 // Create user
                 var createResult = await _userManager.CreateAsync(user, dto.Password);
-                if (!createResult.Succeeded)
-                {
+                if (!createResult.Succeeded) {
                     var errors = createResult.Errors.Select(e => e.Description);
                     _logger.LogWarning("Failed to create user {Email}: {Errors}", dto.Email, string.Join(", ", errors));
                     return ServiceResult<UserResponseDto>.Failure("User creation failed.", errors);
                 }
 
                 // Assign roles 
-                if (tenantToken != null)
-                {
+                if (tenantToken != null) {
                     await _userManager.AddToRoleAsync(user, tenantToken.Role);
                 }
-                else if (!string.IsNullOrEmpty(dto.Role))
-                {
+                else if (!string.IsNullOrEmpty(dto.Role)) {
                     await _userManager.AddToRoleAsync(user, dto.Role);
                 }
 
-                if (tenantToken != null)
-                {
+                if (tenantToken != null) {
                     tenantToken.IsUsed = true;
                     _context.TenantInvites.Update(tenantToken);
                     await _context.SaveChangesAsync();
@@ -130,8 +112,7 @@ namespace ADE_WFM.Services.UserService
                 _logger.LogInformation("User created successfully with ID {UserId}", user.Id);
 
                 return ServiceResult<UserResponseDto>.Success(
-                    new UserResponseDto
-                    {
+                    new UserResponseDto {
                         UserName = dto.UserName,
                         Email = dto.Email,
                         Id = user.Id
@@ -139,13 +120,11 @@ namespace ADE_WFM.Services.UserService
                     "User created successfully."
                 );
             }
-            catch (DbUpdateException ex)
-            {
+            catch (DbUpdateException ex) {
                 _logger.LogError(ex, "Database error while creating user {Email}", dto.Email);
                 return ServiceResult<UserResponseDto>.Failure("Database error while creating user.", new[] { ex.Message });
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogError(ex, "Unexpected error occurred while creating user {Email}", dto.Email);
                 return ServiceResult<UserResponseDto>.Failure("Unexpected error occurred while creating user.", new[] { ex.Message });
             }
@@ -153,8 +132,7 @@ namespace ADE_WFM.Services.UserService
 
 
         // Login a current user
-        public async Task<ServiceResult<LoginResponseDto>> LoginUser(LoginUserDto dto)
-        {
+        public async Task<ServiceResult<LoginResponseDto>> LoginUser(LoginUserDto dto) {
             // Basic validation
             if (dto == null)
                 return ServiceResult<LoginResponseDto>.Failure("Invalid login request.");
@@ -162,8 +140,7 @@ namespace ADE_WFM.Services.UserService
             if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
                 return ServiceResult<LoginResponseDto>.Failure("Email and password are required.");
 
-            try
-            {
+            try {
                 // Find user by email
                 var user = await _userManager
                     .FindByEmailAsync(dto.Email);
@@ -190,8 +167,7 @@ namespace ADE_WFM.Services.UserService
 
                 // Return response
                 return ServiceResult<LoginResponseDto>.Success(
-                    new LoginResponseDto
-                    {
+                    new LoginResponseDto {
                         Token = token,
                         Email = user.Email ?? string.Empty,
                         UserId = user.Id,
@@ -202,8 +178,7 @@ namespace ADE_WFM.Services.UserService
                     "Login successful."
                 );
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogError(ex, "Unexpected error occurred during login for user {Email}", dto.Email);
                 return ServiceResult<LoginResponseDto>.Failure(
                     "An unexpected error occurred while logging in.",
@@ -214,15 +189,12 @@ namespace ADE_WFM.Services.UserService
 
 
         // GET ALL:
-        public async Task<ServiceResult<List<UserResponseDto>>> GetAllUsers()
-        {
-            try
-            {
+        public async Task<ServiceResult<List<UserResponseDto>>> GetAllUsers() {
+            try {
                 var users = await _userManager.Users
                     .ToListAsync();
 
-                if (users == null || users.Count == 0)
-                {
+                if (users == null || users.Count == 0) {
                     _logger.LogWarning("No users found in the system.");
                     return ServiceResult<List<UserResponseDto>>.Failure("No users found.");
                 }
@@ -230,8 +202,7 @@ namespace ADE_WFM.Services.UserService
                 _logger.LogInformation("Retrieved {Count} users successfully.", users.Count);
 
                 return ServiceResult<List<UserResponseDto>>.Success(
-                    users.Select(u => new UserResponseDto
-                    {
+                    users.Select(u => new UserResponseDto {
                         Id = u.Id,
                         UserName = u.UserName ?? "Unknown",
                         Email = u.Email ?? "No email"
@@ -239,8 +210,7 @@ namespace ADE_WFM.Services.UserService
                     "Users retrieved successfully."
                 );
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogError(ex, "Error retrieving users.");
 
                 return ServiceResult<List<UserResponseDto>>.Failure(
@@ -252,16 +222,14 @@ namespace ADE_WFM.Services.UserService
 
         // UPDATE:
         // Change user password
-        public async Task<ServiceResult<LoginResponseDto>> ChangePassword(ChangePasswordDto dto)
-        {
+        public async Task<ServiceResult<LoginResponseDto>> ChangePassword(ChangePasswordDto dto) {
             if (dto == null)
                 return ServiceResult<LoginResponseDto>.Failure("No information provided");
 
             if (dto.OldPassword == dto.NewPassword)
                 return ServiceResult<LoginResponseDto>.Failure("Old and new password can not be identical");
 
-            try
-            {
+            try {
                 var user = await _userManager
                     .FindByIdAsync(_tenantContext.UserId);
                 if (user == null)
@@ -274,8 +242,7 @@ namespace ADE_WFM.Services.UserService
                     return ServiceResult<LoginResponseDto>.Failure("Old password is incorrect.");
 
                 var passwordResult = await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
-                if (!passwordResult.Succeeded)
-                {
+                if (!passwordResult.Succeeded) {
                     _logger.LogWarning("Could not update password for User {UserId} - {UserName}", _tenantContext.UserId, _tenantContext.UserName);
                     return ServiceResult<LoginResponseDto>.Failure("An error occured when trying to update your password");
                 }
@@ -295,8 +262,7 @@ namespace ADE_WFM.Services.UserService
                 _logger.LogInformation("User password updated successfully for user {UserId} - {UserName}", _tenantContext.UserId, _tenantContext.UserName);
 
                 return ServiceResult<LoginResponseDto>.Success(
-                    new LoginResponseDto
-                    {
+                    new LoginResponseDto {
                         Token = token,
                         Email = user.Email ?? string.Empty,
                         UserId = user.Id,
@@ -307,15 +273,13 @@ namespace ADE_WFM.Services.UserService
                     "Login successful."
                 );
             }
-            catch (DbUpdateException ex)
-            {
+            catch (DbUpdateException ex) {
                 _logger.LogError(ex, "An error occured when trying to update your password");
                 return ServiceResult<LoginResponseDto>.Failure(
                     "An unexpected error occurred while creating the user.",
                     new[] { ex.Message });
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogError(ex, "An error occured when trying to update your password");
                 return ServiceResult<LoginResponseDto>.Failure(
                     "An unexpected error occurred while creating the user.",
@@ -326,8 +290,7 @@ namespace ADE_WFM.Services.UserService
 
         // DELETEE:
         // Delete user by ID
-        public async Task<ServiceResult<UserResponseDto>> DeleteUser(DeleteUserDto dto)
-        {
+        public async Task<ServiceResult<UserResponseDto>> DeleteUser(DeleteUserDto dto) {
             // General validation
             if (dto == null)
                 return ServiceResult<UserResponseDto>.Failure("DeleteUserDto cannot be null.");
@@ -335,19 +298,16 @@ namespace ADE_WFM.Services.UserService
             if (string.IsNullOrWhiteSpace(dto.Id))
                 return ServiceResult<UserResponseDto>.Failure("User ID is required for deletion.");
 
-            try
-            {
+            try {
                 var user = await _userManager
                     .FindByIdAsync(dto.Id);
 
-                if (user == null)
-                {
+                if (user == null) {
                     _logger.LogWarning("User with ID {UserId} not found for deletion.", dto.Id);
                     return ServiceResult<UserResponseDto>.Failure("User not found.");
                 }
 
-                var respone = new UserResponseDto
-                {
+                var respone = new UserResponseDto {
                     UserName = user.UserName ?? "Unknown",
                     Email = user.Email ?? "No Email",
                     Id = user.Id
@@ -356,8 +316,7 @@ namespace ADE_WFM.Services.UserService
                 var result = await _userManager
                     .DeleteAsync(user);
 
-                if (!result.Succeeded)
-                {
+                if (!result.Succeeded) {
                     var errors = result.Errors.Select(e => e.Description);
                     _logger.LogWarning("Failed to delete user {UserId}: {Errors}", dto.Id, string.Join(", ", errors));
                     return ServiceResult<UserResponseDto>.Failure("Failed to delete user.", errors);
@@ -367,8 +326,7 @@ namespace ADE_WFM.Services.UserService
 
                 return ServiceResult<UserResponseDto>.Success(respone, "User deleted successfully.");
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.LogError(ex, "Error deleting user with ID {UserId}", dto.Id);
                 return ServiceResult<UserResponseDto>.Failure(
                     "An unexpected error occurred while deleting the user.",

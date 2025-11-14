@@ -1,10 +1,8 @@
-﻿using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
-namespace ADE_WFM.Services.TenantService
-{
-    public class TenantContext
-    {
+namespace ADE_WFM.Services.TenantService {
+    public class TenantContext {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         // Manual override values (for system or background operations)
@@ -13,15 +11,12 @@ namespace ADE_WFM.Services.TenantService
         private string? _manualUserId;
         private string? _manualUserName;
 
-        public TenantContext(IHttpContextAccessor httpContextAccessor)
-        {
+        public TenantContext(IHttpContextAccessor httpContextAccessor) {
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public int TenantId
-        {
-            get
-            {
+        public int TenantId {
+            get {
                 // 1️⃣ Try JWT claim
                 var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("tenant_id");
                 if (claim != null && int.TryParse(claim.Value, out int tenantId))
@@ -35,19 +30,15 @@ namespace ADE_WFM.Services.TenantService
             }
         }
 
-        public string TenantName
-        {
-            get
-            {
+        public string TenantName {
+            get {
                 var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("tenant_name");
                 return claim?.Value ?? _manualTenantName ?? string.Empty;
             }
         }
 
-        public string UserId
-        {
-            get
-            {
+        public string UserId {
+            get {
                 // 1️⃣ Try JWT claim
                 var claim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)
                     ?? _httpContextAccessor.HttpContext?.User?.FindFirst(JwtRegisteredClaimNames.Sub);
@@ -62,10 +53,8 @@ namespace ADE_WFM.Services.TenantService
             }
         }
 
-        public string UserName
-        {
-            get
-            {
+        public string UserName {
+            get {
                 var claim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)
                             ?? _httpContextAccessor.HttpContext?.User?.FindFirst("user_name");
                 if (claim != null)
@@ -80,15 +69,13 @@ namespace ADE_WFM.Services.TenantService
 
         public string? ConnectionString { get; private set; }
 
-        public void SetTenant(int id, string name, string? connectionString = null)
-        {
+        public void SetTenant(int id, string name, string? connectionString = null) {
             _manualTenantId = id;
             _manualTenantName = name;
             ConnectionString = connectionString;
         }
 
-        public void SetUser(string userId, string? userName = null)
-        {
+        public void SetUser(string userId, string? userName = null) {
             _manualUserId = userId;
             if (!string.IsNullOrEmpty(userName))
                 _manualUserName = UserName;

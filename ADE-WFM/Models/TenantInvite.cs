@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ADE_WFM.Models
-{
-    public class TenantInvite
-    {
+namespace ADE_WFM.Models {
+    public class TenantInvite {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Email { get; set; } = string.Empty;

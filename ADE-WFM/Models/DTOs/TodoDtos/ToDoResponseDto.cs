@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Models.DTOs.TodoDtos
-{
-    public class ToDoResponseDto
-    {
+﻿namespace ADE_WFM.Models.DTOs.TodoDtos {
+    public class ToDoResponseDto {
         public int Id { get; set; }
         public bool IsComplete { get; set; }
         public string Title { get; set; } = string.Empty;
@@ -13,8 +11,7 @@
         public List<TodoSubTasksResponseDto> SubTasks { get; set; } = new();
     }
 
-    public class TodoSubTasksResponseDto
-    {
+    public class TodoSubTasksResponseDto {
         public int Id { get; set; }
         public string Description { get; set; } = string.Empty;
         public bool IsCompleted { get; set; }

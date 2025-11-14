@@ -1,19 +1,13 @@
-﻿using ADE_WFM.Models.DTOs;
-using ADE_WFM.Models.DTOs.ProjectDtos;
+﻿using ADE_WFM.Models.DTOs.ProjectDtos;
 using ADE_WFM.Services.ProjectService;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
-namespace ADE_WFM.Controllers
-{
+namespace ADE_WFM.Controllers {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProjectController : ControllerBase
-    {
+    public class ProjectController : ControllerBase {
         private readonly IProjectService _projectService;
-        public ProjectController(IProjectService projectService)
-        {
+        public ProjectController(IProjectService projectService) {
             _projectService = projectService;
         }
 
@@ -21,8 +15,7 @@ namespace ADE_WFM.Controllers
         // CREATE API's
         // Create a new projects
         [HttpPost]
-        public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
-        {
+        public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto) {
             var result = await _projectService.CreateProject(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -31,10 +24,8 @@ namespace ADE_WFM.Controllers
 
         // Add user to a project
         [HttpPost("{projectId:int}user/{userId}")]
-        public async Task<IActionResult> AddUserToProject(int projectId, string userId)
-        {
-            var dto = new AddUserToProjectDto
-            {
+        public async Task<IActionResult> AddUserToProject(int projectId, string userId) {
+            var dto = new AddUserToProjectDto {
                 ProjectId = projectId,
                 AddUserId = userId
             };
@@ -47,8 +38,7 @@ namespace ADE_WFM.Controllers
         // GET API's
         // Get all projects
         [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
+        public async Task<IActionResult> GetAll() {
             var result = await _projectService.GetAllProjects();
 
             return result.Succeeded ? Ok(result) : NotFound(result);
@@ -57,8 +47,7 @@ namespace ADE_WFM.Controllers
 
         // Get project by Id
         [HttpGet("{projectId}")]
-        public async Task<IActionResult> GetById(int projectId)
-        {
+        public async Task<IActionResult> GetById(int projectId) {
             var dto = new GetProjectDto { ProjectId = projectId };
             var result = await _projectService.GetProjectById(dto);
 
@@ -69,8 +58,7 @@ namespace ADE_WFM.Controllers
         // UPDATE API's
         // Update project info
         [HttpPut]
-        public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto, [FromQuery] int? projectId = null)
-        {
+        public async Task<IActionResult> UpdateProjectInfo([FromBody] UpdateProjectInfoDto dto, [FromQuery] int? projectId = null) {
             dto.ProjectId = projectId ?? dto.ProjectId;
             var result = await _projectService.UpdateProjectInfo(dto);
 
@@ -80,8 +68,7 @@ namespace ADE_WFM.Controllers
         // DELETE API's
         // Delete a project
         [HttpDelete]
-        public async Task<IActionResult> DeleteProject([FromBody] GetProjectDto dto)
-        {
+        public async Task<IActionResult> DeleteProject([FromBody] GetProjectDto dto) {
             var result = await _projectService.DeleteProject(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -90,10 +77,8 @@ namespace ADE_WFM.Controllers
 
         // Remove user from a project
         [HttpDelete("{projectId:int}/user/{userId}")]
-        public async Task<IActionResult> RemoveUserFromProject(int projectId, string userId)
-        {
-            var dto = new GetProjectDto
-            {
+        public async Task<IActionResult> RemoveUserFromProject(int projectId, string userId) {
+            var dto = new GetProjectDto {
                 ProjectId = projectId,
                 UserId = userId
             };

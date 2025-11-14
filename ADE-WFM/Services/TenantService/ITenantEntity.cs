@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Services.TenantService
-{
-    public interface ITenantEntity
-    {
+﻿namespace ADE_WFM.Services.TenantService {
+    public interface ITenantEntity {
         int TenantId { get; set; }
     }
 }

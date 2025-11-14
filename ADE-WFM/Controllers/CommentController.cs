@@ -1,21 +1,14 @@
-﻿using ADE_WFM.Models.DTOs;
-using ADE_WFM.Models.DTOs.CommentDtos;
+﻿using ADE_WFM.Models.DTOs.CommentDtos;
 using ADE_WFM.Services.CommentService;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
 
-namespace ADE_WFM.Controllers
-{
+namespace ADE_WFM.Controllers {
     [Route("api/[controller]")]
     [ApiController]
-    public class CommentController : ControllerBase
-    {
+    public class CommentController : ControllerBase {
         private readonly ICommentService _commentService;
 
-        public CommentController(ICommentService commentService)
-        {
+        public CommentController(ICommentService commentService) {
             _commentService = commentService;
         }
 
@@ -25,8 +18,7 @@ namespace ADE_WFM.Controllers
         // Added id field as query parameter for easier access and made optional
         // Work flow id can be passed as query parameter or in the body dto
         [HttpPost("WorkFlow")]
-        public async Task<IActionResult> AddCommentToWorkFlow([FromBody] AddCommentDto dto, [FromQuery] int? workFlowId = null)
-        {
+        public async Task<IActionResult> AddCommentToWorkFlow([FromBody] AddCommentDto dto, [FromQuery] int? workFlowId = null) {
             dto.WorkFlowId = workFlowId ?? dto.WorkFlowId;
             var result = await _commentService.AddCommentToWorkFlow(dto);
 
@@ -38,8 +30,7 @@ namespace ADE_WFM.Controllers
         // Added id field as query parameter for easier access and made optional
         // Project flow id can be passed as query parameter or in the body dto
         [HttpPost("Project")]
-        public async Task<IActionResult> AddCommentToProject([FromBody] AddCommentDto dto, [FromQuery] int? projectId = null)
-        {
+        public async Task<IActionResult> AddCommentToProject([FromBody] AddCommentDto dto, [FromQuery] int? projectId = null) {
             dto.ProjectId = projectId ?? dto.ProjectId;
             var result = await _commentService.AddCommentToProject(dto);
 
@@ -50,8 +41,7 @@ namespace ADE_WFM.Controllers
         // GET API's
         // Get all comments in selected work flow
         [HttpGet("WorkFlow/{workFlowId}")]
-        public async Task<IActionResult> GetWorkFlowComments(int workFlowId)
-        {
+        public async Task<IActionResult> GetWorkFlowComments(int workFlowId) {
             var dto = new GetCommentInfoDto { WorkFlowId = workFlowId };
             var result = await _commentService.GetWorkFlowComments(dto);
 
@@ -61,8 +51,7 @@ namespace ADE_WFM.Controllers
 
         // Get all comments in selected project
         [HttpGet("Project/{projectId}")]
-        public async Task<IActionResult> GetProjectComments(int projectId)
-        {
+        public async Task<IActionResult> GetProjectComments(int projectId) {
             var dto = new GetCommentInfoDto { ProjectId = projectId };
             var result = await _commentService.GetProjectComments(dto);
 
@@ -72,8 +61,7 @@ namespace ADE_WFM.Controllers
 
         // Get all comments made by a user
         [HttpGet("User")]
-        public async Task<IActionResult> GetUserComments()
-        {
+        public async Task<IActionResult> GetUserComments() {
             var result = await _commentService.GetUserComments();
 
             return result.Succeeded ? Ok(result) : NotFound(result);
@@ -83,8 +71,7 @@ namespace ADE_WFM.Controllers
         // UPDATE API's
         // Mark comment as viewed/unviewed
         [HttpPut("Is-Viewed")]
-        public async Task<IActionResult> MarkCommentAsViewed([FromBody] UpdateCommentViewedDto dto, [FromQuery] int? commentId = null)
-        {
+        public async Task<IActionResult> MarkCommentAsViewed([FromBody] UpdateCommentViewedDto dto, [FromQuery] int? commentId = null) {
             dto.CommentId = commentId ?? dto.CommentId;
             var result = await _commentService.MarkCommentAsViewed(dto);
 
@@ -94,8 +81,7 @@ namespace ADE_WFM.Controllers
         // DELETE API's
         // Delete a users comment
         [HttpDelete]
-        public async Task<IActionResult> DeleteComment([FromBody] DeleteCommentDto dto, [FromQuery] int? commentId = null)
-        {
+        public async Task<IActionResult> DeleteComment([FromBody] DeleteCommentDto dto, [FromQuery] int? commentId = null) {
             dto.CommentId = commentId ?? dto.CommentId;
             var result = await _commentService.DeleteComment(dto);
 

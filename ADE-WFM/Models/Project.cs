@@ -2,17 +2,15 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ADE_WFM.Models
-{
-    public class Project : ITenantEntity
-    {
+namespace ADE_WFM.Models {
+    public class Project : ITenantEntity {
         public int Id { get; set; }
         [Required]
         public string ProjectTitle { get; set; } = string.Empty;
         public string? ProjectDescription { get; set; }
         [Required]
         public DateOnly DateCreated { get; set; }
-        public DateOnly DueDate {  get; set; }
+        public DateOnly DueDate { get; set; }
 
 
         // Navigation Properties
@@ -33,6 +31,6 @@ namespace ADE_WFM.Models
         public Tenant Tenant { get; set; } = null!;
 
         // Foreign Key many to many via WorkFlowUser
-        public ICollection<ProjectUser> ProjectUsers{ get; set; } = new List<ProjectUser>();
+        public ICollection<ProjectUser> ProjectUsers { get; set; } = new List<ProjectUser>();
     }
 }

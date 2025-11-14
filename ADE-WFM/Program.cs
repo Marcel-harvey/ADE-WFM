@@ -1,22 +1,22 @@
 ﻿using ADE_WFM.Data;
+using ADE_WFM.Middleware;
 using ADE_WFM.Models;
 using ADE_WFM.Services.CommentService;
-using ADE_WFM.Services.WorkFlowService;
+using ADE_WFM.Services.CompanyService;
+using ADE_WFM.Services.JwtService;
 using ADE_WFM.Services.ProjectService;
 using ADE_WFM.Services.StickyNoteService;
-using ADE_WFM.Services.TodoService;
 using ADE_WFM.Services.SubTaskService;
-using ADE_WFM.Services.UserService;
 using ADE_WFM.Services.TenantService;
-using ADE_WFM.Services.CompanyService;
-using ADE_WFM.Middleware;
+using ADE_WFM.Services.TodoService;
+using ADE_WFM.Services.UserService;
+using ADE_WFM.Services.WorkFlowService;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ADE_WFM.Services.JwtService;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,7 +52,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<ITenantResolver, TenantResolver>();
 builder.Services.AddScoped<TenantDbContextFactory>();
-builder.Services.AddScoped<TenantContext>(); 
+builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -65,8 +65,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
+    options.TokenValidationParameters = new TokenValidationParameters {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
@@ -82,16 +81,14 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
+    c.SwaggerDoc("v1", new OpenApiInfo {
         Title = "ADE-WFM API",
         Version = "v1",
         Description = "ADE Workflow Management API with Tenant and JWT Authentication"
     });
 
     // 🔒 JWT auth configuration
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
         In = ParameterLocation.Header,
         Description = "Please enter JWT token with Bearer prefix. Example: Bearer {token}",
         Name = "Authorization",
@@ -126,8 +123,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Swagger dev
-if (app.Environment.IsDevelopment())
-{
+if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
@@ -137,15 +133,13 @@ if (app.Environment.IsDevelopment())
 }
 
 // Database setup & seed
-using (var scope = app.Services.CreateScope())
-{
+using (var scope = app.Services.CreateScope()) {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.MigrateAsync();
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     string[] roles = { "Admin", "Standard", "View" };
-    foreach (var role in roles)
-    {
+    foreach (var role in roles) {
         if (!await roleManager.RoleExistsAsync(role))
             await roleManager.CreateAsync(new IdentityRole(role));
     }
@@ -156,10 +150,8 @@ using (var scope = app.Services.CreateScope())
     var adminRole = "Admin";
 
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser == null)
-    {
-        adminUser = new ApplicationUser
-        {
+    if (adminUser == null) {
+        adminUser = new ApplicationUser {
             UserName = adminEmail,
             Email = adminEmail,
             EmailConfirmed = true

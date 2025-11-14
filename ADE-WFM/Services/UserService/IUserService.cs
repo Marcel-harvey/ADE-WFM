@@ -1,10 +1,8 @@
 ﻿using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.UserDtos;
 
-namespace ADE_WFM.Services.UserService
-{
-    public interface IUserService
-    {
+namespace ADE_WFM.Services.UserService {
+    public interface IUserService {
         // CREATE service
         Task<ServiceResult<UserResponseDto>> RegisterNewUser(CreateUserDto dto);
 

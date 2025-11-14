@@ -1,20 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using ADE_WFM.Models;
+﻿using ADE_WFM.Models;
 using ADE_WFM.Services.TenantService;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
-namespace ADE_WFM.Data
-{
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
-    {
+namespace ADE_WFM.Data {
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser> {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
             IHttpContextAccessor httpContextAccessor
-        ) : base(options)
-        {
+        ) : base(options) {
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -35,8 +31,7 @@ namespace ADE_WFM.Data
         // ==============================================
         //                  OnModelCreating
         // ==============================================
-        protected override void OnModelCreating(ModelBuilder builder)
-        {
+        protected override void OnModelCreating(ModelBuilder builder) {
             base.OnModelCreating(builder);
 
             // ===========================
@@ -145,8 +140,7 @@ namespace ADE_WFM.Data
             // ===========================
             //  GLOBAL TENANT FILTERS
             // ===========================
-            foreach (var entityType in builder.Model.GetEntityTypes())
-            {
+            foreach (var entityType in builder.Model.GetEntityTypes()) {
                 if (typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType) &&
                     entityType.ClrType != typeof(Tenant)) // <-- exclude Tenant itself
                 {
@@ -163,18 +157,15 @@ namespace ADE_WFM.Data
         // =========================================================
         // Applies Tenant filter automatically for all ITenantEntity
         // =========================================================
-        private void SetTenantFilter<T>(ModelBuilder builder) where T : class, ITenantEntity
-        {
+        private void SetTenantFilter<T>(ModelBuilder builder) where T : class, ITenantEntity {
             builder.Entity<T>().HasQueryFilter(e => e.TenantId == CurrentTenantId || CurrentTenantId == null);
         }
 
         // =========================================================
         //  Determine current tenant from context or middleware
         // =========================================================
-        private int? CurrentTenantId
-        {
-            get
-            {
+        private int? CurrentTenantId {
+            get {
                 // Prefer middleware tenant context (set in HttpContext.Items)
                 var tenantContext = _httpContextAccessor.HttpContext?.Items["TenantContext"] as TenantContext;
                 if (tenantContext != null && tenantContext.TenantId > 0)

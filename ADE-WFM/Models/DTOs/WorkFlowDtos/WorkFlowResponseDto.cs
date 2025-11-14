@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos
-{
-    public class WorkFlowResponseDto
-    {
+﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos {
+    public class WorkFlowResponseDto {
         public int WorkFlowId { get; set; }
         public string WorkFlowName { get; set; } = string.Empty;
 

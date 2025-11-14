@@ -1,20 +1,14 @@
-﻿using ADE_WFM.Models.DTOs;
-using ADE_WFM.Models.DTOs.TodoDtos;
+﻿using ADE_WFM.Models.DTOs.TodoDtos;
 using ADE_WFM.Services.TodoService;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 
-namespace ADE_WFM.Controllers
-{
+namespace ADE_WFM.Controllers {
     [Route("api/[controller]")]
     [ApiController]
-    public class TodoController : ControllerBase
-    {
+    public class TodoController : ControllerBase {
         private readonly ITodoService _todoService;
-        public TodoController(ITodoService todoService)
-        {
+        public TodoController(ITodoService todoService) {
             _todoService = todoService;
         }
 
@@ -22,8 +16,7 @@ namespace ADE_WFM.Controllers
         // CREATE API's
         // Add a new todo
         [HttpPost("{userId}")]
-        public async Task<IActionResult> AddTodo([FromBody] AddTodoDto dto, string userId, [FromQuery] int? projectId = null)
-        {
+        public async Task<IActionResult> AddTodo([FromBody] AddTodoDto dto, string userId, [FromQuery] int? projectId = null) {
             dto.UserId = userId ?? dto.UserId;
             dto.ProjectId = projectId ?? dto.ProjectId;
             var result = await _todoService.AddTodo(dto);
@@ -35,8 +28,7 @@ namespace ADE_WFM.Controllers
         // GET API's
         // Get all todos for a user
         [HttpGet("User/")]
-        public async Task<IActionResult> GetAllUserTodos()
-        {
+        public async Task<IActionResult> GetAllUserTodos() {
             var result = await _todoService.GetAllUserTodos();
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -45,8 +37,7 @@ namespace ADE_WFM.Controllers
 
         // Get all todos for a project
         [HttpGet("Project/{projectId}")]
-        public async Task<IActionResult> GetAllProjectTodos([FromBody] GetToDoDto dto, int? projectId)
-        {
+        public async Task<IActionResult> GetAllProjectTodos([FromBody] GetToDoDto dto, int? projectId) {
             dto.ProjectId = projectId ?? dto.ProjectId;
             var result = await _todoService.GetAllProjectTodos(dto);
 
@@ -57,8 +48,7 @@ namespace ADE_WFM.Controllers
         // UPDATE API's
         // Update a todo
         [HttpPut]
-        public async Task<IActionResult> UpdateTodo([FromBody] UpdateTodoDto dto, [FromQuery] int? todoId = null)
-        {
+        public async Task<IActionResult> UpdateTodo([FromBody] UpdateTodoDto dto, [FromQuery] int? todoId = null) {
             dto.TodoId = todoId ?? dto.TodoId;
             var result = await _todoService.UpdateTodo(dto);
 
@@ -68,8 +58,7 @@ namespace ADE_WFM.Controllers
 
         // Mark a todo as complete/incomplete
         [HttpPut("is-complete")]
-        public async Task<IActionResult> MarkTodoCompletion([FromBody] MarkTodoCompletionDto dto, [FromQuery] int? todoId = null, [FromQuery] bool? isComplete = true)
-        {
+        public async Task<IActionResult> MarkTodoCompletion([FromBody] MarkTodoCompletionDto dto, [FromQuery] int? todoId = null, [FromQuery] bool? isComplete = true) {
             dto.ToDoId = todoId ?? dto.ToDoId;
             dto.IsComplete = isComplete ?? dto.IsComplete;
             var result = await _todoService.MarkTodoCompletion(dto);
@@ -81,8 +70,7 @@ namespace ADE_WFM.Controllers
         // DELETE API's
         // Delete a todo
         [HttpDelete("{todoId}")]
-        public async Task<IActionResult> DeleteTodo([FromBody] GetToDoDto dto, int? todoId)
-        {
+        public async Task<IActionResult> DeleteTodo([FromBody] GetToDoDto dto, int? todoId) {
             dto.TodoId = todoId ?? dto.TodoId;
             var result = await _todoService.DeleteTodo(dto);
 

@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Models.DTOs.ProjectDtos
-{
-    public class ProjectResponseDto
-    {
+﻿namespace ADE_WFM.Models.DTOs.ProjectDtos {
+    public class ProjectResponseDto {
         public int ProjectId { get; set; }
         public string ProjectTitle { get; set; } = string.Empty;
         public string? ProjectDescription { get; set; }

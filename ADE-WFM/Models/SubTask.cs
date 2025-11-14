@@ -2,10 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ADE_WFM.Models
-{
-    public class SubTask : ITenantEntity
-    {
+namespace ADE_WFM.Models {
+    public class SubTask : ITenantEntity {
         public int Id { get; set; }
         [Required]
         public string Description { get; set; } = string.Empty;

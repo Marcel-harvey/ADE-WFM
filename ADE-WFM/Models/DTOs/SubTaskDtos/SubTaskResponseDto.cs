@@ -1,7 +1,5 @@
-﻿namespace ADE_WFM.Models.DTOs.SubTaskDtos
-{
-    public class SubTaskResponseDto
-    {
+﻿namespace ADE_WFM.Models.DTOs.SubTaskDtos {
+    public class SubTaskResponseDto {
         public int SubTaskId { get; set; }
         public string Description { get; set; } = string.Empty;
         public bool IsCompleted { get; set; }

@@ -1,11 +1,8 @@
-﻿using ADE_WFM.Models;
-using ADE_WFM.Models.DTOs;
+﻿using ADE_WFM.Models.DTOs;
 using ADE_WFM.Models.DTOs.TodoDtos;
 
-namespace ADE_WFM.Services.TodoService
-{
-    public interface ITodoService
-    {
+namespace ADE_WFM.Services.TodoService {
+    public interface ITodoService {
         // ADD service
         Task<ServiceResult<ToDoResponseDto>> AddTodo(AddTodoDto dto);
 

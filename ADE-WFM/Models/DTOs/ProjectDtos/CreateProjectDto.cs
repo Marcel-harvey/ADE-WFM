@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ADE_WFM.Models.DTOs.ProjectDtos
-{
-    public class CreateProjectDto
-    {
+namespace ADE_WFM.Models.DTOs.ProjectDtos {
+    public class CreateProjectDto {
         [Required]
         public string ProjectTitle { get; set; } = string.Empty;
         public string? ProjectDescription { get; set; }

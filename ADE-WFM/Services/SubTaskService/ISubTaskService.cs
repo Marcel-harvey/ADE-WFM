@@ -1,11 +1,8 @@
-﻿using ADE_WFM.Models.DTOs.SubTaskDtos;
-using ADE_WFM.Models;
-using ADE_WFM.Models.DTOs;
+﻿using ADE_WFM.Models.DTOs;
+using ADE_WFM.Models.DTOs.SubTaskDtos;
 
-namespace ADE_WFM.Services.SubTaskService
-{
-    public interface ISubTaskService
-    {
+namespace ADE_WFM.Services.SubTaskService {
+    public interface ISubTaskService {
         // ADD services
         Task<ServiceResult<SubTaskResponseDto>> AddSubTasksToTodo(AddSubTasksToTodoDto dto);
 
