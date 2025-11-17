@@ -31,10 +31,20 @@ namespace ADE_WFM.Controllers {
         }
 
 
-        // GET
+        // Accept invite
         [HttpPost("accept-invite")]
         public async Task<IActionResult> AcceptTokenInvite([FromBody] InviteTokenDto dto) {
             var result = await _companyService.AcceptTenantInvite(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
+
+        // GET
+        // Get tenant invite information
+        [HttpGet("invite-information")]
+        public async Task<IActionResult> GetInviteInformation([FromQuery] InviteTokenDto dto) {
+            var result = await _companyService.GetTenantInviteInfo(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
         }
