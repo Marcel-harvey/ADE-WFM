@@ -6,9 +6,10 @@ namespace ADE_WFM.Services.CompanyService {
         // CREATE
         Task<ServiceResult<InviteToTenantResponseDto>> CreateTenantInvite(InviteToTenantDto dto);
         Task<ServiceResult<TenantResponseDto>> CreateTenant(CreateTenantDto dto);
+        Task<ServiceResult<AcceptTenantInviteResponseDto>> AcceptTenantInvite(InviteTokenDto dto);
 
         // GET
-        Task<ServiceResult<AcceptTenantInviteResponseDto>> AcceptTenantInvite(InviteTokenDto dto);
+        Task<ServiceResult<GetTenantInviteInfoResponseDto>> GetTenantInviteInfo(InviteTokenDto dto);
 
         // UPDATE
         Task<ServiceResult<TenantResponseDto>> UpdateTenantConnection(TenantInfoDto dto);

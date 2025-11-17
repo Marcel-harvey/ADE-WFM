@@ -145,12 +145,11 @@ namespace ADE_WFM.Services.CompanyService {
         }
 
 
-        // GET services
         public async Task<ServiceResult<AcceptTenantInviteResponseDto>> AcceptTenantInvite(InviteTokenDto dto) {
             if (dto == null)
                 return ServiceResult<AcceptTenantInviteResponseDto>.Failure("No information provided");
 
-            if (dto.TenantId <= 0 && dto.InviteToken == Guid.Empty)
+            if (dto.InviteToken == Guid.Empty)
                 return ServiceResult<AcceptTenantInviteResponseDto>.Failure("No valid tenant invite token supplied");
 
             try {
@@ -186,11 +185,7 @@ namespace ADE_WFM.Services.CompanyService {
 
                 return ServiceResult<AcceptTenantInviteResponseDto>.Success(
                     new AcceptTenantInviteResponseDto {
-                        TenantId = tenant.Id,
-                        TenantEmail = tenantInvite.Email,
-                        Role = tenantInvite.Role,
-                        CompanyName = tenant.Name,
-                        Domain = tenant.Domain
+                        TenantId = tenant.Id
                     },
                     "Invite accepted successfully"
                 );
@@ -209,6 +204,52 @@ namespace ADE_WFM.Services.CompanyService {
             }
         }
 
+
+        // GET services
+        public async Task<ServiceResult<GetTenantInviteInfoResponseDto>> GetTenantInviteInfo(InviteTokenDto dto) {
+            if (dto == null)
+                return ServiceResult<GetTenantInviteInfoResponseDto>.Failure("No information provided");
+
+            if (dto.InviteToken == Guid.Empty)
+                return ServiceResult<GetTenantInviteInfoResponseDto>.Failure("Tenant token not supplied");
+
+            try {
+                // TODO: Add check IsUsed
+                var tenant = await _context.TenantInvites
+                    .FirstOrDefaultAsync(t => t.Id == dto.InviteToken);
+                if (tenant == null) {
+                    _logger.LogInformation("Tenant invite not found for {TenantToken}", dto.InviteToken);
+                    return ServiceResult<GetTenantInviteInfoResponseDto>.Failure("Invite token nout found");
+                }
+
+                var company = await _context.Tenants
+                    .FindAsync(tenant.TenantId);
+                if (company == null) {
+                    _logger.LogInformation("No Tenant found with ID {TenantId}", tenant.TenantId);
+                    return ServiceResult<GetTenantInviteInfoResponseDto>.Failure("No company found related to invite");
+                }
+
+                return ServiceResult<GetTenantInviteInfoResponseDto>.Success(
+                    new GetTenantInviteInfoResponseDto {
+                        TenantToken = tenant.Id,
+                        UserEmail = tenant.Email,
+                        CompanyName = company.Name
+                    }
+                );
+            }
+            catch (DbUpdateException ex) {
+                _logger.LogError(ex, "Database error while getting tenant invite");
+                return ServiceResult<GetTenantInviteInfoResponseDto>.Failure(
+                    "A database error occurred while getting the tenant invite.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Unexpected error while getting tenant invite");
+                return ServiceResult<GetTenantInviteInfoResponseDto>.Failure(
+                    "An unexpected error occurred while getting the tenant invite.",
+                    new[] { ex.Message });
+            }
+        }
 
         // UPDATE services
         // Update tenant connection properties
