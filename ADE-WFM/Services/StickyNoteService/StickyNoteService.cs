@@ -31,11 +31,15 @@ namespace ADE_WFM.Services.StickyNoteService {
             if (dto == null)
                 return ServiceResult<StickyNoteResponseDto>.Failure("No information provided.");
 
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                return ServiceResult<StickyNoteResponseDto>.Failure("Title is required.");
+
             if (string.IsNullOrEmpty(dto.Content))
                 return ServiceResult<StickyNoteResponseDto>.Failure("Content is required.");
 
             try {
                 var stickyNote = new StickyNote {
+                    Title = dto.Title,
                     Content = dto.Content,
                     UserId = _tenantContext.UserId,
                     TenantId = _tenantContext.TenantId
@@ -49,6 +53,7 @@ namespace ADE_WFM.Services.StickyNoteService {
                 return ServiceResult<StickyNoteResponseDto>.Success(
                     new StickyNoteResponseDto {
                         Id = stickyNote.Id,
+                        Title = stickyNote.Title,
                         Content = stickyNote.Content
                     },
                     "Sticky note created successfully."
