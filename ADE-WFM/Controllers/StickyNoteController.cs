@@ -29,6 +29,17 @@ namespace ADE_WFM.Controllers {
             return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
+        // Get sticky note by ID
+        [HttpGet("{noteId}")]
+        public async Task<IActionResult> GetStickyNoteById(int noteId) {
+            var result = await _stickyNoteService.GetStickyNoteById(
+                new GetStickyNoteInfoDto {
+                    StickyNoteId = noteId
+                });
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
 
         // UPDATE API's
         // Update selected sticky note

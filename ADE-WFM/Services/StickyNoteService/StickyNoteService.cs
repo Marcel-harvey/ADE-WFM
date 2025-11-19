@@ -108,6 +108,39 @@ namespace ADE_WFM.Services.StickyNoteService {
         }
 
 
+        // Get sticky note by ID
+        public async Task<ServiceResult<StickyNoteResponseDto>> GetStickyNoteById(GetStickyNoteInfoDto dto) {
+            if (dto == null)
+                return ServiceResult<StickyNoteResponseDto>.Failure("No information provided.");
+
+            if (dto.StickyNoteId <= 0)
+                return ServiceResult<StickyNoteResponseDto>.Failure("No sticky note ID provided");
+
+            try {
+                var stickyNote = await _context.StickyNotes
+                    .FirstOrDefaultAsync(sn => sn.Id == dto.StickyNoteId && sn.UserId == _tenantContext.UserId && sn.TenantId == _tenantContext.TenantId);
+                if (stickyNote == null)
+                    return ServiceResult<StickyNoteResponseDto>.Failure("Sticky note not found.");
+
+                return ServiceResult<StickyNoteResponseDto>.Success(
+                        new StickyNoteResponseDto {
+                            Id = stickyNote.Id,
+                            Title = stickyNote.Title,
+                            Content = stickyNote.Content
+                        },
+                        "Sticky note retreived"
+                    );
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Error retrieving sticky note.");
+
+                return ServiceResult<StickyNoteResponseDto>.Failure(
+                    "An unexpected error occurred while retrieving sticky note.",
+                    new[] { ex.Message });
+            }
+        }
+
+
         // UPDATE services
         public async Task<ServiceResult<StickyNoteResponseDto>> UpdateStickyNote(GetStickyNoteInfoDto dto) {
             // General validations
