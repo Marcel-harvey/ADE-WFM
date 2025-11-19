@@ -7,7 +7,7 @@ namespace ADE_WFM.Services.StickyNoteService {
         Task<ServiceResult<StickyNoteResponseDto>> AddStickyNote(CreateStickyNoteDto dto);
 
         // GET services
-        Task<ServiceResult<List<StickyNoteResponseDto>>> GetAllStickyNotes(GetStickyNoteInfoDto dto);
+        Task<ServiceResult<List<StickyNoteResponseDto>>> GetAllStickyNotes();
 
         // UPDATE services
         Task<ServiceResult<StickyNoteResponseDto>> UpdateStickyNote(GetStickyNoteInfoDto dto);

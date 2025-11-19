@@ -76,11 +76,7 @@ namespace ADE_WFM.Services.StickyNoteService {
 
         // GET services
         // Get all sticky notes related to user
-        public async Task<ServiceResult<List<StickyNoteResponseDto>>> GetAllStickyNotes(GetStickyNoteInfoDto dto) {
-            // General validations
-            if (dto == null)
-                return ServiceResult<List<StickyNoteResponseDto>>.Failure("No information provided.");
-
+        public async Task<ServiceResult<List<StickyNoteResponseDto>>> GetAllStickyNotes() {
             try {
                 var stickyNotes = await _context.StickyNotes
                     .Where(sn => sn.UserId == _tenantContext.UserId && sn.TenantId == _tenantContext.TenantId)
@@ -96,6 +92,7 @@ namespace ADE_WFM.Services.StickyNoteService {
                 return ServiceResult<List<StickyNoteResponseDto>>.Success(
                     stickyNotes.Select(sn => new StickyNoteResponseDto {
                         Id = sn.Id,
+                        Title = sn.Title,
                         Content = sn.Content
                     }).ToList(),
                     "Sticky notes retrieved successfully."

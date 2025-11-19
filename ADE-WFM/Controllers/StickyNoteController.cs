@@ -22,13 +22,9 @@ namespace ADE_WFM.Controllers {
 
         // GET API's
         // Get all users sticky notes
-        [HttpGet("{stickyNoteId}")]
-        public async Task<IActionResult> GetAllUserStickyNotes(int stickyNoteId) {
-            var dto = new GetStickyNoteInfoDto {
-                StickyNoteId = stickyNoteId
-            };
-
-            var result = await _stickyNoteService.GetAllStickyNotes(dto);
+        [HttpGet]
+        public async Task<IActionResult> GetAllUserStickyNotes() {
+            var result = await _stickyNoteService.GetAllStickyNotes();
 
             return result.Succeeded ? Ok(result) : NotFound(result);
         }
