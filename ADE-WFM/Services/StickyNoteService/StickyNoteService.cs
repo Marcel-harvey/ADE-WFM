@@ -122,6 +122,8 @@ namespace ADE_WFM.Services.StickyNoteService {
                 if (stickyNote == null)
                     return ServiceResult<StickyNoteResponseDto>.Failure("Sticky note not found.");
 
+                _logger.LogInformation("Sticky note with ID {StickyNoteId} retrieved for user with ID: {UserId}", dto.StickyNoteId, _tenantContext.UserId);
+
                 return ServiceResult<StickyNoteResponseDto>.Success(
                         new StickyNoteResponseDto {
                             Id = stickyNote.Id,
@@ -147,7 +149,7 @@ namespace ADE_WFM.Services.StickyNoteService {
             if (dto == null)
                 return ServiceResult<StickyNoteResponseDto>.Failure("No information provided.");
 
-            if (string.IsNullOrEmpty(dto.NewContent))
+            if (string.IsNullOrEmpty(dto.NewContent) && string.IsNullOrWhiteSpace(dto.NewTitle))
                 return ServiceResult<StickyNoteResponseDto>.Failure("Updated content is required.");
 
             if (dto.StickyNoteId <= 0)
@@ -162,7 +164,16 @@ namespace ADE_WFM.Services.StickyNoteService {
                     return ServiceResult<StickyNoteResponseDto>.Failure("Sticky note not found.");
                 }
 
-                stickyNote.Content = dto.NewContent;
+                if (dto.NewTitle != null) {
+                    stickyNote.Title = dto.NewTitle;
+                    _logger.LogInformation("Sticky note title updated for ID {noteId}", dto.StickyNoteId);
+                }
+
+                if (dto.NewContent != null) {
+                    stickyNote.Content = dto.NewContent;
+                    _logger.LogInformation("Sticky note content was update for ID {notedId}", dto.StickyNoteId);
+                }
+
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Sticky note with ID {StickyNoteId} updated successfully for user with ID: {UserId}", dto.StickyNoteId, _tenantContext.UserId);
@@ -170,6 +181,7 @@ namespace ADE_WFM.Services.StickyNoteService {
                 return ServiceResult<StickyNoteResponseDto>.Success(
                     new StickyNoteResponseDto {
                         Id = stickyNote.Id,
+                        Title = stickyNote.Title,
                         Content = stickyNote.Content
                     },
                     "Sticky note updated successfully."
