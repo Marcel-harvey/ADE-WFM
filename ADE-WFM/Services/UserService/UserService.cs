@@ -220,6 +220,39 @@ namespace ADE_WFM.Services.UserService {
         }
 
 
+        // Get all users part of tenant/company
+        public async Task<ServiceResult<List<UserResponseDto>>> GetTenantUsers() {
+            try {
+                var tenantUsers = await _userManager.Users
+                    .Where(u => u.TenantId == _tenantContext.TenantId)
+                    .ToListAsync();
+
+                if (tenantUsers == null || tenantUsers.Count == 0) {
+                    _logger.LogInformation("No users found for tenant: {tenantName}", _tenantContext.TenantName);
+                    return ServiceResult<List<UserResponseDto>>.Failure($"No users found for company {_tenantContext.TenantName}");
+                }
+
+                _logger.LogInformation("Retrieved {count} users successfully for {tenatnName}", tenantUsers.Count, _tenantContext.TenantName);
+
+                return ServiceResult<List<UserResponseDto>>.Success(
+                    tenantUsers.Select(u => new UserResponseDto {
+                        Id = u.Id,
+                        UserName = u.UserName ?? "Unknown",
+                        Email = u.Email ?? "Email not found"
+                    }).ToList(),
+                    "Users retrieved successfully"
+                    );
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Error retrieving users.");
+
+                return ServiceResult<List<UserResponseDto>>.Failure(
+                    "An unexpected error occurred while retrieving users.",
+                    new[] { ex.Message });
+            }
+        }
+
+
         // UPDATE:
         // Change user password
         public async Task<ServiceResult<LoginResponseDto>> ChangePassword(ChangePasswordDto dto) {

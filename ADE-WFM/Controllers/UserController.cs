@@ -31,6 +31,14 @@ namespace ADE_WFM.Controllers {
             return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
+        // Get users in tenant
+        [HttpGet("Company")]
+        public async Task<IActionResult> GetCompanyUsers() {
+            var result = await _userService.GetTenantUsers();
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
 
         // Login User
         [HttpPost("Login")]
