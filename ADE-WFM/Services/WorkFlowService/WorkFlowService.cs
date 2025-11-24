@@ -39,8 +39,8 @@ namespace ADE_WFM.Services.WorkFlowService {
             try {
                 var workFlow = new WorkFlow {
                     WorkFlowName = dto.WorkFlowName,
-                    userCreated = _tenantContext.UserName,
-                    dateCreated = DateTime.UtcNow,
+                    Author = _tenantContext.UserName,
+                    DateCreated = DateTime.UtcNow,
                     WorkFlowUsers = new List<WorkFlowUser>(),
                     TenantId = _tenantContext.TenantId
                 };
@@ -82,8 +82,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     new WorkFlowResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
-                        CreatedUser = workFlow.userCreated,
-                        DateCreated = workFlow.dateCreated,
+                        CreatedUser = workFlow.Author,
+                        DateCreated = workFlow.DateCreated,
                         Projects = createdWorkflow?.Project?.Select(p => new GetWorkFlowProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -205,9 +205,10 @@ namespace ADE_WFM.Services.WorkFlowService {
         public async Task<ServiceResult<List<WorkFlowResponseDto>>> GetAllWorkFlows() {
             try {
                 var workFlows = await _context.WorkFlows
-                    .OrderByDescending(wf => wf.dateCreated)
+                    .OrderByDescending(wf => wf.DateCreated)
                     .Where(wf => wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
+                    .Include(wf => wf.Comments)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
                     .ToListAsync();
@@ -223,8 +224,9 @@ namespace ADE_WFM.Services.WorkFlowService {
                     workFlows.Select(wf => new WorkFlowResponseDto {
                         WorkFlowId = wf.Id,
                         WorkFlowName = wf.WorkFlowName,
-                        CreatedUser = wf.userCreated,
-                        DateCreated = wf.dateCreated,
+                        CreatedUser = wf.Author,
+                        DateCreated = wf.DateCreated,
+                        DueDate = wf.DueDate,
                         Projects = wf.Project?.Select(p => new GetWorkFlowProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -232,7 +234,11 @@ namespace ADE_WFM.Services.WorkFlowService {
                         Users = wf.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto {
                             Id = wu.UserId,
                             UserName = wu.User?.UserName ?? ""
-                        }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                        }).ToList() ?? new List<GetWorkFlowUsersDto>(),
+                        Comments = wf.Comments?.Select(c => new GetWorkFlowCommentsDto {
+                            Id = c.Id,
+                            Content = c.CommentContent
+                        }).ToList()
                     }).ToList(),
                     "Workflows retrieved successfully."
                 );
@@ -277,8 +283,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     new WorkFlowResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
-                        CreatedUser = workFlow.userCreated ?? "No creator user name added",
-                        DateCreated = workFlow.dateCreated,
+                        CreatedUser = workFlow.Author ?? "No creator user name added",
+                        DateCreated = workFlow.DateCreated,
                         Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
