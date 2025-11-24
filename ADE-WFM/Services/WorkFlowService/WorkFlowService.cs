@@ -40,11 +40,14 @@ namespace ADE_WFM.Services.WorkFlowService {
                 var workFlow = new WorkFlow {
                     WorkFlowName = dto.WorkFlowName,
                     Author = _tenantContext.UserName,
+                    Description = dto.Description,
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                     DueDate = dto.DueDate,
                     WorkFlowUsers = new List<WorkFlowUser>(),
                     TenantId = _tenantContext.TenantId
                 };
+
+                _logger.LogInformation(dto.Description);
 
                 // Add creator as admin
                 workFlow.WorkFlowUsers.Add(new WorkFlowUser {
@@ -225,6 +228,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                     workFlows.Select(wf => new WorkFlowResponseDto {
                         WorkFlowId = wf.Id,
                         WorkFlowName = wf.WorkFlowName,
+                        Description = wf.Description,
                         CreatedUser = wf.Author,
                         DateCreated = wf.DateCreated,
                         DueDate = wf.DueDate,
