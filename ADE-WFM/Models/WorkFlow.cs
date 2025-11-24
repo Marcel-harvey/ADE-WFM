@@ -9,8 +9,8 @@ namespace ADE_WFM.Models {
         public string WorkFlowName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
-        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
-        public DateTime DueDate { get; set; }
+        public DateOnly DateCreated { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+        public DateOnly DueDate { get; set; }
 
 
         // Navigation Properties

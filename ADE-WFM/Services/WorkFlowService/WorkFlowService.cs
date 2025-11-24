@@ -40,7 +40,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 var workFlow = new WorkFlow {
                     WorkFlowName = dto.WorkFlowName,
                     Author = _tenantContext.UserName,
-                    DateCreated = DateTime.UtcNow,
+                    DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                     WorkFlowUsers = new List<WorkFlowUser>(),
                     TenantId = _tenantContext.TenantId
                 };

@@ -4,8 +4,8 @@
         public string WorkFlowName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string CreatedUser { get; set; } = string.Empty;
-        public DateTime DateCreated { get; set; }
-        public DateTime DueDate { get; set; }
+        public DateOnly DateCreated { get; set; }
+        public DateOnly DueDate { get; set; }
 
         // Lists
         public List<GetWorkFlowProjectsDto>? Projects { get; set; }
