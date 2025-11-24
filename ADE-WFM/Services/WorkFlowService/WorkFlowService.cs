@@ -41,6 +41,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                     WorkFlowName = dto.WorkFlowName,
                     Author = _tenantContext.UserName,
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
+                    DueDate = dto.DueDate,
                     WorkFlowUsers = new List<WorkFlowUser>(),
                     TenantId = _tenantContext.TenantId
                 };
