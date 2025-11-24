@@ -39,6 +39,8 @@ namespace ADE_WFM.Services.WorkFlowService {
             try {
                 var workFlow = new WorkFlow {
                     WorkFlowName = dto.WorkFlowName,
+                    userCreated = _tenantContext.UserName,
+                    dateCreated = DateTime.UtcNow,
                     WorkFlowUsers = new List<WorkFlowUser>(),
                     TenantId = _tenantContext.TenantId
                 };
@@ -80,6 +82,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     new WorkFlowResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
+                        createdUser = workFlow.userCreated,
+                        dateCreated = workFlow.dateCreated,
                         Projects = createdWorkflow?.Project?.Select(p => new GetWorkFlowProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -270,6 +274,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     new WorkFlowResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
+                        createdUser = workFlow.userCreated,
+                        dateCreated = workFlow.dateCreated,
                         Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle

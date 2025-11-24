@@ -2,6 +2,8 @@
     public class WorkFlowResponseDto {
         public int WorkFlowId { get; set; }
         public string WorkFlowName { get; set; } = string.Empty;
+        public string createdUser { get; set; } = string.Empty;
+        public DateTime dateCreated { get; set; }
 
         // Lists
         public List<GetWorkFlowProjectsDto>? Projects { get; set; }
