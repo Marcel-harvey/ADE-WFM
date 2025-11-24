@@ -7,6 +7,8 @@ namespace ADE_WFM.Models {
         public int Id { get; set; }
         [Required]
         public string WorkFlowName { get; set; } = string.Empty;
+        public string userCreated { get; set; } = string.Empty;
+        public DateTime dateCreated { get; set; } = DateTime.UtcNow;
 
 
         // Navigation Properties
