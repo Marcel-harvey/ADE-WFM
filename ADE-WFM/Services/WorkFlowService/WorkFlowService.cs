@@ -82,8 +82,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     new WorkFlowResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
-                        createdUser = workFlow.userCreated,
-                        dateCreated = workFlow.dateCreated,
+                        CreatedUser = workFlow.userCreated,
+                        DateCreated = workFlow.dateCreated,
                         Projects = createdWorkflow?.Project?.Select(p => new GetWorkFlowProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -205,7 +205,8 @@ namespace ADE_WFM.Services.WorkFlowService {
         public async Task<ServiceResult<List<WorkFlowResponseDto>>> GetAllWorkFlows() {
             try {
                 var workFlows = await _context.WorkFlows
-                    .Where(wf => wf.TenantId == _tenantContext.TenantId) // Tenant filter
+                    .OrderByDescending(wf => wf.dateCreated)
+                    .Where(wf => wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
@@ -222,6 +223,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     workFlows.Select(wf => new WorkFlowResponseDto {
                         WorkFlowId = wf.Id,
                         WorkFlowName = wf.WorkFlowName,
+                        CreatedUser = wf.userCreated,
+                        DateCreated = wf.dateCreated,
                         Projects = wf.Project?.Select(p => new GetWorkFlowProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -274,8 +277,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     new WorkFlowResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
-                        createdUser = workFlow.userCreated,
-                        dateCreated = workFlow.dateCreated,
+                        CreatedUser = workFlow.userCreated ?? "No creator user name added",
+                        DateCreated = workFlow.dateCreated,
                         Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
