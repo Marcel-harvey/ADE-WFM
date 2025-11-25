@@ -1,5 +1,5 @@
 ﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos {
-    public class GetWorkFlowInfoDto {
+    public class GetProgramInfoDto {
         public int? WorkFlowId { get; set; }
     }
 }

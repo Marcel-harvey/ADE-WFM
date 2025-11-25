@@ -1,5 +1,5 @@
 ﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos {
-    public class RemoveUserFromWorkFlowDto {
+    public class RemoveUserFromProgramDto {
         public string UserId { get; set; } = string.Empty;
         public int WorkFlowId { get; set; }
     }

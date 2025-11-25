@@ -43,7 +43,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 // App services
 builder.Services.AddScoped<ICommentService, CommentService>();
-builder.Services.AddScoped<IWorkFlowService, WorkFlowService>();
+builder.Services.AddScoped<IProgramService, ProgramService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IStickyNoteService, StickyNoteService>();
 builder.Services.AddScoped<ITodoService, TodoService>();

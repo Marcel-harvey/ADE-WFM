@@ -1,5 +1,5 @@
 ﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos {
-    public class GetWorkFlowUsersDto {
+    public class GetProgramUsersDto {
         public string Id { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
     }

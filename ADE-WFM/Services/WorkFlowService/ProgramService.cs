@@ -8,16 +8,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ADE_WFM.Services.WorkFlowService {
-    public class WorkFlowService : IWorkFlowService {
+    public class ProgramService : IProgramService {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ILogger<WorkFlowService> _logger;
+        private readonly ILogger<ProgramService> _logger;
         private readonly TenantContext _tenantContext;
 
-        public WorkFlowService(
+        public ProgramService(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ILogger<WorkFlowService> logger,
+            ILogger<ProgramService> logger,
             TenantContext tenantContext) {
             _context = context;
             _userManager = userManager;
@@ -28,13 +28,13 @@ namespace ADE_WFM.Services.WorkFlowService {
 
         // CREATE:
         // Add new workflow with user the created and extra list of users if selected
-        public async Task<ServiceResult<WorkFlowResponseDto>> AddWorkFlow(CreateWorkFlowDto dto) {
+        public async Task<ServiceResult<ProgramResponseDto>> AddProgram(CreateProgramDto dto) {
             // General validation
             if (dto == null)
-                return ServiceResult<WorkFlowResponseDto>.Failure("No information provided");
+                return ServiceResult<ProgramResponseDto>.Failure("No information provided");
 
             if (string.IsNullOrWhiteSpace(dto.WorkFlowName))
-                return ServiceResult<WorkFlowResponseDto>.Failure("Work flow name is required.");
+                return ServiceResult<ProgramResponseDto>.Failure("Work flow name is required.");
 
             try {
                 var workFlow = new BusinessProgram {
@@ -82,33 +82,33 @@ namespace ADE_WFM.Services.WorkFlowService {
                     dto.WorkFlowName, _tenantContext.UserId);
 
                 // Return success
-                return ServiceResult<WorkFlowResponseDto>.Success(
-                    new WorkFlowResponseDto {
+                return ServiceResult<ProgramResponseDto>.Success(
+                    new ProgramResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
                         CreatedUser = workFlow.Author,
                         DateCreated = workFlow.DateCreated,
-                        Projects = createdWorkflow?.Project?.Select(p => new GetWorkFlowProjectsDto {
+                        Projects = createdWorkflow?.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
-                        }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
-                        Users = createdWorkflow?.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto {
+                        }).ToList() ?? new List<GetProgramProjectsDto>(),
+                        Users = createdWorkflow?.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
                             UserName = wu.User?.UserName ?? "Unknown"
-                        }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                        }).ToList() ?? new List<GetProgramUsersDto>()
                     },
                     "Workflow created successfully."
                 );
             }
             catch (DbUpdateException ex) {
                 _logger.LogError(ex, "Database error while creating workflow '{WorkFlowName}'", dto.WorkFlowName);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "A database error occurred while creating the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Unexpected error while creating workflow '{WorkFlowName}'", dto.WorkFlowName);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "An unexpected error occurred while creating the workflow.",
                     new[] { ex.Message });
             }
@@ -116,15 +116,15 @@ namespace ADE_WFM.Services.WorkFlowService {
 
 
         // Add users to existing workflow
-        public async Task<ServiceResult<WorkFlowResponseDto>> AddUserToWorkFlow(AddUserWorkFlowDto dto) {
+        public async Task<ServiceResult<ProgramResponseDto>> AddUserToProgram(AddUserProgramDto dto) {
             if (dto == null)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
+                return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
 
             if (dto.UserIds == null || !dto.UserIds.Any())
-                return ServiceResult<WorkFlowResponseDto>.Failure("No user IDs were provided.");
+                return ServiceResult<ProgramResponseDto>.Failure("No user IDs were provided.");
 
             if (dto.WorkFlowId <= 0)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
+                return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID provided.");
 
             try {
                 // Check if the workflow exists for current tenant
@@ -136,7 +136,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                     .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId);
 
                 if (workFlow == null)
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found.");
+                    return ServiceResult<ProgramResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found.");
 
                 // Get existing user IDs to avoid duplicates
                 var existingUserIds = workFlow.WorkFlowUsers
@@ -173,31 +173,31 @@ namespace ADE_WFM.Services.WorkFlowService {
                     workFlow.WorkFlowName, workFlow.Id
                 );
 
-                return ServiceResult<WorkFlowResponseDto>.Success(
-                    new WorkFlowResponseDto {
+                return ServiceResult<ProgramResponseDto>.Success(
+                    new ProgramResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
-                        Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto {
+                        Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
-                        }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
-                        Users = workFlow.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto {
+                        }).ToList() ?? new List<GetProgramProjectsDto>(),
+                        Users = workFlow.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
                             UserName = wu.User?.UserName ?? ""
-                        }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                        }).ToList() ?? new List<GetProgramUsersDto>()
                     },
                     errors.Any() ? "Completed with warnings." : "Users added successfully."
                 );
             }
             catch (DbUpdateException ex) {
                 _logger.LogError(ex, "Database error while adding users to workflow ID {WorkFlowId}", dto.WorkFlowId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "A database error occurred while adding users to the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Unexpected error while adding users to workflow ID {WorkFlowId}", dto.WorkFlowId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "An unexpected error occurred while adding users to the workflow.",
                     new[] { ex.Message });
             }
@@ -206,7 +206,7 @@ namespace ADE_WFM.Services.WorkFlowService {
 
         // GET
         // list of all workflows  
-        public async Task<ServiceResult<List<WorkFlowResponseDto>>> GetAllWorkFlows() {
+        public async Task<ServiceResult<List<ProgramResponseDto>>> GetAllPrograms() {
             try {
                 var workFlows = await _context.Programs
                     .OrderByDescending(wf => wf.DateCreated)
@@ -219,28 +219,28 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 if (workFlows == null || !workFlows.Any()) {
                     _logger.LogWarning("No workflows found in the system for tenant ID {TenantId}.", _tenantContext.TenantId);
-                    return ServiceResult<List<WorkFlowResponseDto>>.Failure("No workflows found.");
+                    return ServiceResult<List<ProgramResponseDto>>.Failure("No workflows found.");
                 }
 
                 _logger.LogInformation("Retrieved all workflows successfully for tenant ID {TenantId}.", _tenantContext.TenantId);
 
-                return ServiceResult<List<WorkFlowResponseDto>>.Success(
-                    workFlows.Select(wf => new WorkFlowResponseDto {
+                return ServiceResult<List<ProgramResponseDto>>.Success(
+                    workFlows.Select(wf => new ProgramResponseDto {
                         WorkFlowId = wf.Id,
                         WorkFlowName = wf.WorkFlowName,
                         Description = wf.Description,
                         CreatedUser = wf.Author,
                         DateCreated = wf.DateCreated,
                         DueDate = wf.DueDate,
-                        Projects = wf.Project?.Select(p => new GetWorkFlowProjectsDto {
+                        Projects = wf.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
-                        }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
-                        Users = wf.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto {
+                        }).ToList() ?? new List<GetProgramProjectsDto>(),
+                        Users = wf.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
                             UserName = wu.User?.UserName ?? ""
-                        }).ToList() ?? new List<GetWorkFlowUsersDto>(),
-                        Comments = wf.Comments?.Select(c => new GetWorkFlowCommentsDto {
+                        }).ToList() ?? new List<GetProgramUsersDto>(),
+                        Comments = wf.Comments?.Select(c => new GetProgramCommentsDto {
                             Id = c.Id,
                             Content = c.CommentContent
                         }).ToList()
@@ -250,7 +250,7 @@ namespace ADE_WFM.Services.WorkFlowService {
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Error retrieving workflows for tenant ID {TenantId}.", _tenantContext.TenantId);
-                return ServiceResult<List<WorkFlowResponseDto>>.Failure(
+                return ServiceResult<List<ProgramResponseDto>>.Failure(
                     "An unexpected error occurred while retrieving workflows.",
                     new[] { ex.Message });
             }
@@ -258,12 +258,12 @@ namespace ADE_WFM.Services.WorkFlowService {
 
 
         // Get workflow by ID
-        public async Task<ServiceResult<WorkFlowResponseDto>> GetWorkFlowById(GetWorkFlowInfoDto dto) {
+        public async Task<ServiceResult<ProgramResponseDto>> GetProgramById(GetProgramInfoDto dto) {
             // General validation
             if (dto == null)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
+                return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
             if (dto.WorkFlowId <= 0)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
+                return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID provided.");
 
             try {
                 var workFlow = await _context.Programs
@@ -277,27 +277,27 @@ namespace ADE_WFM.Services.WorkFlowService {
                 if (workFlow == null) {
                     _logger.LogWarning("Workflow with ID {WorkFlowId} not found for tenant ID {TenantId}.",
                         dto.WorkFlowId, _tenantContext.TenantId);
-                    return ServiceResult<WorkFlowResponseDto>.Failure(
+                    return ServiceResult<ProgramResponseDto>.Failure(
                         $"Workflow with ID {dto.WorkFlowId} was not found.");
                 }
 
                 _logger.LogInformation("Retrieved workflow '{WorkFlowName}' (ID: {WorkFlowId}) successfully for tenant ID {TenantId}.",
                     workFlow.WorkFlowName, workFlow.Id, _tenantContext.TenantId);
 
-                return ServiceResult<WorkFlowResponseDto>.Success(
-                    new WorkFlowResponseDto {
+                return ServiceResult<ProgramResponseDto>.Success(
+                    new ProgramResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
                         CreatedUser = workFlow.Author ?? "No creator user name added",
                         DateCreated = workFlow.DateCreated,
-                        Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto {
+                        Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
-                        }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
-                        Users = workFlow.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto {
+                        }).ToList() ?? new List<GetProgramProjectsDto>(),
+                        Users = workFlow.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
                             UserName = wu.User?.UserName ?? ""
-                        }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                        }).ToList() ?? new List<GetProgramUsersDto>()
                     },
                     "Workflow retrieved successfully."
                 );
@@ -305,7 +305,7 @@ namespace ADE_WFM.Services.WorkFlowService {
             catch (Exception ex) {
                 _logger.LogError(ex, "Error retrieving workflow with ID {WorkFlowId} for tenant ID {TenantId}.",
                     dto.WorkFlowId, _tenantContext.TenantId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "An unexpected error occurred while retrieving the workflow.",
                     new[] { ex.Message });
             }
@@ -314,13 +314,13 @@ namespace ADE_WFM.Services.WorkFlowService {
 
         //UPDATE:
         // Update workflow's name
-        public async Task<ServiceResult<WorkFlowResponseDto>> UpdateWorkFlowName(UpdateWorkFlowNameDto dto) {
+        public async Task<ServiceResult<ProgramResponseDto>> UpdateProgram(UpdateProgramNameDto dto) {
             if (dto == null)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
+                return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
             if (dto.WorkFlowId <= 0)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
+                return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID provided.");
             if (string.IsNullOrWhiteSpace(dto.WorkFlowName))
-                return ServiceResult<WorkFlowResponseDto>.Failure("New workflow name cannot be empty.");
+                return ServiceResult<ProgramResponseDto>.Failure("New workflow name cannot be empty.");
 
             try {
                 var workFlow = await _context.Programs
@@ -332,7 +332,7 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 if (workFlow == null) {
                     _logger.LogWarning("Workflow with ID {WorkFlowId} not found for update.", dto.WorkFlowId);
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
+                    return ServiceResult<ProgramResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
                 }
 
                 workFlow.WorkFlowName = dto.WorkFlowName.Trim();
@@ -340,31 +340,31 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 _logger.LogInformation("Workflow name updated to '{NewName}' for ID {WorkFlowId}", dto.WorkFlowName, dto.WorkFlowId);
 
-                return ServiceResult<WorkFlowResponseDto>.Success(
-                    new WorkFlowResponseDto {
+                return ServiceResult<ProgramResponseDto>.Success(
+                    new ProgramResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
-                        Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto {
+                        Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
-                        }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
-                        Users = workFlow.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto {
+                        }).ToList() ?? new List<GetProgramProjectsDto>(),
+                        Users = workFlow.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
                             UserName = wu.User?.UserName ?? ""
-                        }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                        }).ToList() ?? new List<GetProgramUsersDto>()
                     },
                     $"Workflow name updated successfully to {dto.WorkFlowName}."
                 );
             }
             catch (DbUpdateException ex) {
                 _logger.LogError(ex, "Database error while updating workflow name for ID {WorkFlowId}", dto.WorkFlowId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "A database error occurred while updating the workflow name.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Unexpected error while updating workflow name for ID {WorkFlowId}", dto.WorkFlowId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "An unexpected error occurred while updating the workflow name.",
                     new[] { ex.Message });
             }
@@ -373,12 +373,12 @@ namespace ADE_WFM.Services.WorkFlowService {
 
         // DELETE services
         // Delete workflow
-        public async Task<ServiceResult<WorkFlowResponseDto>> DeleteWorkFlow(GetWorkFlowInfoDto dto) {
+        public async Task<ServiceResult<ProgramResponseDto>> DeleteProgram(GetProgramInfoDto dto) {
             // General validation
             if (dto == null)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
+                return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
             if (dto.WorkFlowId <= 0)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID.");
+                return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID.");
 
             try {
                 // Include tenant filtering
@@ -392,21 +392,21 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 if (workFlow == null) {
                     _logger.LogWarning("Workflow with ID {WorkFlowId} not found for deletion.", dto.WorkFlowId);
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
+                    return ServiceResult<ProgramResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
                 }
 
                 // Prepare response before deletion
-                var response = new WorkFlowResponseDto {
+                var response = new ProgramResponseDto {
                     WorkFlowId = workFlow.Id,
                     WorkFlowName = workFlow.WorkFlowName,
-                    Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto {
+                    Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                         Id = p.Id,
                         ProjectName = p.ProjectTitle
-                    }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
-                    Users = workFlow.WorkFlowUsers?.Select(wu => new GetWorkFlowUsersDto {
+                    }).ToList() ?? new List<GetProgramProjectsDto>(),
+                    Users = workFlow.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                         Id = wu.UserId,
                         UserName = wu.User?.UserName ?? ""
-                    }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                    }).ToList() ?? new List<GetProgramUsersDto>()
                 };
 
                 _context.Programs.Remove(workFlow);
@@ -414,17 +414,17 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 _logger.LogInformation("Workflow '{WorkFlowName}' (ID: {WorkFlowId}) deleted successfully.", workFlow.WorkFlowName, workFlow.Id);
 
-                return ServiceResult<WorkFlowResponseDto>.Success(response, "Workflow deleted successfully.");
+                return ServiceResult<ProgramResponseDto>.Success(response, "Workflow deleted successfully.");
             }
             catch (DbUpdateException ex) {
                 _logger.LogError(ex, "Database error while deleting workflow with ID {WorkFlowId}", dto.WorkFlowId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "A database error occurred while deleting the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Unexpected error while deleting workflow with ID {WorkFlowId}", dto.WorkFlowId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "An unexpected error occurred while deleting the workflow.",
                     new[] { ex.Message });
             }
@@ -432,16 +432,16 @@ namespace ADE_WFM.Services.WorkFlowService {
 
 
         // Remove user from workflow
-        public async Task<ServiceResult<WorkFlowResponseDto>> RemoveUserFromWorkFlow(RemoveUserFromWorkFlowDto dto) {
+        public async Task<ServiceResult<ProgramResponseDto>> RemoveUserFromProgram(RemoveUserFromProgramDto dto) {
             if (dto == null)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Input data is required.");
+                return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
 
             // UserId = User to be removed
             if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<WorkFlowResponseDto>.Failure("User ID is required.");
+                return ServiceResult<ProgramResponseDto>.Failure("User ID is required.");
 
             if (dto.WorkFlowId <= 0)
-                return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
+                return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID provided.");
 
             try {
                 // Find the user in the workflow, ensuring tenant ownership
@@ -455,14 +455,14 @@ namespace ADE_WFM.Services.WorkFlowService {
                 if (workFlowUser == null) {
                     _logger.LogWarning("User with ID {UserId} not found in workflow ID {WorkFlowId} for tenant {TenantId}.",
                         dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"User with ID {dto.UserId} not found in the specified workflow for your tenant.");
+                    return ServiceResult<ProgramResponseDto>.Failure($"User with ID {dto.UserId} not found in the specified workflow for your tenant.");
                 }
 
                 // Ensure user exists in Identity
                 var user = await _userManager.FindByIdAsync(dto.UserId);
                 if (user == null) {
                     _logger.LogWarning("User with ID {UserId} not found in Identity.", dto.UserId);
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"User with ID {dto.UserId} not found.");
+                    return ServiceResult<ProgramResponseDto>.Failure($"User with ID {dto.UserId} not found.");
                 }
 
                 // Load workflow with projects and users for response
@@ -474,25 +474,25 @@ namespace ADE_WFM.Services.WorkFlowService {
                     .FirstOrDefaultAsync();
 
                 if (workFlow == null)
-                    return ServiceResult<WorkFlowResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found for your tenant.");
+                    return ServiceResult<ProgramResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found for your tenant.");
 
                 _context.WorkFlowUsers.Remove(workFlowUser);
                 await _context.SaveChangesAsync();
 
-                return ServiceResult<WorkFlowResponseDto>.Success(
-                    new WorkFlowResponseDto {
+                return ServiceResult<ProgramResponseDto>.Success(
+                    new ProgramResponseDto {
                         WorkFlowId = workFlow.Id,
                         WorkFlowName = workFlow.WorkFlowName,
-                        Projects = workFlow.Project?.Select(p => new GetWorkFlowProjectsDto {
+                        Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
-                        }).ToList() ?? new List<GetWorkFlowProjectsDto>(),
+                        }).ToList() ?? new List<GetProgramProjectsDto>(),
                         Users = workFlow.WorkFlowUsers?
                             .Where(wu => wu.UserId != dto.UserId)
-                            .Select(wu => new GetWorkFlowUsersDto {
+                            .Select(wu => new GetProgramUsersDto {
                                 Id = wu.UserId,
                                 UserName = wu.User?.UserName ?? ""
-                            }).ToList() ?? new List<GetWorkFlowUsersDto>()
+                            }).ToList() ?? new List<GetProgramUsersDto>()
                     },
                     "User removed from workflow successfully."
                 );
@@ -500,14 +500,14 @@ namespace ADE_WFM.Services.WorkFlowService {
             catch (DbUpdateException ex) {
                 _logger.LogError(ex, "Database error while removing user {UserId} from workflow {WorkFlowId} for tenant {TenantId}.",
                     dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "A database error occurred while removing the user from the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Unexpected error while removing user {UserId} from workflow {WorkFlowId} for tenant {TenantId}.",
                     dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
-                return ServiceResult<WorkFlowResponseDto>.Failure(
+                return ServiceResult<ProgramResponseDto>.Failure(
                     "An unexpected error occurred while removing the user from the workflow.",
                     new[] { ex.Message });
             }

@@ -1,5 +1,5 @@
 ﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos {
-    public class WorkFlowResponseDto {
+    public class ProgramResponseDto {
         public int WorkFlowId { get; set; }
         public string WorkFlowName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -8,9 +8,9 @@
         public DateOnly DueDate { get; set; }
 
         // Lists
-        public List<GetWorkFlowProjectsDto>? Projects { get; set; }
-        public List<GetWorkFlowUsersDto>? Users { get; set; }
-        public List<GetWorkFlowCommentsDto>? Comments { get; set; }
+        public List<GetProgramProjectsDto>? Projects { get; set; }
+        public List<GetProgramUsersDto>? Users { get; set; }
+        public List<GetProgramCommentsDto>? Comments { get; set; }
 
         // Counts
         public int ProjectCount => Projects?.Count ?? 0;

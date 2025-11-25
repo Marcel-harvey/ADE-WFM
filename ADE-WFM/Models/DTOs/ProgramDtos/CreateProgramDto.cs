@@ -1,5 +1,5 @@
 ﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos {
-    public class CreateWorkFlowDto {
+    public class CreateProgramDto {
         public string WorkFlowName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public DateOnly DueDate { get; set; }
