@@ -1,7 +1,7 @@
 ﻿namespace ADE_WFM.Models.DTOs.WorkFlowDtos {
     public class ProgramResponseDto {
-        public int WorkFlowId { get; set; }
-        public string WorkFlowName { get; set; } = string.Empty;
+        public int ProgramId { get; set; }
+        public string ProgramName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string CreatedUser { get; set; } = string.Empty;
         public DateOnly DateCreated { get; set; }

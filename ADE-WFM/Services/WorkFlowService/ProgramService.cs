@@ -84,8 +84,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                 // Return success
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
-                        WorkFlowId = workFlow.Id,
-                        WorkFlowName = workFlow.WorkFlowName,
+                        ProgramId = workFlow.Id,
+                        ProgramName = workFlow.WorkFlowName,
                         CreatedUser = workFlow.Author,
                         DateCreated = workFlow.DateCreated,
                         Projects = createdWorkflow?.Project?.Select(p => new GetProgramProjectsDto {
@@ -175,8 +175,8 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
-                        WorkFlowId = workFlow.Id,
-                        WorkFlowName = workFlow.WorkFlowName,
+                        ProgramId = workFlow.Id,
+                        ProgramName = workFlow.WorkFlowName,
                         Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -226,8 +226,8 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 return ServiceResult<List<ProgramResponseDto>>.Success(
                     workFlows.Select(wf => new ProgramResponseDto {
-                        WorkFlowId = wf.Id,
-                        WorkFlowName = wf.WorkFlowName,
+                        ProgramId = wf.Id,
+                        ProgramName = wf.WorkFlowName,
                         Description = wf.Description,
                         CreatedUser = wf.Author,
                         DateCreated = wf.DateCreated,
@@ -286,8 +286,8 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
-                        WorkFlowId = workFlow.Id,
-                        WorkFlowName = workFlow.WorkFlowName,
+                        ProgramId = workFlow.Id,
+                        ProgramName = workFlow.WorkFlowName,
                         CreatedUser = workFlow.Author ?? "No creator user name added",
                         DateCreated = workFlow.DateCreated,
                         Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
@@ -342,8 +342,8 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
-                        WorkFlowId = workFlow.Id,
-                        WorkFlowName = workFlow.WorkFlowName,
+                        ProgramId = workFlow.Id,
+                        ProgramName = workFlow.WorkFlowName,
                         Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -397,8 +397,8 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 // Prepare response before deletion
                 var response = new ProgramResponseDto {
-                    WorkFlowId = workFlow.Id,
-                    WorkFlowName = workFlow.WorkFlowName,
+                    ProgramId = workFlow.Id,
+                    ProgramName = workFlow.WorkFlowName,
                     Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                         Id = p.Id,
                         ProjectName = p.ProjectTitle
@@ -481,8 +481,8 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
-                        WorkFlowId = workFlow.Id,
-                        WorkFlowName = workFlow.WorkFlowName,
+                        ProgramId = workFlow.Id,
+                        ProgramName = workFlow.WorkFlowName,
                         Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
