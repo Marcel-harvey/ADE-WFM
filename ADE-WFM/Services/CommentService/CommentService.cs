@@ -26,7 +26,7 @@ namespace ADE_WFM.Services.CommentService {
 
 
         // ADD services
-        // Add comment to workflow
+        // Add comment to program
         public async Task<ServiceResult<CommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto) {
             // General validations
             if (dto == null)
@@ -39,16 +39,16 @@ namespace ADE_WFM.Services.CommentService {
                 return ServiceResult<CommentResponseDto>.Failure("Valid Work flow ID is required.");
 
             try {
-                var workFlow = await _context.WorkFlows
+                var program = await _context.Programs
                     .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
-                if (workFlow == null)
+                if (program == null)
                     return ServiceResult<CommentResponseDto>.Failure("Work flow not found.");
 
                 var comment = new Comment {
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
                     CommentContent = dto.CommentContent,
                     UserId = _tenantContext.UserId,
-                    WorkFlowId = workFlow.Id,
+                    WorkFlowId = program.Id,
                     IsViewed = false,
                     TenantId = _tenantContext.TenantId,
                 };
@@ -63,8 +63,8 @@ namespace ADE_WFM.Services.CommentService {
                         CommentContent = comment.CommentContent,
                         UserId = _tenantContext.UserId,
                         UserName = _tenantContext.UserName ?? "Unknown",
-                        WorkFlowId = workFlow.Id,
-                        WorkFlowName = workFlow.WorkFlowName,
+                        WorkFlowId = program.Id,
+                        WorkFlowName = program.WorkFlowName,
                     },
                     "Comment added to work flow successfully."
                 );
@@ -155,7 +155,7 @@ namespace ADE_WFM.Services.CommentService {
 
 
         // GET serivces
-        // Get all comments on a workflow
+        // Get all comments on a program
         public async Task<ServiceResult<List<CommentResponseDto>>> GetWorkFlowComments(GetCommentInfoDto dto) {
             if (dto == null)
                 return ServiceResult<List<CommentResponseDto>>.Failure("No information provided.");
@@ -164,26 +164,26 @@ namespace ADE_WFM.Services.CommentService {
                 return ServiceResult<List<CommentResponseDto>>.Failure("Invalid WorkFlow ID.");
 
             try {
-                var workflow = await _context.WorkFlows
+                var program = await _context.Programs
                     .Include(wf => wf.Comments!)
                         .ThenInclude(c => c.User)
                     .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
 
-                // Check if workflow exists first before accessing comments
-                if (workflow == null) {
+                // Check if program exists first before accessing comments
+                if (program == null) {
                     _logger.LogInformation("WorkFlow not found for WorkFlow ID: {WorkFlowId}", dto.WorkFlowId);
                     return ServiceResult<List<CommentResponseDto>>.Failure("WorkFlow not found.");
                 }
 
-                if (workflow.Comments == null || !workflow.Comments.Any()) {
+                if (program.Comments == null || !program.Comments.Any()) {
                     _logger.LogInformation("No comments found for WorkFlow ID: {WorkFlowId}", dto.WorkFlowId);
-                    return ServiceResult<List<CommentResponseDto>>.Success(new List<CommentResponseDto>(), "No comments found for the specified workflow.");
+                    return ServiceResult<List<CommentResponseDto>>.Success(new List<CommentResponseDto>(), "No comments found for the specified program.");
                 }
 
-                _logger.LogInformation("Successfully retrieved all comments in work flow {workFlowName}", workflow.WorkFlowName);
+                _logger.LogInformation("Successfully retrieved all comments in work flow {workFlowName}", program.WorkFlowName);
                 return ServiceResult<List<CommentResponseDto>>.Success(
-                    workflow.Comments
-                        .Where(c => c.ProjectId == null) // Only workflow comments, not project comments
+                    program.Comments
+                        .Where(c => c.ProjectId == null) // Only program comments, not project comments
                         .Select(c => new CommentResponseDto {
                             CommentId = c.Id,
                             CommentContent = c.CommentContent,
@@ -191,16 +191,16 @@ namespace ADE_WFM.Services.CommentService {
                             IsViewed = c.IsViewed,
                             UserId = c.UserId,
                             UserName = c.User?.UserName ?? "Unknown",
-                            WorkFlowId = workflow.Id,
-                            WorkFlowName = workflow.WorkFlowName,
+                            WorkFlowId = program.Id,
+                            WorkFlowName = program.WorkFlowName,
                         }).ToList(),
-                        $"Work flow '{workflow.WorkFlowName}' comments retrieved successfully."
+                        $"Work flow '{program.WorkFlowName}' comments retrieved successfully."
                     );
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Error retrieving workflow comments for WorkFlow ID {WorkFlowId}", dto.WorkFlowId);
+                _logger.LogError(ex, "Error retrieving program comments for WorkFlow ID {WorkFlowId}", dto.WorkFlowId);
                 return ServiceResult<List<CommentResponseDto>>.Failure(
-                    "An unexpected error occurred while retrieving workflow comments.",
+                    "An unexpected error occurred while retrieving program comments.",
                     new[] { ex.Message });
             }
         }

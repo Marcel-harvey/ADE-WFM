@@ -41,7 +41,7 @@ namespace ADE_WFM.Services.ProjectService {
 
             try {
                 // Get users in work flow - can not add users outside of work flow
-                var workFlow = await _context.WorkFlows
+                var workFlow = await _context.Programs
                     .Include(u => u.WorkFlowUsers)
                         .ThenInclude(wfu => wfu.User)
                     .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
@@ -172,7 +172,7 @@ namespace ADE_WFM.Services.ProjectService {
                     return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.AddUserId} was not found");
 
                 // Get users in workflow - cannot add users outside of workflow
-                var workFlow = await _context.WorkFlows
+                var workFlow = await _context.Programs
                     .Include(wf => wf.WorkFlowUsers)
                     .FirstOrDefaultAsync(wf => wf.Id == project.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
                 if (workFlow == null)

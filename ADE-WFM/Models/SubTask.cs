@@ -13,7 +13,7 @@ namespace ADE_WFM.Models {
         // Foreign Keys
         public int? WorkFlowId { get; set; }
         [ForeignKey(nameof(WorkFlowId))]
-        public WorkFlow? WorkFlow { get; set; } = null!;
+        public BusinessProgram? WorkFlow { get; set; } = null!;
 
         public int? TodoId { get; set; }
         [ForeignKey(nameof(TodoId))]

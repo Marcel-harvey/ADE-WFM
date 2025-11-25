@@ -17,7 +17,7 @@ namespace ADE_WFM.Data {
         // ==============================================
         //                  DbSets
         // ==============================================
-        public DbSet<WorkFlow> WorkFlows { get; set; }
+        public DbSet<BusinessProgram> Programs { get; set; }
         public DbSet<Todo> Todos { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Comment> Comments { get; set; }
@@ -55,13 +55,13 @@ namespace ADE_WFM.Data {
                 .HasForeignKey(wu => wu.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<WorkFlow>()
+            builder.Entity<BusinessProgram>()
                 .HasMany(wf => wf.Comments)
                 .WithOne(c => c.WorkFlow)
                 .HasForeignKey(c => c.WorkFlowId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<WorkFlow>()
+            builder.Entity<BusinessProgram>()
                 .HasMany(wf => wf.Project)
                 .WithOne(p => p.WorkFlows)
                 .HasForeignKey(p => p.WorkFlowId)

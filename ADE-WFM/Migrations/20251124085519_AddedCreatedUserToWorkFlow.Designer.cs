@@ -418,7 +418,7 @@ namespace ADE_WFM.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("WorkFlows");
+                    b.ToTable("Programs");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.WorkFlowUser", b =>
@@ -627,7 +627,7 @@ namespace ADE_WFM.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ADE_WFM.Models.WorkFlow", "WorkFlows")
+                    b.HasOne("ADE_WFM.Models.WorkFlow", "Programs")
                         .WithMany("Project")
                         .HasForeignKey("WorkFlowId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -635,7 +635,7 @@ namespace ADE_WFM.Migrations
 
                     b.Navigation("Tenant");
 
-                    b.Navigation("WorkFlows");
+                    b.Navigation("Programs");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.ProjectUser", b =>
@@ -763,7 +763,7 @@ namespace ADE_WFM.Migrations
             modelBuilder.Entity("ADE_WFM.Models.WorkFlow", b =>
                 {
                     b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
-                        .WithMany("WorkFlows")
+                        .WithMany("Programs")
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -887,7 +887,7 @@ namespace ADE_WFM.Migrations
 
                     b.Navigation("Users");
 
-                    b.Navigation("WorkFlows");
+                    b.Navigation("Programs");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.Todo", b =>

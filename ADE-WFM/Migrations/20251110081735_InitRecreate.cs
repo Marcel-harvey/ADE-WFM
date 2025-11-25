@@ -108,7 +108,7 @@ namespace ADE_WFM.Migrations {
                 });
 
             migrationBuilder.CreateTable(
-                name: "WorkFlows",
+                name: "Programs",
                 columns: table => new {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
@@ -263,7 +263,7 @@ namespace ADE_WFM.Migrations {
                     table.ForeignKey(
                         name: "FK_Projects_WorkFlows_WorkFlowId",
                         column: x => x.WorkFlowId,
-                        principalTable: "WorkFlows",
+                        principalTable: "Programs",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -287,7 +287,7 @@ namespace ADE_WFM.Migrations {
                     table.ForeignKey(
                         name: "FK_WorkFlowUsers_WorkFlows_WorkFlowId",
                         column: x => x.WorkFlowId,
-                        principalTable: "WorkFlows",
+                        principalTable: "Programs",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -329,7 +329,7 @@ namespace ADE_WFM.Migrations {
                     table.ForeignKey(
                         name: "FK_Comments_WorkFlows_WorkFlowId",
                         column: x => x.WorkFlowId,
-                        principalTable: "WorkFlows",
+                        principalTable: "Programs",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -454,7 +454,7 @@ namespace ADE_WFM.Migrations {
                     table.ForeignKey(
                         name: "FK_SubTasks_WorkFlows_WorkFlowId",
                         column: x => x.WorkFlowId,
-                        principalTable: "WorkFlows",
+                        principalTable: "Programs",
                         principalColumn: "Id");
                 });
 
@@ -602,7 +602,7 @@ namespace ADE_WFM.Migrations {
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkFlows_TenantId",
-                table: "WorkFlows",
+                table: "Programs",
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
@@ -662,7 +662,7 @@ namespace ADE_WFM.Migrations {
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "WorkFlows");
+                name: "Programs");
 
             migrationBuilder.DropTable(
                 name: "Tenants");

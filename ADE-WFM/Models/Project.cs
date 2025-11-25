@@ -22,7 +22,7 @@ namespace ADE_WFM.Models {
         // Foreign Key
         public int WorkFlowId { get; set; }
         [ForeignKey(nameof(WorkFlowId))]
-        public WorkFlow WorkFlows { get; set; } = null!;
+        public BusinessProgram WorkFlows { get; set; } = null!;
 
 
         // Tenand Setup

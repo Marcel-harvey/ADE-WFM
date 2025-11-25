@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ADE_WFM.Models {
-    public class WorkFlow : ITenantEntity {
+    public class BusinessProgram : ITenantEntity {
         public int Id { get; set; }
         [Required]
         public string WorkFlowName { get; set; } = string.Empty;

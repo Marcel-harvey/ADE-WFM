@@ -13,24 +13,24 @@ namespace ADE_WFM.Migrations
         {
             migrationBuilder.RenameColumn(
                 name: "dateCreated",
-                table: "WorkFlows",
+                table: "Programs",
                 newName: "DateCreated");
 
             migrationBuilder.RenameColumn(
                 name: "userCreated",
-                table: "WorkFlows",
+                table: "Programs",
                 newName: "Description");
 
             migrationBuilder.AddColumn<string>(
                 name: "Author",
-                table: "WorkFlows",
+                table: "Programs",
                 type: "text",
                 nullable: false,
                 defaultValue: "");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DueDate",
-                table: "WorkFlows",
+                table: "Programs",
                 type: "timestamp with time zone",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
@@ -41,20 +41,20 @@ namespace ADE_WFM.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Author",
-                table: "WorkFlows");
+                table: "Programs");
 
             migrationBuilder.DropColumn(
                 name: "DueDate",
-                table: "WorkFlows");
+                table: "Programs");
 
             migrationBuilder.RenameColumn(
                 name: "DateCreated",
-                table: "WorkFlows",
+                table: "Programs",
                 newName: "dateCreated");
 
             migrationBuilder.RenameColumn(
                 name: "Description",
-                table: "WorkFlows",
+                table: "Programs",
                 newName: "userCreated");
         }
     }

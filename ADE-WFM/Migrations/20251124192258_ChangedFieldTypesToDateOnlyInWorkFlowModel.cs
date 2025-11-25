@@ -13,7 +13,7 @@ namespace ADE_WFM.Migrations
         {
             migrationBuilder.AlterColumn<DateOnly>(
                 name: "DueDate",
-                table: "WorkFlows",
+                table: "Programs",
                 type: "date",
                 nullable: false,
                 oldClrType: typeof(DateTime),
@@ -21,7 +21,7 @@ namespace ADE_WFM.Migrations
 
             migrationBuilder.AlterColumn<DateOnly>(
                 name: "DateCreated",
-                table: "WorkFlows",
+                table: "Programs",
                 type: "date",
                 nullable: false,
                 oldClrType: typeof(DateTime),
@@ -33,7 +33,7 @@ namespace ADE_WFM.Migrations
         {
             migrationBuilder.AlterColumn<DateTime>(
                 name: "DueDate",
-                table: "WorkFlows",
+                table: "Programs",
                 type: "timestamp with time zone",
                 nullable: false,
                 oldClrType: typeof(DateOnly),
@@ -41,7 +41,7 @@ namespace ADE_WFM.Migrations
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "DateCreated",
-                table: "WorkFlows",
+                table: "Programs",
                 type: "timestamp with time zone",
                 nullable: false,
                 oldClrType: typeof(DateOnly),

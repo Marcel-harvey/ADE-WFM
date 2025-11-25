@@ -22,7 +22,7 @@ namespace ADE_WFM.Models {
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
         // Navigation props (optional - helpful)
-        public ICollection<WorkFlow>? WorkFlows { get; set; }
+        public ICollection<BusinessProgram>? WorkFlows { get; set; }
         public ICollection<Project>? Projects { get; set; }
         public ICollection<Todo>? Todos { get; set; }
         public ICollection<ApplicationUser>? Users { get; set; }

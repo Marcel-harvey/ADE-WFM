@@ -4,7 +4,7 @@
 
         // Many to many relationship keys
         public int WorkFlowId { get; set; }
-        public WorkFlow WorkFlow { get; set; } = null!;
+        public BusinessProgram WorkFlow { get; set; } = null!;
 
         public string UserId { get; set; } = string.Empty;
         public ApplicationUser User { get; set; } = null!;

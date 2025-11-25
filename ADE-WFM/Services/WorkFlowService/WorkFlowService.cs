@@ -37,7 +37,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 return ServiceResult<WorkFlowResponseDto>.Failure("Work flow name is required.");
 
             try {
-                var workFlow = new WorkFlow {
+                var workFlow = new BusinessProgram {
                     WorkFlowName = dto.WorkFlowName,
                     Author = _tenantContext.UserName,
                     Description = dto.Description,
@@ -67,11 +67,11 @@ namespace ADE_WFM.Services.WorkFlowService {
                     }
                 }
 
-                _context.WorkFlows.Add(workFlow);
+                _context.Programs.Add(workFlow);
                 await _context.SaveChangesAsync();
 
                 // Reload workflow for response
-                var createdWorkflow = await _context.WorkFlows
+                var createdWorkflow = await _context.Programs
                     .Where(wf => wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
@@ -128,7 +128,7 @@ namespace ADE_WFM.Services.WorkFlowService {
 
             try {
                 // Check if the workflow exists for current tenant
-                var workFlow = await _context.WorkFlows
+                var workFlow = await _context.Programs
                     .Where(wf => wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
@@ -208,7 +208,7 @@ namespace ADE_WFM.Services.WorkFlowService {
         // list of all workflows  
         public async Task<ServiceResult<List<WorkFlowResponseDto>>> GetAllWorkFlows() {
             try {
-                var workFlows = await _context.WorkFlows
+                var workFlows = await _context.Programs
                     .OrderByDescending(wf => wf.DateCreated)
                     .Where(wf => wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
@@ -266,7 +266,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 return ServiceResult<WorkFlowResponseDto>.Failure("Invalid workflow ID provided.");
 
             try {
-                var workFlow = await _context.WorkFlows
+                var workFlow = await _context.Programs
                     .Where(wf => wf.Id == dto.WorkFlowId
                                  && wf.TenantId == _tenantContext.TenantId) // tenant filter
                     .Include(wf => wf.Project)
@@ -323,7 +323,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 return ServiceResult<WorkFlowResponseDto>.Failure("New workflow name cannot be empty.");
 
             try {
-                var workFlow = await _context.WorkFlows
+                var workFlow = await _context.Programs
                     .Where(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
@@ -382,7 +382,7 @@ namespace ADE_WFM.Services.WorkFlowService {
 
             try {
                 // Include tenant filtering
-                var workFlow = await _context.WorkFlows
+                var workFlow = await _context.Programs
                     .Where(w => w.Id == dto.WorkFlowId && w.TenantId == _tenantContext.TenantId)
                     .Include(w => w.Comments)
                     .Include(w => w.Project)
@@ -409,7 +409,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                     }).ToList() ?? new List<GetWorkFlowUsersDto>()
                 };
 
-                _context.WorkFlows.Remove(workFlow);
+                _context.Programs.Remove(workFlow);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Workflow '{WorkFlowName}' (ID: {WorkFlowId}) deleted successfully.", workFlow.WorkFlowName, workFlow.Id);
@@ -466,7 +466,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 }
 
                 // Load workflow with projects and users for response
-                var workFlow = await _context.WorkFlows
+                var workFlow = await _context.Programs
                     .Where(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)

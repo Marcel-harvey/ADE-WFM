@@ -13,14 +13,14 @@ namespace ADE_WFM.Migrations
         {
             migrationBuilder.AddColumn<DateTime>(
                 name: "dateCreated",
-                table: "WorkFlows",
+                table: "Programs",
                 type: "timestamp with time zone",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<string>(
                 name: "userCreated",
-                table: "WorkFlows",
+                table: "Programs",
                 type: "text",
                 nullable: false,
                 defaultValue: "");
@@ -31,11 +31,11 @@ namespace ADE_WFM.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "dateCreated",
-                table: "WorkFlows");
+                table: "Programs");
 
             migrationBuilder.DropColumn(
                 name: "userCreated",
-                table: "WorkFlows");
+                table: "Programs");
         }
     }
 }
