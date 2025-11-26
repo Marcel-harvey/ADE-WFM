@@ -39,6 +39,18 @@ namespace ADE_WFM.Controllers {
             return result.Succeeded ? Ok(result) : BadRequest(result);
         }
 
+        // Get users in program
+        [HttpGet("Program/")]
+        public async Task<IActionResult> GetProgramUsers([FromQuery] int programId) {
+            var dto = new GetInfoForUsersListDto {
+                ProgramId = programId
+            };
+
+            var result = await _userService.GetProgramUsers(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
 
         // Login User
         [HttpPost("Login")]
