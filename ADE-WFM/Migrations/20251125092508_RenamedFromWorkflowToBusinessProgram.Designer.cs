@@ -119,7 +119,7 @@ namespace ADE_WFM.Migrations
                     b.Property<int>("TenantId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("WorkFlowName")
+                    b.Property<string>("ProgramName")
                         .IsRequired()
                         .HasColumnType("text");
 

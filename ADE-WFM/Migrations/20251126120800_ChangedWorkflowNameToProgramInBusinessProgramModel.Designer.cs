@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ADE_WFM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251118100840_AddedTitleToStickyNote")]
-    partial class AddedTitleToStickyNote
+    [Migration("20251126120800_ChangedWorkflowNameToProgramInBusinessProgramModel")]
+    partial class ChangedWorkflowNameToProgramInBusinessProgramModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -92,6 +92,42 @@ namespace ADE_WFM.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("ADE_WFM.Models.BusinessProgram", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("DateCreated")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ProgramName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Programs");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.Comment", b =>
@@ -392,28 +428,6 @@ namespace ADE_WFM.Migrations
                     b.ToTable("Todos");
                 });
 
-            modelBuilder.Entity("ADE_WFM.Models.WorkFlow", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("TenantId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ProgramName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("Programs");
-                });
-
             modelBuilder.Entity("ADE_WFM.Models.WorkFlowUser", b =>
                 {
                     b.Property<int>("WorkFlowId")
@@ -574,6 +588,17 @@ namespace ADE_WFM.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("ADE_WFM.Models.BusinessProgram", b =>
+                {
+                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
+                        .WithMany("WorkFlows")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("ADE_WFM.Models.Comment", b =>
                 {
                     b.HasOne("ADE_WFM.Models.Project", "Project")
@@ -593,7 +618,7 @@ namespace ADE_WFM.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ADE_WFM.Models.WorkFlow", "WorkFlow")
+                    b.HasOne("ADE_WFM.Models.BusinessProgram", "WorkFlow")
                         .WithMany("Comments")
                         .HasForeignKey("WorkFlowId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -620,7 +645,7 @@ namespace ADE_WFM.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ADE_WFM.Models.WorkFlow", "Programs")
+                    b.HasOne("ADE_WFM.Models.BusinessProgram", "WorkFlows")
                         .WithMany("Project")
                         .HasForeignKey("WorkFlowId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -628,7 +653,7 @@ namespace ADE_WFM.Migrations
 
                     b.Navigation("Tenant");
 
-                    b.Navigation("Programs");
+                    b.Navigation("WorkFlows");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.ProjectUser", b =>
@@ -682,7 +707,7 @@ namespace ADE_WFM.Migrations
                         .HasForeignKey("TodoId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("ADE_WFM.Models.WorkFlow", "WorkFlow")
+                    b.HasOne("ADE_WFM.Models.BusinessProgram", "WorkFlow")
                         .WithMany()
                         .HasForeignKey("WorkFlowId");
 
@@ -753,17 +778,6 @@ namespace ADE_WFM.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ADE_WFM.Models.WorkFlow", b =>
-                {
-                    b.HasOne("ADE_WFM.Models.Tenant", "Tenant")
-                        .WithMany("Programs")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("ADE_WFM.Models.WorkFlowUser", b =>
                 {
                     b.HasOne("ADE_WFM.Models.ApplicationUser", "User")
@@ -772,7 +786,7 @@ namespace ADE_WFM.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ADE_WFM.Models.WorkFlow", "WorkFlow")
+                    b.HasOne("ADE_WFM.Models.BusinessProgram", "WorkFlow")
                         .WithMany("WorkFlowUsers")
                         .HasForeignKey("WorkFlowId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -851,6 +865,15 @@ namespace ADE_WFM.Migrations
                     b.Navigation("WorkFlowUsers");
                 });
 
+            modelBuilder.Entity("ADE_WFM.Models.BusinessProgram", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("WorkFlowUsers");
+                });
+
             modelBuilder.Entity("ADE_WFM.Models.Project", b =>
                 {
                     b.Navigation("Comment");
@@ -880,21 +903,12 @@ namespace ADE_WFM.Migrations
 
                     b.Navigation("Users");
 
-                    b.Navigation("Programs");
+                    b.Navigation("WorkFlows");
                 });
 
             modelBuilder.Entity("ADE_WFM.Models.Todo", b =>
                 {
                     b.Navigation("SubTasks");
-                });
-
-            modelBuilder.Entity("ADE_WFM.Models.WorkFlow", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("WorkFlowUsers");
                 });
 #pragma warning restore 612, 618
         }

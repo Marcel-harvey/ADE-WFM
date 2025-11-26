@@ -113,12 +113,12 @@ namespace ADE_WFM.Migrations
                     b.Property<DateOnly>("DueDate")
                         .HasColumnType("date");
 
-                    b.Property<int>("TenantId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("WorkFlowName")
+                    b.Property<string>("ProgramName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("TenantId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

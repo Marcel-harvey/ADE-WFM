@@ -6,7 +6,7 @@ namespace ADE_WFM.Models {
     public class BusinessProgram : ITenantEntity {
         public int Id { get; set; }
         [Required]
-        public string WorkFlowName { get; set; } = string.Empty;
+        public string ProgramName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public DateOnly DateCreated { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
