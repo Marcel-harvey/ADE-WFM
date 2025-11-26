@@ -119,7 +119,7 @@ namespace ADE_WFM.Services.ProjectService {
                         DateCreated = project.DateCreated,
                         DueDate = project.DueDate,
                         WorkFlowId = workFlow.Id,
-                        WorkFlowName = workFlow.WorkFlowName,
+                        WorkFlowName = workFlow.ProgramName,
                         Users = addedUsers,
                         SkippedUsers = skippedUsers
                     },
@@ -185,7 +185,7 @@ namespace ADE_WFM.Services.ProjectService {
 
                 if (!workflowUserIds.Contains(dto.AddUserId)) {
                     return ServiceResult<ProjectResponseDto>.Failure(
-                        $"User '{user.UserName}' cannot be added because they are not part of the workflow '{workFlow.WorkFlowName}'.");
+                        $"User '{user.UserName}' cannot be added because they are not part of the workflow '{workFlow.ProgramName}'.");
                 }
 
                 // Prevent duplicate users
@@ -215,7 +215,7 @@ namespace ADE_WFM.Services.ProjectService {
                         DueDate = project.DueDate,
                         DateCreated = project.DateCreated,
                         WorkFlowId = project.WorkFlows.Id,
-                        WorkFlowName = project.WorkFlows.WorkFlowName,
+                        WorkFlowName = project.WorkFlows.ProgramName,
                         Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto {
                             UserId = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
@@ -288,7 +288,7 @@ namespace ADE_WFM.Services.ProjectService {
                             DueDate = p.DueDate,
                             DateCreated = p.DateCreated,
                             WorkFlowId = p.WorkFlows.Id,
-                            WorkFlowName = p.WorkFlows.WorkFlowName,
+                            WorkFlowName = p.WorkFlows.ProgramName,
                             Users = p.ProjectUsers.Select(u => new ProjectUsersInfoDto {
                                 UserId = u.UserId,
                                 UserName = u.User.UserName ?? string.Empty,
@@ -360,7 +360,7 @@ namespace ADE_WFM.Services.ProjectService {
                         DueDate = project.DueDate,
                         DateCreated = project.DateCreated,
                         WorkFlowId = project.WorkFlows.Id,
-                        WorkFlowName = project.WorkFlows.WorkFlowName,
+                        WorkFlowName = project.WorkFlows.ProgramName,
                         Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto {
                             UserId = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
@@ -441,7 +441,7 @@ namespace ADE_WFM.Services.ProjectService {
                         DueDate = project.DueDate,
                         DateCreated = project.DateCreated,
                         WorkFlowId = project.WorkFlows.Id,
-                        WorkFlowName = project.WorkFlows.WorkFlowName,
+                        WorkFlowName = project.WorkFlows.ProgramName,
                         Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto {
                             UserId = u.UserId,
                             UserName = u.User.UserName ?? string.Empty,
@@ -513,7 +513,7 @@ namespace ADE_WFM.Services.ProjectService {
                     DueDate = project.DueDate,
                     DateCreated = project.DateCreated,
                     WorkFlowId = project.WorkFlows.Id,
-                    WorkFlowName = project.WorkFlows.WorkFlowName,
+                    WorkFlowName = project.WorkFlows.ProgramName,
                     Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto {
                         UserId = u.UserId,
                         UserName = u.User.UserName ?? string.Empty,
@@ -607,7 +607,7 @@ namespace ADE_WFM.Services.ProjectService {
                     DueDate = project.DueDate,
                     DateCreated = project.DateCreated,
                     WorkFlowId = project.WorkFlows.Id,
-                    WorkFlowName = project.WorkFlows.WorkFlowName,
+                    WorkFlowName = project.WorkFlows.ProgramName,
                     Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto {
                         UserId = u.UserId,
                         UserName = u.User.UserName ?? string.Empty,
