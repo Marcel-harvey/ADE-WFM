@@ -45,8 +45,16 @@ namespace ADE_WFM.Controllers {
         // Return workflow by ID
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id) {
-            var dto = new GetProgramInfoDto { WorkFlowId = id };
+            var dto = new GetProgramInfoDto { ProgramId = id };
             var result = await _workFlowService.GetProgramById(dto);
+
+            return result.Succeeded ? Ok(result) : NotFound(result);
+        }
+
+        // Return program details
+        [HttpGet("details")]
+        public async Task<IActionResult> GetProgramDetails([FromQuery] GetProgramInfoDto dto) {
+            var result = await _workFlowService.GetProgramDetails(dto);
 
             return result.Succeeded ? Ok(result) : NotFound(result);
         }
@@ -66,7 +74,7 @@ namespace ADE_WFM.Controllers {
         // Delete a workflow via id
         [HttpDelete("{programId:int}")]
         public async Task<IActionResult> Delete(int programId) {
-            var dto = new GetProgramInfoDto { WorkFlowId = programId };
+            var dto = new GetProgramInfoDto { ProgramId = programId };
             var result = await _workFlowService.DeleteProgram(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
