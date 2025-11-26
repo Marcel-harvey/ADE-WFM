@@ -10,6 +10,7 @@ namespace ADE_WFM.Services.UserService {
         // TODO: To remove after development
         Task<ServiceResult<List<UserResponseDto>>> GetAllUsers();
         Task<ServiceResult<List<UserResponseDto>>> GetTenantUsers();
+        Task<ServiceResult<List<UserResponseDto>>> GetProgramUsers(GetInfoForUsersListDto dto);
         Task<ServiceResult<LoginResponseDto>> LoginUser(LoginUserDto loginUser);
 
         // UPDATE service (To be added later)

@@ -253,6 +253,44 @@ namespace ADE_WFM.Services.UserService {
         }
 
 
+
+        // Get all users that are part of a program
+        public async Task<ServiceResult<List<UserResponseDto>>> GetProgramUsers(GetInfoForUsersListDto dto) {
+            if (dto == null)
+                return ServiceResult<List<UserResponseDto>>.Failure("No information provided");
+
+            if (dto.ProgramId <= 0)
+                return ServiceResult<List<UserResponseDto>>.Failure("Invalid program ID supplied");
+
+            try {
+                var users = await _context.WorkFlowUsers
+                    .Include(u => u.User)
+                    .Where(u => u.WorkFlowId == dto.ProgramId)
+                    .ToListAsync();
+                if (!users.Any()) {
+                    _logger.LogInformation("No users found for specified program");
+                    return ServiceResult<List<UserResponseDto>>.Failure("No users found for specified program");
+                }
+
+                return ServiceResult<List<UserResponseDto>>.Success(
+                    users.Select(u => new UserResponseDto {
+                        Id = u.UserId,
+                        UserName = u.User?.UserName ?? "Unknown",
+                        Email = u.User?.Email ?? "Unknown",
+                    }).ToList(),
+                    "Users retrieved successfully"
+                    );
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Error retrieving users.");
+
+                return ServiceResult<List<UserResponseDto>>.Failure(
+                    "An unexpected error occurred while retrieving users.",
+                    new[] { ex.Message });
+            }
+        }
+
+
         // UPDATE:
         // Change user password
         public async Task<ServiceResult<LoginResponseDto>> ChangePassword(ChangePasswordDto dto) {
