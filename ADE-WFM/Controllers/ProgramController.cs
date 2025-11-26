@@ -53,9 +53,9 @@ namespace ADE_WFM.Controllers {
 
 
         // UPDATE API's
-        [HttpPut("{workFlowId:int}")]
-        public async Task<IActionResult> UpdateName([FromBody] UpdateProgramNameDto dto, int? workFlowId = null) {
-            dto.WorkFlowId = workFlowId ?? dto.WorkFlowId;
+        [HttpPut("{programId:int}")]
+        public async Task<IActionResult> UpdateProgram([FromBody] UpdateProgramNameDto dto, int? programId = null) {
+            dto.ProgramID = programId ?? dto.ProgramID;
             var result = await _workFlowService.UpdateProgram(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -64,9 +64,9 @@ namespace ADE_WFM.Controllers {
 
         // DELETE API's
         // Delete a workflow via id
-        [HttpDelete("{workFlowId:int}")]
-        public async Task<IActionResult> Delete(int workFlowId) {
-            var dto = new GetProgramInfoDto { WorkFlowId = workFlowId };
+        [HttpDelete("{programId:int}")]
+        public async Task<IActionResult> Delete(int programId) {
+            var dto = new GetProgramInfoDto { WorkFlowId = programId };
             var result = await _workFlowService.DeleteProgram(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -74,10 +74,10 @@ namespace ADE_WFM.Controllers {
 
 
         // Remove a user from a workflow
-        [HttpDelete("{workFlowId:int}/users/{userId}")]
-        public async Task<IActionResult> RemoveUser(int workFlowId, string userId) {
+        [HttpDelete("{programId:int}/users/{userId}")]
+        public async Task<IActionResult> RemoveUser(int programId, string userId) {
             var dto = new RemoveUserFromProgramDto {
-                WorkFlowId = workFlowId,
+                WorkFlowId = programId,
                 UserId = userId
             };
             var result = await _workFlowService.RemoveUserFromProgram(dto);
