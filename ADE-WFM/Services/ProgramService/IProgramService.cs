@@ -1,4 +1,5 @@
 ﻿using ADE_WFM.Models.DTOs;
+using ADE_WFM.Models.DTOs.ProgramDtos;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 
@@ -11,6 +12,7 @@ namespace ADE_WFM.Services.WorkFlowService {
         // GET services
         Task<ServiceResult<List<ProgramResponseDto>>> GetAllPrograms();
         Task<ServiceResult<ProgramResponseDto>> GetProgramById(GetProgramInfoDto dto);
+        Task<ServiceResult<ProgramDetailsResponseDto>> GetProgramDetails(GetProgramInfoDto dto);
 
         // UPDATE services
         Task<ServiceResult<ProgramResponseDto>> UpdateProgram(UpdateProgramNameDto dto);

@@ -1,6 +1,7 @@
 ﻿using ADE_WFM.Data;
 using ADE_WFM.Models;
 using ADE_WFM.Models.DTOs;
+using ADE_WFM.Models.DTOs.ProgramDtos;
 using ADE_WFM.Models.DTOs.WorkFlowDtos;
 using ADE_WFM.Models.DTOs.WorkFlowViewModels;
 using ADE_WFM.Services.TenantService;
@@ -38,7 +39,7 @@ namespace ADE_WFM.Services.WorkFlowService {
 
             try {
                 var workFlow = new BusinessProgram {
-                    WorkFlowName = dto.WorkFlowName,
+                    ProgramName = dto.WorkFlowName,
                     Author = _tenantContext.UserName,
                     Description = dto.Description,
                     DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -85,7 +86,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
                         ProgramId = workFlow.Id,
-                        ProgramName = workFlow.WorkFlowName,
+                        ProgramName = workFlow.ProgramName,
                         CreatedUser = workFlow.Author,
                         DateCreated = workFlow.DateCreated,
                         Projects = createdWorkflow?.Project?.Select(p => new GetProgramProjectsDto {
@@ -170,13 +171,13 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 _logger.LogInformation(
                     "Added new users to workflow '{ProgramName}' (ID: {WorkFlowId})",
-                    workFlow.WorkFlowName, workFlow.Id
+                    workFlow.ProgramName, workFlow.Id
                 );
 
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
                         ProgramId = workFlow.Id,
-                        ProgramName = workFlow.WorkFlowName,
+                        ProgramName = workFlow.ProgramName,
                         Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -227,7 +228,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 return ServiceResult<List<ProgramResponseDto>>.Success(
                     workFlows.Select(wf => new ProgramResponseDto {
                         ProgramId = wf.Id,
-                        ProgramName = wf.WorkFlowName,
+                        ProgramName = wf.ProgramName,
                         Description = wf.Description,
                         CreatedUser = wf.Author,
                         DateCreated = wf.DateCreated,
@@ -262,12 +263,12 @@ namespace ADE_WFM.Services.WorkFlowService {
             // General validation
             if (dto == null)
                 return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
-            if (dto.WorkFlowId <= 0)
+            if (dto.ProgramId <= 0)
                 return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID provided.");
 
             try {
                 var workFlow = await _context.Programs
-                    .Where(wf => wf.Id == dto.WorkFlowId
+                    .Where(wf => wf.Id == dto.ProgramId
                                  && wf.TenantId == _tenantContext.TenantId) // tenant filter
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
@@ -276,18 +277,18 @@ namespace ADE_WFM.Services.WorkFlowService {
 
                 if (workFlow == null) {
                     _logger.LogWarning("Workflow with ID {WorkFlowId} not found for tenant ID {TenantId}.",
-                        dto.WorkFlowId, _tenantContext.TenantId);
+                        dto.ProgramId, _tenantContext.TenantId);
                     return ServiceResult<ProgramResponseDto>.Failure(
-                        $"Workflow with ID {dto.WorkFlowId} was not found.");
+                        $"Workflow with ID {dto.ProgramId} was not found.");
                 }
 
                 _logger.LogInformation("Retrieved workflow '{ProgramName}' (ID: {WorkFlowId}) successfully for tenant ID {TenantId}.",
-                    workFlow.WorkFlowName, workFlow.Id, _tenantContext.TenantId);
+                    workFlow.ProgramName, workFlow.Id, _tenantContext.TenantId);
 
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
                         ProgramId = workFlow.Id,
-                        ProgramName = workFlow.WorkFlowName,
+                        ProgramName = workFlow.ProgramName,
                         Description = workFlow.Description,
                         CreatedUser = workFlow.Author ?? "No creator user name added",
                         DateCreated = workFlow.DateCreated,
@@ -306,9 +307,88 @@ namespace ADE_WFM.Services.WorkFlowService {
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Error retrieving workflow with ID {WorkFlowId} for tenant ID {TenantId}.",
-                    dto.WorkFlowId, _tenantContext.TenantId);
+                    dto.ProgramId, _tenantContext.TenantId);
                 return ServiceResult<ProgramResponseDto>.Failure(
                     "An unexpected error occurred while retrieving the workflow.",
+                    new[] { ex.Message });
+            }
+        }
+
+
+        // Get Program details
+        /*
+         * This is the main entry point API for the front end
+         * Contains all the information related to the Program with all id fields so that if
+         * the front end want to update something i can do it with the id and point it to the right service updating only what is needed
+         * instead of goint through everything to update something small
+         */
+        public async Task<ServiceResult<ProgramDetailsResponseDto>> GetProgramDetails(GetProgramInfoDto dto) {
+            if (dto == null)
+                return ServiceResult<ProgramDetailsResponseDto>.Failure("No information provided");
+
+            if (dto.ProgramId <= 0)
+                return ServiceResult<ProgramDetailsResponseDto>.Failure("Valid ID required");
+
+            try {
+                // Checks and pulls all the information from the Program
+                var programs = await _context.Programs
+                    .Include(p => p.Project!)
+                        .ThenInclude(p => p.ProjectUsers)
+                            .ThenInclude(u => u.User)
+                    .Include(p => p.Comments!)
+                        .ThenInclude(cu => cu.User)
+                    .Include(pu => pu.WorkFlowUsers!)
+                        .ThenInclude(u => u.User)
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProgramId && p.TenantId == _tenantContext.TenantId);
+
+                if (programs == null) {
+                    _logger.LogInformation("No program found with ID: {programId}", dto.ProgramId);
+                    return ServiceResult<ProgramDetailsResponseDto>.Failure($"No program found with ID: {dto.ProgramId}");
+                }
+
+                return ServiceResult<ProgramDetailsResponseDto>.Success(
+                    new ProgramDetailsResponseDto {
+                        ProgramId = programs.Id,
+                        ProgramName = programs.ProgramName,
+                        ProgramAuthor = programs.Author,
+                        DateCreated = programs.DateCreated,
+                        DueDate = programs.DueDate,
+                        Projects = programs.Project?.Select(p => new ProgramProjectDetailsDto {
+                            ProjectId = p.Id,
+                            ProjectTitle = p.ProjectTitle,
+                            ProjectDescription = p.ProjectDescription ?? "No Description",
+                            DateCreated = p.DateCreated,
+                            DueDate = p.DueDate,
+                            Users = p.ProjectUsers.Select(u => new UserDetailsDto {
+                                UserId = u.UserId,
+                                UserName = u.User.UserName ?? "Unknown",
+                                UserEmail = u.User.Email ?? "Unknown"
+                            }).ToList()
+                        }).ToList(),
+                        Comments = programs.Comments?.Select(c => new ProgramCommentDetailsDto {
+                            CommentId = c.Id,
+                            Content = c.CommentContent ?? "No content",
+                            UserName = c.User.UserName ?? "Unknown"
+                        }).ToList(),
+                        Users = programs.WorkFlowUsers.Select(pu => new UserDetailsDto {
+                            UserId = pu.UserId,
+                            UserName = pu.User.UserName ?? "Unknown",
+                            UserEmail = pu.User.Email ?? "Unknown"
+                        }).ToList()
+                    },
+                    "Retrieved Program details successfully for requested program"
+                );
+            }
+            catch (DbUpdateException ex) {
+                _logger.LogError(ex, "Database error retrieving selected Program");
+                return ServiceResult<ProgramDetailsResponseDto>.Failure(
+                    "A Database error retrieving selected Program.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Unexpected error while retrieving selected Program");
+                return ServiceResult<ProgramDetailsResponseDto>.Failure(
+                    "An unexpected while retrieving selected Program.",
                     new[] { ex.Message });
             }
         }
@@ -336,7 +416,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 }
 
                 if (!string.IsNullOrWhiteSpace(dto.ProgramName)) {
-                    program.WorkFlowName = dto.ProgramName.Trim();
+                    program.ProgramName = dto.ProgramName.Trim();
                     _logger.LogInformation("Atempting to change Program Name to {programName}", dto.ProgramName);
                 }
 
@@ -362,7 +442,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
                         ProgramId = program.Id,
-                        ProgramName = program.WorkFlowName,
+                        ProgramName = program.ProgramName,
                         Projects = program.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
@@ -396,13 +476,13 @@ namespace ADE_WFM.Services.WorkFlowService {
             // General validation
             if (dto == null)
                 return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
-            if (dto.WorkFlowId <= 0)
+            if (dto.ProgramId <= 0)
                 return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID.");
 
             try {
                 // Include tenant filtering
                 var workFlow = await _context.Programs
-                    .Where(w => w.Id == dto.WorkFlowId && w.TenantId == _tenantContext.TenantId)
+                    .Where(w => w.Id == dto.ProgramId && w.TenantId == _tenantContext.TenantId)
                     .Include(w => w.Comments)
                     .Include(w => w.Project)
                     .Include(w => w.WorkFlowUsers)
@@ -410,14 +490,14 @@ namespace ADE_WFM.Services.WorkFlowService {
                     .FirstOrDefaultAsync();
 
                 if (workFlow == null) {
-                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found for deletion.", dto.WorkFlowId);
-                    return ServiceResult<ProgramResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} was not found.");
+                    _logger.LogWarning("Workflow with ID {WorkFlowId} not found for deletion.", dto.ProgramId);
+                    return ServiceResult<ProgramResponseDto>.Failure($"Workflow with ID {dto.ProgramId} was not found.");
                 }
 
                 // Prepare response before deletion
                 var response = new ProgramResponseDto {
                     ProgramId = workFlow.Id,
-                    ProgramName = workFlow.WorkFlowName,
+                    ProgramName = workFlow.ProgramName,
                     Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                         Id = p.Id,
                         ProjectName = p.ProjectTitle
@@ -431,18 +511,18 @@ namespace ADE_WFM.Services.WorkFlowService {
                 _context.Programs.Remove(workFlow);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Workflow '{ProgramName}' (ID: {WorkFlowId}) deleted successfully.", workFlow.WorkFlowName, workFlow.Id);
+                _logger.LogInformation("Workflow '{ProgramName}' (ID: {WorkFlowId}) deleted successfully.", workFlow.ProgramName, workFlow.Id);
 
                 return ServiceResult<ProgramResponseDto>.Success(response, "Workflow deleted successfully.");
             }
             catch (DbUpdateException ex) {
-                _logger.LogError(ex, "Database error while deleting workflow with ID {WorkFlowId}", dto.WorkFlowId);
+                _logger.LogError(ex, "Database error while deleting workflow with ID {WorkFlowId}", dto.ProgramId);
                 return ServiceResult<ProgramResponseDto>.Failure(
                     "A database error occurred while deleting the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Unexpected error while deleting workflow with ID {WorkFlowId}", dto.WorkFlowId);
+                _logger.LogError(ex, "Unexpected error while deleting workflow with ID {WorkFlowId}", dto.ProgramId);
                 return ServiceResult<ProgramResponseDto>.Failure(
                     "An unexpected error occurred while deleting the workflow.",
                     new[] { ex.Message });
@@ -501,7 +581,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                 return ServiceResult<ProgramResponseDto>.Success(
                     new ProgramResponseDto {
                         ProgramId = workFlow.Id,
-                        ProgramName = workFlow.WorkFlowName,
+                        ProgramName = workFlow.ProgramName,
                         Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
                             Id = p.Id,
                             ProjectName = p.ProjectTitle
