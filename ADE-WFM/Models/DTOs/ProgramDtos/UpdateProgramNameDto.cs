@@ -1,6 +1,9 @@
 ﻿namespace ADE_WFM.Models.DTOs.WorkFlowViewModels {
     public class UpdateProgramNameDto {
-        public string WorkFlowName { get; set; } = string.Empty;
-        public int WorkFlowId { get; set; }
+        public string? ProgramName { get; set; } = string.Empty;
+        public string? Description { get; set; } = string.Empty;
+        public string? Author { get; set; } = string.Empty;
+        public DateOnly? DueDate { get; set; }
+        public int ProgramID { get; set; }
     }
 }
