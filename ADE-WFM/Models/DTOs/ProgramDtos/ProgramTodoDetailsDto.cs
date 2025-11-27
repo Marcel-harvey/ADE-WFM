@@ -4,6 +4,6 @@
         public bool isComplete { get; set; }
         public string Task { get; set; } = string.Empty;
         public DateOnly DateCreated { get; set; }
-        public DateOnly DueDate { get; set; }
+        public DateOnly? DueDate { get; set; }
     }
 }
