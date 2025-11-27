@@ -368,7 +368,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                         Comments = programs.Comments?.Select(c => new ProgramCommentDetailsDto {
                             CommentId = c.Id,
                             Content = c.CommentContent ?? "No content",
-                            UserName = c.User.UserName ?? "Unknown"
+                            UserName = c.User.UserName ?? "Unknown",
+                            DateCreated = c.DateCreated
                         }).ToList(),
                         Users = programs.WorkFlowUsers.Select(pu => new UserDetailsDto {
                             UserId = pu.UserId,
