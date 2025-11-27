@@ -8,30 +8,26 @@ namespace ADE_WFM.Models {
         [Required]
         public bool IsComplete { get; set; }
         [Required]
-        public string Title { get; set; } = string.Empty;
+        public string Task { get; set; } = string.Empty;
         [Required]
-        public string Description { get; set; } = string.Empty;
+        public DateOnly DateCreated { get; set; }
         [Required]
-        public DateTime DateCreated { get; set; }
-        [Required]
-        public DateTime DueDate { get; set; }
-        [Required]
+        public DateOnly DueDate { get; set; }
 
 
         // Navigation Properties
         public ICollection<SubTask>? SubTasks { get; set; }
 
 
-        // Foreign Keys
-        // Identity uses string not int
-        public string UserId { get; set; } = string.Empty;
-        public ApplicationUser User { get; set; } = null!;
+        // Foreign Keys// Identity uses string not int
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
 
-        public int? ProjectId { get; set; }
-        public Project? Project { get; set; }
+        public int ProjectId { get; set; }
+        public Project Project { get; set; } = null!;
 
 
-        // Tenand Setup
+        // Tenant Setup
         public int TenantId { get; set; }
         [ForeignKey(nameof(TenantId))]
         public Tenant Tenant { get; set; } = null!;
