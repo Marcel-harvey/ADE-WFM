@@ -370,6 +370,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                                 TodoId = t.Id,
                                 isComplete = t.IsComplete,
                                 Task = t.Task,
+                                UserName = t.User?.UserName,
                                 DateCreated = t.DateCreated,
                                 DueDate = t.DueDate,
                             }).ToList()

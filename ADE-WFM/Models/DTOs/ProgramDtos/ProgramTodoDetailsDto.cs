@@ -3,6 +3,7 @@
         public int TodoId { get; set; }
         public bool isComplete { get; set; }
         public string Task { get; set; } = string.Empty;
+        public string? UserName { get; set; }
         public DateOnly DateCreated { get; set; }
         public DateOnly? DueDate { get; set; }
     }
