@@ -8,5 +8,6 @@
 
         // List of project children
         public List<UserDetailsDto>? Users { get; set; }
+        public List<ProgramTodoDetailsDto>? Todos { get; set; }
     }
 }
