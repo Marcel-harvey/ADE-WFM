@@ -230,9 +230,7 @@ namespace ADE_WFM.Services.ProjectService {
                         }).ToList(),
                         Todos = project.PorjectTodos?.Select(t => new ProjectTodosInfoDto {
                             TodoId = t.Id,
-                            TodoTitle = t.Title,
                             TodoIsComplete = t.IsComplete,
-                            DueDate = t.DueDate,
                             UserName = t.User?.UserName ?? "Unknown",
                             ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto {
                                 SubTaskId = st.Id,
@@ -303,9 +301,7 @@ namespace ADE_WFM.Services.ProjectService {
                             }).ToList(),
                             Todos = p.PorjectTodos?.Select(t => new ProjectTodosInfoDto {
                                 TodoId = t.Id,
-                                TodoTitle = t.Title,
                                 TodoIsComplete = t.IsComplete,
-                                DueDate = t.DueDate,
                                 UserName = t.User?.UserName ?? "Unknown",
                                 ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto {
                                     SubTaskId = st.Id,
@@ -375,9 +371,7 @@ namespace ADE_WFM.Services.ProjectService {
                         }).ToList(),
                         Todos = project.PorjectTodos?.Select(t => new ProjectTodosInfoDto {
                             TodoId = t.Id,
-                            TodoTitle = t.Title,
                             TodoIsComplete = t.IsComplete,
-                            DueDate = t.DueDate,
                             UserName = t.User?.UserName ?? "Unknown",
                             ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto {
                                 SubTaskId = st.Id,
@@ -456,9 +450,7 @@ namespace ADE_WFM.Services.ProjectService {
                         }).ToList(),
                         Todos = project.PorjectTodos?.Select(t => new ProjectTodosInfoDto {
                             TodoId = t.Id,
-                            TodoTitle = t.Title,
                             TodoIsComplete = t.IsComplete,
-                            DueDate = t.DueDate,
                             UserName = t.User?.UserName ?? "Unknown",
                             ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto {
                                 SubTaskId = st.Id,
@@ -528,9 +520,7 @@ namespace ADE_WFM.Services.ProjectService {
                     }).ToList(),
                     Todos = project.PorjectTodos?.Select(t => new ProjectTodosInfoDto {
                         TodoId = t.Id,
-                        TodoTitle = t.Title,
                         TodoIsComplete = t.IsComplete,
-                        DueDate = t.DueDate,
                         UserName = t.User?.UserName ?? "Unknown",
                         ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto {
                             SubTaskId = st.Id,
@@ -622,9 +612,7 @@ namespace ADE_WFM.Services.ProjectService {
                     }).ToList(),
                     Todos = project.PorjectTodos?.Select(t => new ProjectTodosInfoDto {
                         TodoId = t.Id,
-                        TodoTitle = t.Title,
                         TodoIsComplete = t.IsComplete,
-                        DueDate = t.DueDate,
                         UserName = t.User?.UserName ?? "Unknown",
                         ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto {
                             SubTaskId = st.Id,
