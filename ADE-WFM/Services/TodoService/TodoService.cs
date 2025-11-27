@@ -50,13 +50,8 @@ namespace ADE_WFM.Services.TodoService {
                 }
 
                 var todo = new Todo {
-                    Title = dto.Title,
-                    Description = dto.Description,
-                    DueDate = dto.DueDate,
-                    DateCreated = DateTime.UtcNow,
                     IsComplete = false,
                     UserId = dto.UserId,
-                    ProjectId = dto.ProjectId,
                     TenantId = _tenantContext.TenantId
                 };
 
@@ -69,10 +64,6 @@ namespace ADE_WFM.Services.TodoService {
                     new ToDoResponseDto {
                         Id = todo.Id,
                         IsComplete = todo.IsComplete,
-                        Title = todo.Title,
-                        Description = todo.Description,
-                        DateCreated = todo.DateCreated,
-                        DueDate = todo.DueDate,
                         UserName = user.UserName ?? "Unknown",
                         ProjectId = todo.ProjectId
                     },
@@ -113,11 +104,7 @@ namespace ADE_WFM.Services.TodoService {
                     todos.Select(t => new ToDoResponseDto {
                         Id = t.Id,
                         IsComplete = t.IsComplete,
-                        Title = t.Title,
-                        Description = t.Description,
-                        DateCreated = t.DateCreated,
-                        DueDate = t.DueDate,
-                        UserName = t.User.UserName ?? "Unknown",
+                        UserName = t.User?.UserName ?? "Unknown",
                         ProjectId = t.ProjectId,
                         SubTasks = t.SubTasks?
                             .Select(st => new TodoSubTasksResponseDto {
@@ -172,11 +159,7 @@ namespace ADE_WFM.Services.TodoService {
                     todos.Select(t => new ToDoResponseDto {
                         Id = t.Id,
                         IsComplete = t.IsComplete,
-                        Title = t.Title,
-                        Description = t.Description,
-                        DateCreated = t.DateCreated,
-                        DueDate = t.DueDate,
-                        UserName = t.User.UserName ?? "Unknown",
+                        UserName = t.User?.UserName ?? "Unknown",
                         ProjectId = t.ProjectId,
                         SubTasks = t.SubTasks?
                             .Select(st => new TodoSubTasksResponseDto {
@@ -217,29 +200,25 @@ namespace ADE_WFM.Services.TodoService {
                 }
 
                 // Update fields if provided
-                if (!string.IsNullOrWhiteSpace(dto.Title))
-                    todo.Title = dto.Title.Trim();
+                //if (!string.IsNullOrWhiteSpace(dto.Title))
+                //    todo.Title = dto.Title.Trim();
 
-                if (!string.IsNullOrWhiteSpace(dto.Description))
-                    todo.Description = dto.Description.Trim();
+                //if (!string.IsNullOrWhiteSpace(dto.Description))
+                //    todo.Description = dto.Description.Trim();
 
-                if (dto.DueDate != default(DateTime))
-                    todo.DueDate = dto.DueDate;
+                //if (dto.DueDate != default(DateTime))
+                //    todo.DueDate = dto.DueDate;
 
                 _context.Todos.Update(todo);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Todo with ID {TodoId} updated successfully by user {UserName}.", dto.TodoId, todo.User.UserName);
+                _logger.LogInformation("Todo with ID {TodoId} updated successfully by user {UserName}.", dto.TodoId, todo.User?.UserName);
 
                 return ServiceResult<ToDoResponseDto>.Success(
                     new ToDoResponseDto {
                         Id = todo.Id,
                         IsComplete = todo.IsComplete,
-                        Title = todo.Title,
-                        Description = todo.Description,
-                        DateCreated = todo.DateCreated,
-                        DueDate = todo.DueDate,
-                        UserName = todo.User.UserName ?? "Unknown",
+                        UserName = todo.User?.UserName ?? "Unknown",
                         ProjectId = todo.ProjectId,
                         SubTasks = todo.SubTasks?
                             .Select(st => new TodoSubTasksResponseDto {
@@ -294,10 +273,6 @@ namespace ADE_WFM.Services.TodoService {
                     new ToDoResponseDto {
                         Id = todo.Id,
                         IsComplete = todo.IsComplete,
-                        Title = todo.Title,
-                        Description = todo.Description,
-                        DateCreated = todo.DateCreated,
-                        DueDate = todo.DueDate,
                         UserName = todo.User?.UserName ?? "Unknown",
                         ProjectId = todo.ProjectId,
                         SubTasks = todo.SubTasks?
@@ -347,10 +322,6 @@ namespace ADE_WFM.Services.TodoService {
                 var response = new ToDoResponseDto {
                     Id = todo.Id,
                     IsComplete = todo.IsComplete,
-                    Title = todo.Title,
-                    Description = todo.Description,
-                    DateCreated = todo.DateCreated,
-                    DueDate = todo.DueDate,
                     UserName = todo.User?.UserName ?? "Unknown",
                     ProjectId = todo.ProjectId,
                     SubTasks = todo.SubTasks?

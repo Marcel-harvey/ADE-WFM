@@ -56,14 +56,13 @@ namespace ADE_WFM.Services.SubTaskService {
                 _context.SubTasks.Add(subTask);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("SubTask added successfully to Todo '{TodoTitle}' (ID: {TodoId})", todo.Title, todo.Id);
+                _logger.LogInformation("SubTask added successfully to Todo '{TodoTitle}' (ID: {TodoId})", todo.Task, todo.Id);
 
                 return ServiceResult<SubTaskResponseDto>.Success(new SubTaskResponseDto {
                     SubTaskId = subTask.Id,
                     Description = subTask.Description,
                     IsCompleted = subTask.IsCompleted,
                     TodoId = todo.Id,
-                    TodoTitle = todo.Title
                 },
                     "Sub task added successfully"
                 );
@@ -109,7 +108,7 @@ namespace ADE_WFM.Services.SubTaskService {
                     return ServiceResult<List<SubTaskResponseDto>>.Failure($"No SubTasks found for Todo ID {dto.TodoId}.");
                 }
 
-                _logger.LogInformation("Retrieved {count} SubTasks for Todo ID {ToDoTitle}", subtasks.Count(), todo.Title);
+                _logger.LogInformation("Retrieved {count} SubTasks for Todo ID {ToDoTitle}", subtasks.Count(), todo.Task);
 
                 return ServiceResult<List<SubTaskResponseDto>>.Success(
                     subtasks.Select(st => new SubTaskResponseDto {
@@ -117,7 +116,6 @@ namespace ADE_WFM.Services.SubTaskService {
                         Description = st.Description,
                         IsCompleted = st.IsCompleted,
                         TodoId = dto.TodoId,
-                        TodoTitle = todo.Title
                     }).ToList(),
                     "SubTasks retrieved successfully."
                 );
@@ -176,7 +174,6 @@ namespace ADE_WFM.Services.SubTaskService {
                     Description = subTask.Description,
                     IsCompleted = subTask.IsCompleted,
                     TodoId = todo.Id,
-                    TodoTitle = todo.Title
                 },
                     "Sub task updated successfully"
                 );
@@ -235,7 +232,6 @@ namespace ADE_WFM.Services.SubTaskService {
                     Description = subTask.Description,
                     IsCompleted = subTask.IsCompleted,
                     TodoId = todo.Id,
-                    TodoTitle = todo.Title
                 },
                     $"Sub task marked {dto.IsCompleted.ToString()} successfully"
                 );
@@ -288,7 +284,6 @@ namespace ADE_WFM.Services.SubTaskService {
                     Description = subTask.Description,
                     IsCompleted = subTask.IsCompleted,
                     TodoId = todo.Id,
-                    TodoTitle = todo.Title
                 };
 
                 _context.SubTasks.Remove(subTask);
