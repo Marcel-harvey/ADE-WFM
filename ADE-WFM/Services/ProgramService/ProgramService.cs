@@ -335,6 +335,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     .Include(p => p.Project!)
                         .ThenInclude(p => p.ProjectUsers)
                             .ThenInclude(u => u.User)
+                    .Include(p => p.Project!)
+                        .ThenInclude(t => t.PorjectTodos)
                     .Include(p => p.Comments!)
                         .ThenInclude(cu => cu.User)
                     .Include(pu => pu.WorkFlowUsers!)
@@ -363,6 +365,13 @@ namespace ADE_WFM.Services.WorkFlowService {
                                 UserId = u.UserId,
                                 UserName = u.User.UserName ?? "Unknown",
                                 UserEmail = u.User.Email ?? "Unknown"
+                            }).ToList(),
+                            Todos = p.PorjectTodos?.Select(t => new ProgramTodoDetailsDto {
+                                TodoId = t.Id,
+                                isComplete = t.IsComplete,
+                                Task = t.Task,
+                                DateCreated = t.DateCreated,
+                                DueDate = t.DueDate,
                             }).ToList()
                         }).ToList(),
                         Comments = programs.Comments?.Select(c => new ProgramCommentDetailsDto {
@@ -375,7 +384,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                             UserId = pu.UserId,
                             UserName = pu.User.UserName ?? "Unknown",
                             UserEmail = pu.User.Email ?? "Unknown"
-                        }).ToList()
+                        }).ToList(),
                     },
                     "Retrieved Program details successfully for requested program"
                 );

@@ -31,27 +31,20 @@ namespace ADE_WFM.Services.TodoService {
             if (dto == null)
                 return ServiceResult<ToDoResponseDto>.Failure("No information provided.");
 
-            // UserId = user that todo is assigned to (Not current user)
-            if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<ToDoResponseDto>.Failure("User id required.");
+            if (dto.ProjectId <= 0)
+                return ServiceResult<ToDoResponseDto>.Failure("Project id required.");
 
-            if (string.IsNullOrWhiteSpace(dto.Title))
+            if (string.IsNullOrWhiteSpace(dto.Task))
                 return ServiceResult<ToDoResponseDto>.Failure("Title is required.");
 
-            if (string.IsNullOrWhiteSpace(dto.Description))
-                return ServiceResult<ToDoResponseDto>.Failure("Description is required.");
-
             try {
-                var user = await _userManager
-                    .FindByIdAsync(dto.UserId);
-                if (user == null) {
-                    _logger.LogWarning("User with ID {UserId} does not exist.", dto.UserId);
-                    return ServiceResult<ToDoResponseDto>.Failure("User does not exist.");
-                }
-
                 var todo = new Todo {
+                    Task = dto.Task,
                     IsComplete = false,
-                    UserId = dto.UserId,
+                    DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
+                    DueDate = dto.DueDate,
+                    UserId = dto.UserId ?? null,
+                    ProjectId = dto.ProjectId,
                     TenantId = _tenantContext.TenantId
                 };
 
@@ -64,20 +57,19 @@ namespace ADE_WFM.Services.TodoService {
                     new ToDoResponseDto {
                         Id = todo.Id,
                         IsComplete = todo.IsComplete,
-                        UserName = user.UserName ?? "Unknown",
                         ProjectId = todo.ProjectId
                     },
                     "Todo created successfully."
                     );
             }
             catch (DbUpdateException ex) {
-                _logger.LogError(ex, "Database error while adding todo {TodoTitle}", dto.Title);
+                _logger.LogError(ex, "Database error while adding todo {TodoTitle}", dto.Task);
                 return ServiceResult<ToDoResponseDto>.Failure(
                     "A database error occurred while adding the todo.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Unexpected error while adding todo {TodoTitle}", dto.Title);
+                _logger.LogError(ex, "Unexpected error while adding todo {TodoTitle}", dto.Task);
                 return ServiceResult<ToDoResponseDto>.Failure(
                     "An unexpected error occurred while adding the todo.",
                     new[] { ex.Message });

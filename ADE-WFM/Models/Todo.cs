@@ -12,7 +12,7 @@ namespace ADE_WFM.Models {
         [Required]
         public DateOnly DateCreated { get; set; }
         [Required]
-        public DateOnly DueDate { get; set; }
+        public DateOnly? DueDate { get; set; }
 
 
         // Navigation Properties
