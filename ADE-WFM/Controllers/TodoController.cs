@@ -15,10 +15,8 @@ namespace ADE_WFM.Controllers {
 
         // CREATE API's
         // Add a new todo
-        [HttpPost("{userId}")]
-        public async Task<IActionResult> AddTodo([FromBody] AddTodoDto dto, string userId, [FromQuery] int? projectId = null) {
-            dto.UserId = userId ?? dto.UserId;
-            dto.ProjectId = projectId ?? dto.ProjectId;
+        [HttpPost]
+        public async Task<IActionResult> AddTodo([FromBody] AddTodoDto dto) {
             var result = await _todoService.AddTodo(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
