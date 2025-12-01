@@ -269,7 +269,7 @@ namespace ADE_WFM.Services.WorkFlowService {
             try {
                 var workFlow = await _context.Programs
                     .Where(wf => wf.Id == dto.ProgramId
-                                 && wf.TenantId == _tenantContext.TenantId) // tenant filter
+                                 && wf.TenantId == _tenantContext.TenantId)
                     .Include(wf => wf.Project)
                     .Include(wf => wf.WorkFlowUsers)
                         .ThenInclude(wu => wu.User)
@@ -352,6 +352,7 @@ namespace ADE_WFM.Services.WorkFlowService {
                     new ProgramDetailsResponseDto {
                         ProgramId = programs.Id,
                         ProgramName = programs.ProgramName,
+                        Description = programs.Description,
                         ProgramAuthor = programs.Author,
                         DateCreated = programs.DateCreated,
                         DueDate = programs.DueDate,
