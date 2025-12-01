@@ -9,7 +9,7 @@
         public string UserName { get; set; } = string.Empty;
         public int? ProjectId { get; set; }
         public string? ProjectTitle { get; set; }
-        public int? WorkFlowId { get; set; }
-        public string? WorkFlowName { get; set; }
+        public int? programId { get; set; }
+        public string? ProgramName { get; set; }
     }
 }

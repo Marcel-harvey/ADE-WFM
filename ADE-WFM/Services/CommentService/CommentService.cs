@@ -56,6 +56,8 @@ namespace ADE_WFM.Services.CommentService {
                 _context.Comments.Add(comment);
                 await _context.SaveChangesAsync();
 
+                _logger.LogInformation("Comment created successfully");
+
                 return ServiceResult<CommentResponseDto>.Success(
                     new CommentResponseDto {
                         CommentId = comment.Id,
@@ -63,8 +65,8 @@ namespace ADE_WFM.Services.CommentService {
                         CommentContent = comment.CommentContent,
                         UserId = _tenantContext.UserId,
                         UserName = _tenantContext.UserName ?? "Unknown",
-                        WorkFlowId = program.Id,
-                        WorkFlowName = program.ProgramName,
+                        programId = program.Id,
+                        ProgramName = program.ProgramName,
                     },
                     "Comment added to work flow successfully."
                 );
@@ -131,8 +133,8 @@ namespace ADE_WFM.Services.CommentService {
                         UserName = _tenantContext.UserName ?? "Unknown",
                         ProjectId = comment.ProjectId,
                         ProjectTitle = project.ProjectTitle,
-                        WorkFlowId = project.WorkFlowId,
-                        WorkFlowName = project.WorkFlows.ProgramName,
+                        programId = project.WorkFlowId,
+                        ProgramName = project.WorkFlows.ProgramName,
                     },
                     "Comment added to project successfully."
                 );
@@ -167,6 +169,7 @@ namespace ADE_WFM.Services.CommentService {
                 var program = await _context.Programs
                     .Include(wf => wf.Comments!)
                         .ThenInclude(c => c.User)
+                    .OrderByDescending(c => c.Id)
                     .FirstOrDefaultAsync(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
 
                 // Check if program exists first before accessing comments
@@ -191,8 +194,8 @@ namespace ADE_WFM.Services.CommentService {
                             IsViewed = c.IsViewed,
                             UserId = c.UserId,
                             UserName = c.User?.UserName ?? "Unknown",
-                            WorkFlowId = program.Id,
-                            WorkFlowName = program.ProgramName,
+                            programId = program.Id,
+                            ProgramName = program.ProgramName,
                         }).ToList(),
                         $"Work flow '{program.ProgramName}' comments retrieved successfully."
                     );
@@ -244,8 +247,8 @@ namespace ADE_WFM.Services.CommentService {
                             UserName = c.User?.UserName ?? "Unknown",
                             ProjectId = project.Id,
                             ProjectTitle = project.ProjectTitle,
-                            WorkFlowId = project.WorkFlowId,
-                            WorkFlowName = project.WorkFlows?.ProgramName ?? "No work flow name",
+                            programId = project.WorkFlowId,
+                            ProgramName = project.WorkFlows?.ProgramName ?? "No work flow name",
                         }).ToList(),
                         $"Project' {project.ProjectTitle}' comments retrieved successfully."
                     );
@@ -293,8 +296,8 @@ namespace ADE_WFM.Services.CommentService {
                             UserName = user.UserName ?? "Unknown",
                             ProjectId = c.ProjectId,
                             ProjectTitle = c.Project?.ProjectTitle,
-                            WorkFlowId = c.WorkFlowId,
-                            WorkFlowName = c.WorkFlow?.ProgramName ?? "No work flow name",
+                            programId = c.WorkFlowId,
+                            ProgramName = c.WorkFlow?.ProgramName ?? "No work flow name",
                         }).ToList(),
                         $"User'{user.UserName}' comments retrieved successfully."
                     );
@@ -339,8 +342,8 @@ namespace ADE_WFM.Services.CommentService {
                             UserName = comment.User.UserName ?? "Unknown",
                             ProjectId = comment.Project?.Id,
                             ProjectTitle = comment.Project?.ProjectTitle,
-                            WorkFlowId = comment.WorkFlow.Id,
-                            WorkFlowName = comment.WorkFlow.ProgramName
+                            programId = comment.WorkFlow.Id,
+                            ProgramName = comment.WorkFlow.ProgramName
                         },
                         "Comment was already marked as viewed."
                     );
@@ -361,8 +364,8 @@ namespace ADE_WFM.Services.CommentService {
                         UserName = comment.User.UserName ?? "Unknown",
                         ProjectId = comment.Project?.Id,
                         ProjectTitle = comment.Project?.ProjectTitle,
-                        WorkFlowId = comment.WorkFlow.Id,
-                        WorkFlowName = comment.WorkFlow.ProgramName
+                        programId = comment.WorkFlow.Id,
+                        ProgramName = comment.WorkFlow.ProgramName
                     },
                     $"Comment ID {comment.Id} marked as viewed successfully."
                 );
@@ -413,8 +416,8 @@ namespace ADE_WFM.Services.CommentService {
                     UserName = comment.User.UserName ?? "Unknown",
                     ProjectId = comment.Project?.Id,
                     ProjectTitle = comment.Project?.ProjectTitle,
-                    WorkFlowId = comment.WorkFlow.Id,
-                    WorkFlowName = comment.WorkFlow.ProgramName
+                    programId = comment.WorkFlow.Id,
+                    ProgramName = comment.WorkFlow.ProgramName
                 };
 
                 _context.Comments.Remove(comment);
