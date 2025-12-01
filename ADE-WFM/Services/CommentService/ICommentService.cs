@@ -4,8 +4,7 @@ using ADE_WFM.Models.DTOs.CommentDtos;
 namespace ADE_WFM.Services.CommentService {
     public interface ICommentService {
         // CREATE services
-        Task<ServiceResult<CommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto);
-        Task<ServiceResult<CommentResponseDto>> AddCommentToProject(AddCommentDto dto);
+        Task<ServiceResult<CommentResponseDto>> AddCommentToProgram(AddCommentDto dto);
 
         // GET serivces
         Task<ServiceResult<List<CommentResponseDto>>> GetWorkFlowComments(GetCommentInfoDto dto);

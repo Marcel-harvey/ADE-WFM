@@ -27,7 +27,7 @@ namespace ADE_WFM.Services.CommentService {
 
         // ADD services
         // Add comment to program
-        public async Task<ServiceResult<CommentResponseDto>> AddCommentToWorkFlow(AddCommentDto dto) {
+        public async Task<ServiceResult<CommentResponseDto>> AddCommentToProgram(AddCommentDto dto) {
             // General validations
             if (dto == null)
                 return ServiceResult<CommentResponseDto>.Failure("No information provided.");
@@ -82,74 +82,6 @@ namespace ADE_WFM.Services.CommentService {
                 _logger.LogError(ex, "Unexpected error adding comment to work flow");
                 return ServiceResult<CommentResponseDto>.Failure(
                     "An unexpected error occurred while adding new comment to work flow.",
-                    new[] { ex.Message }
-                );
-            }
-        }
-
-
-        // Add comment to project
-        public async Task<ServiceResult<CommentResponseDto>> AddCommentToProject(AddCommentDto dto) {
-            // General validations
-            if (dto == null)
-                return ServiceResult<CommentResponseDto>.Failure("No information provided.");
-
-            if (string.IsNullOrWhiteSpace(dto.CommentContent))
-                return ServiceResult<CommentResponseDto>.Failure("Comment content cannot be empty.");
-
-            if (dto.ProjectId <= 0)
-                return ServiceResult<CommentResponseDto>.Failure("Valid project ID is required.");
-
-            if (dto.WorkFlowId <= 0)
-                return ServiceResult<CommentResponseDto>.Failure("Valid Work flow ID is required.");
-
-            try {
-                var project = await _context.Projects
-                    .Include(wf => wf.WorkFlows)
-                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
-                if (project == null)
-                    return ServiceResult<CommentResponseDto>.Failure("Project not found.");
-
-                // Need to supply work flow id for relationship
-                var comment = new Comment {
-                    DateCreated = DateOnly.FromDateTime(DateTime.UtcNow),
-                    CommentContent = dto.CommentContent,
-                    UserId = _tenantContext.UserId,
-                    ProjectId = dto.ProjectId,
-                    WorkFlowId = project.WorkFlowId,
-                    IsViewed = false,
-                    TenantId = _tenantContext.TenantId,
-                };
-
-                _context.Comments.Add(comment);
-                await _context.SaveChangesAsync();
-
-                return ServiceResult<CommentResponseDto>.Success(
-                    new CommentResponseDto {
-                        CommentId = comment.Id,
-                        DateCreated = comment.DateCreated,
-                        CommentContent = comment.CommentContent,
-                        UserId = _tenantContext.UserId,
-                        UserName = _tenantContext.UserName ?? "Unknown",
-                        ProjectId = comment.ProjectId,
-                        ProjectTitle = project.ProjectTitle,
-                        programId = project.WorkFlowId,
-                        ProgramName = project.WorkFlows.ProgramName,
-                    },
-                    "Comment added to project successfully."
-                );
-            }
-            catch (DbUpdateException ex) {
-                _logger.LogError(ex, "Database error adding comment to project");
-                return ServiceResult<CommentResponseDto>.Failure(
-                    "A database error occurred while adding new comment to project.",
-                    new[] { ex.Message }
-                );
-            }
-            catch (Exception ex) {
-                _logger.LogError(ex, "Unexpected error adding comment to project");
-                return ServiceResult<CommentResponseDto>.Failure(
-                    "An unexpected error occurred while adding new comment to project.",
                     new[] { ex.Message }
                 );
             }
