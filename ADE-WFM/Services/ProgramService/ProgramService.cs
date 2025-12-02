@@ -29,6 +29,7 @@ namespace ADE_WFM.Services.WorkFlowService {
 
         // CREATE:
         // Add new workflow with user the created and extra list of users if selected
+        // TODO: Check that username is list is not required as author will be set and users can be added later - DTO
         public async Task<ServiceResult<ProgramResponseDto>> AddProgram(CreateProgramDto dto) {
             // General validation
             if (dto == null)
@@ -410,9 +411,9 @@ namespace ADE_WFM.Services.WorkFlowService {
         // Update workflow's name
         public async Task<ServiceResult<ProgramResponseDto>> UpdateProgram(UpdateProgramNameDto dto) {
             if (dto == null)
-                return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
+                return ServiceResult<ProgramResponseDto>.Failure("No information provided.");
             if (dto.ProgramID <= 0)
-                return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID provided.");
+                return ServiceResult<ProgramResponseDto>.Failure("Invalid program ID provided.");
 
             try {
                 var program = await _context.Programs
@@ -435,11 +436,6 @@ namespace ADE_WFM.Services.WorkFlowService {
                 if (!string.IsNullOrWhiteSpace(dto.Description)) {
                     program.Description = dto.Description.Trim();
                     _logger.LogInformation("Attempting to change Program description to {description}", dto.Description);
-                }
-
-                if (!string.IsNullOrWhiteSpace(dto.Author)) {
-                    program.Author = dto.Author.Trim();
-                    _logger.LogInformation("Attempting to change Program Author to {author}", dto.Author);
                 }
 
                 if (dto.DueDate.HasValue) {
