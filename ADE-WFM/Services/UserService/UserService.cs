@@ -189,6 +189,7 @@ namespace ADE_WFM.Services.UserService {
 
 
         // GET ALL:
+        // TODO: To be removed later - just for development
         public async Task<ServiceResult<List<UserResponseDto>>> GetAllUsers() {
             try {
                 var users = await _userManager.Users
@@ -221,6 +222,9 @@ namespace ADE_WFM.Services.UserService {
 
 
         // Get all users part of tenant/company
+        /*
+         * Uses tenancy to get users that are part of logged in tenant
+         */
         public async Task<ServiceResult<List<UserResponseDto>>> GetTenantUsers() {
             try {
                 var tenantUsers = await _userManager.Users
@@ -263,20 +267,32 @@ namespace ADE_WFM.Services.UserService {
                 return ServiceResult<List<UserResponseDto>>.Failure("Invalid program ID supplied");
 
             try {
+                var tenantUsers = await _userManager.Users
+                    .Where(u => u.TenantId == _tenantContext.TenantId)
+                    .ToListAsync();
+                if (!tenantUsers.Any()) {
+                    _logger.LogInformation("No users found for tenant {tenantName}", _tenantContext.TenantName);
+                    return ServiceResult<List<UserResponseDto>>.Failure("An unexpected error occured");
+                }
+
                 var users = await _context.WorkFlowUsers
-                    .Include(u => u.User)
                     .Where(u => u.WorkFlowId == dto.ProgramId)
+                    .Select(u => u.UserId)
                     .ToListAsync();
                 if (!users.Any()) {
                     _logger.LogInformation("No users found for specified program");
                     return ServiceResult<List<UserResponseDto>>.Failure("No users found for specified program");
                 }
 
+                var userList = tenantUsers
+                    .Where(u => !users.Contains(u.Id))
+                    .ToList();
+
                 return ServiceResult<List<UserResponseDto>>.Success(
-                    users.Select(u => new UserResponseDto {
-                        UserId = u.UserId,
-                        UserName = u.User?.UserName ?? "Unknown",
-                        UserEmail = u.User?.Email ?? "Unknown",
+                    userList.Select(u => new UserResponseDto {
+                        UserId = u.Id,
+                        UserName = u.UserName ?? "Unknown",
+                        UserEmail = u.Email ?? "Unknown",
                     }).ToList(),
                     "Users retrieved successfully"
                     );
