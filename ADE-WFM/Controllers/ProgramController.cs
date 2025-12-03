@@ -24,7 +24,7 @@ namespace ADE_WFM.Controllers {
 
 
         // Add multiple users to a workflow
-        [HttpPost("users/add")]
+        [HttpPost("users")]
         public async Task<IActionResult> AddUsers([FromBody] AddUserProgramDto dto) {
             var result = await _workFlowService.AddUserToProgram(dto);
 
@@ -61,9 +61,8 @@ namespace ADE_WFM.Controllers {
 
 
         // UPDATE API's
-        [HttpPut("{programId:int}")]
-        public async Task<IActionResult> UpdateProgram([FromBody] UpdateProgramNameDto dto, int? programId = null) {
-            dto.ProgramID = programId ?? dto.ProgramID;
+        [HttpPut]
+        public async Task<IActionResult> UpdateProgram([FromBody] UpdateProgramNameDto dto) {
             var result = await _workFlowService.UpdateProgram(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
