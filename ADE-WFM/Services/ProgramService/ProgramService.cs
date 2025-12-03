@@ -535,82 +535,40 @@ namespace ADE_WFM.Services.WorkFlowService {
 
 
         // Remove user from workflow
-        public async Task<ServiceResult<ProgramResponseDto>> RemoveUserFromProgram(RemoveUserFromProgramDto dto) {
+        public async Task<ServiceResult<UserDetailsDto>> RemoveUserFromProgram(AddUserProgramDto dto) {
             if (dto == null)
-                return ServiceResult<ProgramResponseDto>.Failure("Input data is required.");
+                return ServiceResult<UserDetailsDto>.Failure("Input data is required.");
 
-            // UserId = User to be removed
-            if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<ProgramResponseDto>.Failure("User ID is required.");
+            if (!dto.UserIds.Any())
+                return ServiceResult<UserDetailsDto>.Failure("User ID is required.");
 
-            if (dto.WorkFlowId <= 0)
-                return ServiceResult<ProgramResponseDto>.Failure("Invalid workflow ID provided.");
+            if (dto.programId <= 0)
+                return ServiceResult<UserDetailsDto>.Failure("Invalid workflow ID provided.");
 
             try {
-                // Find the user in the workflow, ensuring tenant ownership
-                var workFlowUser = await _context.WorkFlowUsers
-                    .Include(wfu => wfu.User)
-                    .Where(wfu => wfu.UserId == dto.UserId &&
-                                  wfu.WorkFlowId == dto.WorkFlowId &&
-                                  wfu.WorkFlow.TenantId == _tenantContext.TenantId)
-                    .FirstOrDefaultAsync();
-
-                if (workFlowUser == null) {
-                    _logger.LogWarning("User with ID {UserId} not found in workflow ID {WorkFlowId} for tenant {TenantId}.",
-                        dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
-                    return ServiceResult<ProgramResponseDto>.Failure($"User with ID {dto.UserId} not found in the specified workflow for your tenant.");
+                foreach (var user in dto.UserIds) {
+                    await _context.WorkFlowUsers
+                         .Where(u => u.UserId == user && u.WorkFlowId == dto.programId)
+                         .ExecuteDeleteAsync();
                 }
 
-                // Ensure user exists in Identity
-                var user = await _userManager.FindByIdAsync(dto.UserId);
-                if (user == null) {
-                    _logger.LogWarning("User with ID {UserId} not found in Identity.", dto.UserId);
-                    return ServiceResult<ProgramResponseDto>.Failure($"User with ID {dto.UserId} not found.");
-                }
+                _logger.LogInformation("Users deleted successfully");
 
-                // Load workflow with projects and users for response
-                var workFlow = await _context.Programs
-                    .Where(wf => wf.Id == dto.WorkFlowId && wf.TenantId == _tenantContext.TenantId)
-                    .Include(wf => wf.Project)
-                    .Include(wf => wf.WorkFlowUsers)
-                        .ThenInclude(wu => wu.User)
-                    .FirstOrDefaultAsync();
-
-                if (workFlow == null)
-                    return ServiceResult<ProgramResponseDto>.Failure($"Workflow with ID {dto.WorkFlowId} not found for your tenant.");
-
-                _context.WorkFlowUsers.Remove(workFlowUser);
-                await _context.SaveChangesAsync();
-
-                return ServiceResult<ProgramResponseDto>.Success(
-                    new ProgramResponseDto {
-                        ProgramId = workFlow.Id,
-                        ProgramName = workFlow.ProgramName,
-                        Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
-                            Id = p.Id,
-                            ProjectName = p.ProjectTitle
-                        }).ToList() ?? new List<GetProgramProjectsDto>(),
-                        Users = workFlow.WorkFlowUsers?
-                            .Where(wu => wu.UserId != dto.UserId)
-                            .Select(wu => new GetProgramUsersDto {
-                                Id = wu.UserId,
-                                UserName = wu.User?.UserName ?? ""
-                            }).ToList() ?? new List<GetProgramUsersDto>()
+                return ServiceResult<UserDetailsDto>.Success(
+                    new UserDetailsDto {
                     },
-                    "User removed from workflow successfully."
+                    "Users removed from workflow successfully."
                 );
             }
             catch (DbUpdateException ex) {
-                _logger.LogError(ex, "Database error while removing user {UserId} from workflow {WorkFlowId} for tenant {TenantId}.",
-                    dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
-                return ServiceResult<ProgramResponseDto>.Failure(
+                _logger.LogError(ex, "Database error");
+                return ServiceResult<UserDetailsDto>.Failure(
                     "A database error occurred while removing the user from the workflow.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Unexpected error while removing user {UserId} from workflow {WorkFlowId} for tenant {TenantId}.",
-                    dto.UserId, dto.WorkFlowId, _tenantContext.TenantId);
-                return ServiceResult<ProgramResponseDto>.Failure(
+                _logger.LogError(ex, "Database error");
+                return ServiceResult<UserDetailsDto>.Failure(
                     "An unexpected error occurred while removing the user from the workflow.",
                     new[] { ex.Message });
             }
