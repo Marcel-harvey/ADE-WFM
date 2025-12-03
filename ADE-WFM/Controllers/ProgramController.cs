@@ -81,12 +81,8 @@ namespace ADE_WFM.Controllers {
 
 
         // Remove a user from a workflow
-        [HttpDelete("{programId:int}/users/{userId}")]
-        public async Task<IActionResult> RemoveUser(int programId, string userId) {
-            var dto = new RemoveUserFromProgramDto {
-                WorkFlowId = programId,
-                UserId = userId
-            };
+        [HttpDelete("users")]
+        public async Task<IActionResult> RemoveUser([FromBody] AddUserProgramDto dto) {
             var result = await _workFlowService.RemoveUserFromProgram(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
