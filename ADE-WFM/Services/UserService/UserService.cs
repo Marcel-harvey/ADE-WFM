@@ -114,8 +114,8 @@ namespace ADE_WFM.Services.UserService {
                 return ServiceResult<UserResponseDto>.Success(
                     new UserResponseDto {
                         UserName = dto.UserName,
-                        Email = dto.Email,
-                        Id = user.Id
+                        UserEmail = dto.Email,
+                        UserId = user.Id
                     },
                     "User created successfully."
                 );
@@ -203,9 +203,9 @@ namespace ADE_WFM.Services.UserService {
 
                 return ServiceResult<List<UserResponseDto>>.Success(
                     users.Select(u => new UserResponseDto {
-                        Id = u.Id,
+                        UserId = u.Id,
                         UserName = u.UserName ?? "Unknown",
-                        Email = u.Email ?? "No email"
+                        UserEmail = u.Email ?? "No email"
                     }).ToList(),
                     "Users retrieved successfully."
                 );
@@ -236,9 +236,9 @@ namespace ADE_WFM.Services.UserService {
 
                 return ServiceResult<List<UserResponseDto>>.Success(
                     tenantUsers.Select(u => new UserResponseDto {
-                        Id = u.Id,
+                        UserId = u.Id,
                         UserName = u.UserName ?? "Unknown",
-                        Email = u.Email ?? "Email not found"
+                        UserEmail = u.Email ?? "Email not found"
                     }).ToList(),
                     "Users retrieved successfully"
                     );
@@ -274,9 +274,9 @@ namespace ADE_WFM.Services.UserService {
 
                 return ServiceResult<List<UserResponseDto>>.Success(
                     users.Select(u => new UserResponseDto {
-                        Id = u.UserId,
+                        UserId = u.UserId,
                         UserName = u.User?.UserName ?? "Unknown",
-                        Email = u.User?.Email ?? "Unknown",
+                        UserEmail = u.User?.Email ?? "Unknown",
                     }).ToList(),
                     "Users retrieved successfully"
                     );
@@ -380,8 +380,8 @@ namespace ADE_WFM.Services.UserService {
 
                 var respone = new UserResponseDto {
                     UserName = user.UserName ?? "Unknown",
-                    Email = user.Email ?? "No Email",
-                    Id = user.Id
+                    UserEmail = user.Email ?? "No Email",
+                    UserId = user.Id
                 };
 
                 var result = await _userManager

@@ -7,7 +7,7 @@ namespace ADE_WFM.Services.WorkFlowService {
     public interface IProgramService {
         // ADD services
         Task<ServiceResult<ProgramResponseDto>> AddProgram(CreateProgramDto dto);
-        Task<ServiceResult<ProgramResponseDto>> AddUserToProgram(AddUserProgramDto dto);
+        Task<ServiceResult<List<UserDetailsDto>>> AddUserToProgram(AddUserProgramDto dto);
 
         // GET services
         Task<ServiceResult<List<ProgramResponseDto>>> GetAllPrograms();
