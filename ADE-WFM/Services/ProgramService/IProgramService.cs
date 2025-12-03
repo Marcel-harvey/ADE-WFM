@@ -19,6 +19,6 @@ namespace ADE_WFM.Services.WorkFlowService {
 
         // DELETE services
         Task<ServiceResult<ProgramResponseDto>> DeleteProgram(GetProgramInfoDto dto);
-        Task<ServiceResult<ProgramResponseDto>> RemoveUserFromProgram(RemoveUserFromProgramDto dto);
+        Task<ServiceResult<UserDetailsDto>> RemoveUserFromProgram(AddUserProgramDto dto);
     }
 }
