@@ -118,6 +118,11 @@ namespace ADE_WFM.Services.WorkFlowService {
 
 
         // Add users to existing workflow
+        /*
+         * Adds a list of users to the program
+         * Confirms if the user first exists before adding to avoid clashes
+         * Users many to many relationship WorFlowUsers (ProgramUsers) as a medium
+         */
         public async Task<ServiceResult<List<UserDetailsDto>>> AddUserToProgram(AddUserProgramDto dto) {
             if (dto == null)
                 return ServiceResult<List<UserDetailsDto>>.Failure("Input data is required.");
@@ -395,7 +400,11 @@ namespace ADE_WFM.Services.WorkFlowService {
 
 
         //UPDATE:
-        // Update workflow's name
+        // Update program
+        /*
+         * Updates all the program information
+         * Does check on updates so it only updates sent fields not the entire entry
+         */
         public async Task<ServiceResult<ProgramResponseDto>> UpdateProgram(UpdateProgramNameDto dto) {
             if (dto == null)
                 return ServiceResult<ProgramResponseDto>.Failure("No information provided.");
