@@ -231,7 +231,7 @@ namespace ADE_WFM.Services.UserService {
                     .Where(u => u.TenantId == _tenantContext.TenantId)
                     .ToListAsync();
 
-                if (tenantUsers == null || tenantUsers.Count == 0) {
+                if (!tenantUsers.Any()) {
                     _logger.LogInformation("No users found for tenant: {tenantName}", _tenantContext.TenantName);
                     return ServiceResult<List<UserResponseDto>>.Failure($"No users found for company {_tenantContext.TenantName}");
                 }
