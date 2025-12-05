@@ -414,8 +414,8 @@ namespace ADE_WFM.Services.ProjectService {
                     return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
 
                 // Update fields if provided
-                if (!string.IsNullOrWhiteSpace(dto.Title))
-                    project.ProjectTitle = dto.Title;
+                if (!string.IsNullOrWhiteSpace(dto.projectTitle))
+                    project.ProjectTitle = dto.projectTitle;
 
                 if (dto.Description != null)
                     project.ProjectDescription = dto.Description;
