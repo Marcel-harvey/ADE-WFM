@@ -142,115 +142,71 @@ namespace ADE_WFM.Services.ProjectService {
 
 
         // Add new user to project
-        public async Task<ServiceResult<ProjectResponseDto>> AddUserToProject(AddUserToProjectDto dto) {
+        public async Task<ServiceResult<List<ProjectUsersInfoDto>>> AddUserToProject(AddUserToProjectDto dto) {
             // General validation
             if (dto == null)
-                return ServiceResult<ProjectResponseDto>.Failure("No information provided");
+                return ServiceResult<List<ProjectUsersInfoDto>>.Failure("No information provided");
 
             if (dto.ProjectId <= 0)
-                return ServiceResult<ProjectResponseDto>.Failure("Invalid Project ID provided");
+                return ServiceResult<List<ProjectUsersInfoDto>>.Failure("Invalid Project ID provided");
 
-            if (string.IsNullOrWhiteSpace(dto.AddUserId))
-                return ServiceResult<ProjectResponseDto>.Failure("User ID cannot be empty");
+            if (dto.UserIds.Any())
+                return ServiceResult<List<ProjectUsersInfoDto>>.Failure("No user ID's supplied");
 
             try {
                 var project = await _context.Projects
                 .Include(p => p.WorkFlows)
                 .Include(pu => pu.ProjectUsers)
                     .ThenInclude(u => u.User)
-                .Include(pc => pc.Comment)
-                .Include(pt => pt.PorjectTodos!)
-                    .ThenInclude(pt => pt.SubTasks)
-                    .OrderByDescending(p => p.DateCreated)
                 .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
                 if (project == null)
-                    return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
+                    return ServiceResult<List<ProjectUsersInfoDto>>.Failure($"Project with ID: {dto.ProjectId} was not found");
 
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Id == dto.AddUserId);
-                if (user == null)
-                    return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.AddUserId} was not found");
+                var existingUserIds = project.ProjectUsers
+                    .Select(wfUser => wfUser.UserId)
+                    .ToList();
 
-                // Get users in workflow - cannot add users outside of workflow
-                var workFlow = await _context.Programs
-                    .Include(wf => wf.WorkFlowUsers)
-                    .FirstOrDefaultAsync(wf => wf.Id == project.WorkFlowId && wf.TenantId == _tenantContext.TenantId);
-                if (workFlow == null)
-                    return ServiceResult<ProjectResponseDto>.Failure($"Workflow with ID {project.WorkFlowId} does not exist");
+                foreach (var userId in dto.UserIds) {
+                    var user = await _userManager.FindByIdAsync(userId);
+                    if (user == null) continue;
 
-                // Ensure user is part of the project's workflow
-                var workflowUserIds = workFlow.WorkFlowUsers
-                    .Select(wfu => wfu.UserId)
-                    .ToHashSet();
+                    // Get users in workflow - cannot add users outside of workflow
+                    var workFlow = await _context.WorkFlowUsers
+                        .FirstOrDefaultAsync(wfu => wfu.UserId == userId);
+                    if (workFlow == null)
+                        return ServiceResult<List<ProjectUsersInfoDto>>.Failure($"Workflow with ID {project.WorkFlowId} does not exist");
 
-                if (!workflowUserIds.Contains(dto.AddUserId)) {
-                    return ServiceResult<ProjectResponseDto>.Failure(
-                        $"User '{user.UserName}' cannot be added because they are not part of the workflow '{workFlow.ProgramName}'.");
+                    var projectUser = new ProjectUser {
+                        ProjectId = dto.ProjectId,
+                        UserId = userId
+                    };
+                    _context.ProjectUsers.Add(projectUser);
                 }
 
-                // Prevent duplicate users
-                if (project.ProjectUsers.Any(pu => pu.UserId == dto.AddUserId)) {
-                    return ServiceResult<ProjectResponseDto>.Failure(
-                        $"User '{user.UserName}' is already part of this project."
-                    );
-                }
-
-                // Add new user to project
-                var projectUser = new ProjectUser {
-                    ProjectId = dto.ProjectId,
-                    UserId = dto.AddUserId
-                };
-
-                await _context.ProjectUsers.AddAsync(projectUser);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("User '{UserName}' added to project '{ProjectTitle}' (ProjectId: {ProjectId})",
-                    user.UserName, project.ProjectTitle, project.Id);
+                // Get new project user list for response
+                var userList = await _context.ProjectUsers
+                    .Where(ul => ul.ProjectId == dto.ProjectId)
+                    .ToListAsync();
 
-                return ServiceResult<ProjectResponseDto>.Success(
-                    new ProjectResponseDto {
-                        ProjectId = project.Id,
-                        ProjectTitle = project.ProjectTitle,
-                        ProjectDescription = project.ProjectDescription,
-                        DueDate = project.DueDate,
-                        DateCreated = project.DateCreated,
-                        WorkFlowId = project.WorkFlows.Id,
-                        WorkFlowName = project.WorkFlows.ProgramName,
-                        Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto {
-                            UserId = u.UserId,
-                            UserName = u.User.UserName ?? string.Empty,
-                        }).ToList(),
-                        Comments = project.Comment?.Select(c => new ProjectCommentsInfoDto {
-                            CommentId = c.Id,
-                            CommentContent = c.CommentContent,
-                            DateCreated = c.DateCreated,
-                            UserId = c.UserId,
-                            UserName = c.User.UserName ?? string.Empty,
-                            IsViewed = c.IsViewed
-                        }).ToList(),
-                        Todos = project.PorjectTodos?.Select(t => new ProjectTodosInfoDto {
-                            TodoId = t.Id,
-                            TodoIsComplete = t.IsComplete,
-                            UserName = t.User?.UserName ?? "Unknown",
-                            ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto {
-                                SubTaskId = st.Id,
-                                SubTaskDescription = st.Description,
-                                SubTaskIsCompleted = st.IsCompleted,
-                            }).ToList() ?? new List<ProjectTodoSubTasksInfoDto>(),
-                        }).ToList()
-                    },
-                    $"Added user '{user?.UserName ?? "Unknown"}' to project successfully"
+                return ServiceResult<List<ProjectUsersInfoDto>>.Success(
+                    userList.Select(u => new ProjectUsersInfoDto {
+                        UserId = u.UserId,
+                        UserName = u.User.UserName ?? "Unknown",
+                        ProjectId = u.ProjectId
+                    }).ToList()
                 );
             }
             catch (DbUpdateException ex) {
                 _logger.LogError(ex, "Database error while adding new user to selected project");
-                return ServiceResult<ProjectResponseDto>.Failure(
+                return ServiceResult<List<ProjectUsersInfoDto>>.Failure(
                     "A database error occurred while adding the user.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Unexpected error while adding users to selected project");
-                return ServiceResult<ProjectResponseDto>.Failure(
+                return ServiceResult<List<ProjectUsersInfoDto>>.Failure(
                     "An unexpected error occurred while adding the user.",
                     new[] { ex.Message });
             }
