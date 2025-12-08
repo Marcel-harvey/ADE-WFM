@@ -178,6 +178,7 @@ namespace ADE_WFM.Services.TodoService {
             // General validation
             if (dto == null)
                 return ServiceResult<ToDoResponseDto>.Failure("No information provided.");
+
             if (dto.TodoId <= 0)
                 return ServiceResult<ToDoResponseDto>.Failure("Valid ID required.");
 
@@ -191,15 +192,23 @@ namespace ADE_WFM.Services.TodoService {
                     return ServiceResult<ToDoResponseDto>.Failure("Todo not found.");
                 }
 
-                // Update fields if provided
-                //if (!string.IsNullOrWhiteSpace(dto.Title))
-                //    todo.Title = dto.Title.Trim();
+                if (!string.IsNullOrWhiteSpace(dto.UserName)) {
+                    var user = await _userManager
+                        .FindByNameAsync(dto.UserName.Trim());
+                    if (user == null)
+                        return ServiceResult<ToDoResponseDto>.Failure("User not found");
 
-                //if (!string.IsNullOrWhiteSpace(dto.Description))
-                //    todo.Description = dto.Description.Trim();
+                    todo.UserId = user.Id;
+                }
 
-                //if (dto.DueDate != default(DateTime))
-                //    todo.DueDate = dto.DueDate;
+                if (!string.IsNullOrWhiteSpace(dto.Task))
+                    todo.Task = dto.Task.Trim();
+
+                if (dto.DueDate != default(DateOnly))
+                    todo.DueDate = dto.DueDate;
+
+                if (dto.IsComplete.HasValue)
+                    todo.IsComplete = dto.IsComplete.Value;
 
                 _context.Todos.Update(todo);
                 await _context.SaveChangesAsync();
@@ -223,13 +232,13 @@ namespace ADE_WFM.Services.TodoService {
                 );
             }
             catch (DbUpdateException ex) {
-                _logger.LogError(ex, "Database error while updating todo {TodoTitle}", dto.Title);
+                _logger.LogError(ex, "Database error while updating todo for {UserId}", dto.UserName);
                 return ServiceResult<ToDoResponseDto>.Failure(
                     "A database error occurred while updating the todo.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Unexpected error while updating todo {TodoTitle}", dto.Title);
+                _logger.LogError(ex, "Unexpected error while updating todo {UserId}", dto.UserName);
                 return ServiceResult<ToDoResponseDto>.Failure(
                     "An unexpected error occurred while updating the todo.",
                     new[] { ex.Message });
