@@ -40,8 +40,8 @@ namespace ADE_WFM.Controllers {
         }
 
         // Get users in program
-        [HttpGet("Program/{programId}")]
-        public async Task<IActionResult> GetProgramUsers(int programId) {
+        [HttpGet("Program")]
+        public async Task<IActionResult> GetProgramUsers([FromQuery] int programId) {
             var dto = new GetInfoForUsersListDto {
                 ProgramId = programId
             };
