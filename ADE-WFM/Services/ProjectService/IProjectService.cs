@@ -7,7 +7,7 @@ namespace ADE_WFM.Services.ProjectService {
         // ADD services
         Task<ServiceResult<ProjectResponseDto>> CreateProject(CreateProjectDto dto);
         // TODO: Convert to batch add
-        Task<ServiceResult<List<ProjectUsersInfoDto>>> AddUserToProject(AddUserToProjectDto dto);
+        Task<ServiceResult<List<UpdateProjectUserResponseDto>>> AddUserToProject(AddUserToProjectDto dto);
 
         // GET services
         Task<ServiceResult<List<ProjectResponseDto>>> GetAllProjects();
