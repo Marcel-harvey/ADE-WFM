@@ -7,7 +7,7 @@ namespace ADE_WFM.Services.ProjectService {
         // ADD services
         Task<ServiceResult<ProjectResponseDto>> CreateProject(CreateProjectDto dto);
         // TODO: Convert to batch add
-        Task<ServiceResult<List<UpdateProjectUserResponseDto>>> AddUserToProject(AddUserToProjectDto dto);
+        Task<ServiceResult<List<UpdateProjectUserResponseDto>>> AddUserToProject(ModifyProjectUserDto dto);
 
         // GET services
         Task<ServiceResult<List<ProjectResponseDto>>> GetAllProjects();
@@ -18,7 +18,7 @@ namespace ADE_WFM.Services.ProjectService {
 
         // DELETE services
         Task<ServiceResult<ProjectResponseDto>> DeleteProject(GetProjectDto dto);
-        Task<ServiceResult<ProjectResponseDto>> RemoveUserFromProject(GetProjectDto dto);
+        Task<ServiceResult<List<UpdateProjectUserResponseDto>>> RemoveUserFromProject(ModifyProjectUserDto dto);
 
         // ADD API services
 

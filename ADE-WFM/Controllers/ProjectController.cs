@@ -23,8 +23,8 @@ namespace ADE_WFM.Controllers {
 
 
         // Add user to a project
-        [HttpPost("user")]
-        public async Task<IActionResult> AddUsersToProject([FromBody] AddUserToProjectDto dto) {
+        [HttpPost("users")]
+        public async Task<IActionResult> AddUsersToProject([FromBody] ModifyProjectUserDto dto) {
             var result = await _projectService.AddUserToProject(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
@@ -72,12 +72,8 @@ namespace ADE_WFM.Controllers {
 
 
         // Remove user from a project
-        [HttpDelete("{projectId:int}/user/{userId}")]
-        public async Task<IActionResult> RemoveUserFromProject(int projectId, string userId) {
-            var dto = new GetProjectDto {
-                ProjectId = projectId,
-                UserId = userId
-            };
+        [HttpDelete("users")]
+        public async Task<IActionResult> RemoveUserFromProject([FromBody] ModifyProjectUserDto dto) {
             var result = await _projectService.RemoveUserFromProject(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);

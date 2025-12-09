@@ -142,7 +142,7 @@ namespace ADE_WFM.Services.ProjectService {
 
 
         // Add new user to project
-        public async Task<ServiceResult<List<UpdateProjectUserResponseDto>>> AddUserToProject(AddUserToProjectDto dto) {
+        public async Task<ServiceResult<List<UpdateProjectUserResponseDto>>> AddUserToProject(ModifyProjectUserDto dto) {
             // General validation
             if (dto == null)
                 return ServiceResult<List<UpdateProjectUserResponseDto>>.Failure("No information provided");
@@ -511,89 +511,55 @@ namespace ADE_WFM.Services.ProjectService {
 
 
         // Remove user from project
-        public async Task<ServiceResult<ProjectResponseDto>> RemoveUserFromProject(GetProjectDto dto) {
+        public async Task<ServiceResult<List<UpdateProjectUserResponseDto>>> RemoveUserFromProject(ModifyProjectUserDto dto) {
             if (dto == null)
-                return ServiceResult<ProjectResponseDto>.Failure("RemoveUserFromProjectDto cannot be null");
+                return ServiceResult<List<UpdateProjectUserResponseDto>>.Failure("No information supplied");
 
             if (dto.ProjectId <= 0)
-                return ServiceResult<ProjectResponseDto>.Failure("Invalid Project ID provided");
+                return ServiceResult<List<UpdateProjectUserResponseDto>>.Failure("Invalid Project ID provided");
 
-            // UserId = user to be deleted
-            if (string.IsNullOrWhiteSpace(dto.UserId))
-                return ServiceResult<ProjectResponseDto>.Failure("User ID cannot be empty");
+            if (!dto.UserIds.Any())
+                return ServiceResult<List<UpdateProjectUserResponseDto>>.Failure("No user ID's supplied");
 
             try {
-                // Entity used to remove the user
-                var projectUser = await _context.ProjectUsers
-                    .FirstOrDefaultAsync(pu => pu.ProjectId == dto.ProjectId && pu.UserId == dto.UserId);
-                if (projectUser == null)
-                    return ServiceResult<ProjectResponseDto>.Failure($"User with ID: {dto.UserId} is not part of project ID: {dto.ProjectId}");
+                foreach (var user in dto.UserIds) {
+                    int deletedUser = await _context.ProjectUsers
+                        .Where(u => u.UserId == user && u.ProjectId == dto.ProjectId)
+                        .ExecuteDeleteAsync();
 
-                var project = await _context.Projects
-                    .Include(p => p.WorkFlows)
-                    .Include(pu => pu.ProjectUsers)
-                        .ThenInclude(u => u.User)
-                    .Include(pc => pc.Comment)
-                    .Include(pt => pt.PorjectTodos!)
-                        .ThenInclude(pt => pt.SubTasks)
-                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.TenantId == _tenantContext.TenantId);
-                if (project == null)
-                    return ServiceResult<ProjectResponseDto>.Failure($"Project with ID: {dto.ProjectId} was not found");
-                // Check if user is last user in project
-                var projectUsersCount = await _context.ProjectUsers
-                    .CountAsync(pu => pu.ProjectId == dto.ProjectId);
-                if (projectUsersCount <= 1)
-                    return ServiceResult<ProjectResponseDto>.Failure("Cannot remove the last user from the project");
+                    if (deletedUser > 0)
+                        _logger.LogInformation("User with ID {UserId} deleted", user);
+                    else
+                        _logger.LogInformation("User {UserID} was not part of the project", user);
+                }
 
-                _context.ProjectUsers.Remove(projectUser);
-                await _context.SaveChangesAsync();
+                _logger.LogInformation("All users delted successfully");
 
-                var response = new ProjectResponseDto {
-                    ProjectId = project.Id,
-                    ProjectTitle = project.ProjectTitle,
-                    ProjectDescription = project.ProjectDescription,
-                    DueDate = project.DueDate,
-                    DateCreated = project.DateCreated,
-                    WorkFlowId = project.WorkFlows.Id,
-                    WorkFlowName = project.WorkFlows.ProgramName,
-                    Users = project.ProjectUsers.Select(u => new ProjectUsersInfoDto {
+                var userList = await _context.ProjectUsers
+                    .Include(u => u.User)
+                    .Where(u => u.ProjectId == dto.ProjectId)
+                    .ToListAsync();
+
+                return ServiceResult<List<UpdateProjectUserResponseDto>>.Success(
+                    userList.Select(u => new UpdateProjectUserResponseDto {
+                        ProjectId = dto.ProjectId,
                         UserId = u.UserId,
-                        UserName = u.User.UserName ?? string.Empty,
+                        UserName = u.User.UserName ?? "Unknown",
+                        UserEmail = u.User.Email ?? "Unknown"
                     }).ToList(),
-                    Comments = project.Comment?.Select(c => new ProjectCommentsInfoDto {
-                        CommentId = c.Id,
-                        CommentContent = c.CommentContent,
-                        DateCreated = c.DateCreated,
-                        UserId = c.UserId,
-                        UserName = c.User.UserName ?? string.Empty,
-                        IsViewed = c.IsViewed
-                    }).ToList(),
-                    Todos = project.PorjectTodos?.Select(t => new ProjectTodosInfoDto {
-                        TodoId = t.Id,
-                        TodoIsComplete = t.IsComplete,
-                        UserName = t.User?.UserName ?? "Unknown",
-                        ProjectTodoSubTasks = t.SubTasks?.Select(st => new ProjectTodoSubTasksInfoDto {
-                            SubTaskId = st.Id,
-                            SubTaskDescription = st.Description,
-                            SubTaskIsCompleted = st.IsCompleted,
-                        }).ToList() ?? new List<ProjectTodoSubTasksInfoDto>(),
-                    }).ToList()
-                };
-
-                _logger.LogInformation("User ID '{UserId}' removed from project ID '{ProjectId}' successfully", dto.UserId, dto.ProjectId);
-
-                return ServiceResult<ProjectResponseDto>.Success(response, $"Removed user '{projectUser.User.UserName ?? "Unknown"}' from project successfully");
+                    "Users deleted successfully"
+                );
             }
             catch (DbUpdateException ex) {
-                _logger.LogError(ex, "Database error while deleting user ID '{userId}' from project ID '{projectId}'", dto.UserId, dto.ProjectId);
-                return ServiceResult<ProjectResponseDto>.Failure(
-                    "A database error occurred while deleting the the user from the project.",
+                _logger.LogError(ex, "Database error while deleting selected users");
+                return ServiceResult<List<UpdateProjectUserResponseDto>>.Failure(
+                    "A database error occurred while deleting the users from the project.",
                     new[] { ex.Message });
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "Unexpected error while deleting user ID '{userId}' from project ID '{projectId}'", dto.UserId, dto.ProjectId);
-                return ServiceResult<ProjectResponseDto>.Failure(
-                    "An unexpected error occurred while deleting the the user from the project.",
+                _logger.LogError(ex, "Unexpected error while deleting selected user");
+                return ServiceResult<List<UpdateProjectUserResponseDto>>.Failure(
+                    "An unexpected error occurred while deleting the users from the project.",
                     new[] { ex.Message });
             }
         }
