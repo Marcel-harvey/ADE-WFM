@@ -267,32 +267,21 @@ namespace ADE_WFM.Services.UserService {
                 return ServiceResult<List<UserResponseDto>>.Failure("Invalid program ID supplied");
 
             try {
-                var tenantUsers = await _userManager.Users
-                    .Where(u => u.TenantId == _tenantContext.TenantId)
-                    .ToListAsync();
-                if (!tenantUsers.Any()) {
-                    _logger.LogInformation("No users found for tenant {tenantName}", _tenantContext.TenantName);
-                    return ServiceResult<List<UserResponseDto>>.Failure("An unexpected error occured");
-                }
-
-                var users = await _context.WorkFlowUsers
+                var userList = await _context.WorkFlowUsers
                     .Where(u => u.WorkFlowId == dto.ProgramId)
-                    .Select(u => u.UserId)
+                    .Include(u => u.User)
                     .ToListAsync();
-                if (!users.Any()) {
-                    _logger.LogInformation("No users found for specified program");
-                    return ServiceResult<List<UserResponseDto>>.Failure("No users found for specified program");
+                if (!userList.Any()) {
+                    _logger.LogInformation("No users found for this project {ProjectId}", dto.ProjectId);
+                    return ServiceResult<List<UserResponseDto>>.Failure("No users found for selected program");
                 }
-
-                var userList = tenantUsers
-                    .Where(u => !users.Contains(u.Id))
-                    .ToList();
+                _logger.LogInformation("Successfully found users for program {ProgramID}", dto.ProgramId);
 
                 return ServiceResult<List<UserResponseDto>>.Success(
                     userList.Select(u => new UserResponseDto {
-                        UserId = u.Id,
-                        UserName = u.UserName ?? "Unknown",
-                        UserEmail = u.Email ?? "Unknown",
+                        UserId = u.UserId,
+                        UserName = u.User.UserName ?? "Unknown",
+                        UserEmail = u.User.Email ?? "Unknown",
                     }).ToList(),
                     "Users retrieved successfully"
                     );
