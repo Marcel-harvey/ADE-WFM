@@ -91,8 +91,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                         CreatedUser = workFlow.Author,
                         DateCreated = workFlow.DateCreated,
                         Projects = createdWorkflow?.Project?.Select(p => new GetProgramProjectsDto {
-                            Id = p.Id,
-                            ProjectName = p.ProjectTitle
+                            ProjectId = p.Id,
+                            ProjectTitle = p.ProjectTitle
                         }).ToList() ?? new List<GetProgramProjectsDto>(),
                         Users = createdWorkflow?.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
@@ -227,8 +227,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                         DateCreated = wf.DateCreated,
                         DueDate = wf.DueDate,
                         Projects = wf.Project?.Select(p => new GetProgramProjectsDto {
-                            Id = p.Id,
-                            ProjectName = p.ProjectTitle
+                            ProjectId = p.Id,
+                            ProjectTitle = p.ProjectTitle
                         }).ToList() ?? new List<GetProgramProjectsDto>(),
                         Users = wf.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
@@ -287,8 +287,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                         DateCreated = workFlow.DateCreated,
                         DueDate = workFlow.DueDate,
                         Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
-                            Id = p.Id,
-                            ProjectName = p.ProjectTitle
+                            ProjectId = p.Id,
+                            ProjectTitle = p.ProjectTitle
                         }).ToList() ?? new List<GetProgramProjectsDto>(),
                         Users = workFlow.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
@@ -448,8 +448,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                         ProgramId = program.Id,
                         ProgramName = program.ProgramName,
                         Projects = program.Project?.Select(p => new GetProgramProjectsDto {
-                            Id = p.Id,
-                            ProjectName = p.ProjectTitle
+                            ProjectId = p.Id,
+                            ProjectTitle = p.ProjectTitle
                         }).ToList() ?? new List<GetProgramProjectsDto>(),
                         Users = program.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                             Id = wu.UserId,
@@ -503,8 +503,8 @@ namespace ADE_WFM.Services.WorkFlowService {
                     ProgramId = workFlow.Id,
                     ProgramName = workFlow.ProgramName,
                     Projects = workFlow.Project?.Select(p => new GetProgramProjectsDto {
-                        Id = p.Id,
-                        ProjectName = p.ProjectTitle
+                        ProjectId = p.Id,
+                        ProjectTitle = p.ProjectTitle
                     }).ToList() ?? new List<GetProgramProjectsDto>(),
                     Users = workFlow.WorkFlowUsers?.Select(wu => new GetProgramUsersDto {
                         Id = wu.UserId,
