@@ -40,13 +40,25 @@ namespace ADE_WFM.Controllers {
         }
 
         // Get users in program
-        [HttpGet("Program")]
-        public async Task<IActionResult> GetProgramUsers([FromQuery] int programId) {
+        [HttpGet("Program/{programId}")]
+        public async Task<IActionResult> GetProgramUsers(int programId) {
             var dto = new GetInfoForUsersListDto {
                 ProgramId = programId
             };
 
             var result = await _userService.GetProgramUsers(dto);
+
+            return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
+        // Get users in project
+        [HttpGet("project/{projectId}")]
+        public async Task<IActionResult> GetProjectUsers(int projectId) {
+            var dto = new GetInfoForUsersListDto {
+                ProjectId = projectId
+            };
+
+            var result = await _userService.GetProjectUsers(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
         }
