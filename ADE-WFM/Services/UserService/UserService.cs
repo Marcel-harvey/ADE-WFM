@@ -272,18 +272,56 @@ namespace ADE_WFM.Services.UserService {
                     .Include(u => u.User)
                     .ToListAsync();
                 if (!userList.Any()) {
-                    _logger.LogInformation("No users found for this project {ProjectId}", dto.ProjectId);
+                    _logger.LogInformation("No users found for this project {ProjectId}", dto.ProgramId);
                     return ServiceResult<List<UserResponseDto>>.Failure("No users found for selected program");
                 }
                 _logger.LogInformation("Successfully found users for program {ProgramID}", dto.ProgramId);
 
                 return ServiceResult<List<UserResponseDto>>.Success(
-                    userList.Select(u => new UserResponseDto {
-                        UserId = u.UserId,
-                        UserName = u.User.UserName ?? "Unknown",
-                        UserEmail = u.User.Email ?? "Unknown",
-                    }).ToList(),
-                    "Users retrieved successfully"
+                        userList.Select(u => new UserResponseDto {
+                            UserId = u.UserId,
+                            UserName = u.User.UserName ?? "Unknown",
+                            UserEmail = u.User.Email ?? "Unknown",
+                        }).ToList(),
+                        "Users retrieved successfully"
+                    );
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Error retrieving users.");
+
+                return ServiceResult<List<UserResponseDto>>.Failure(
+                    "An unexpected error occurred while retrieving users.",
+                    new[] { ex.Message });
+            }
+        }
+
+
+        // Get all users part of a specified project
+        public async Task<ServiceResult<List<UserResponseDto>>> GetProjectUsers(GetInfoForUsersListDto dto) {
+            if (dto == null)
+                return ServiceResult<List<UserResponseDto>>.Failure("No information provided");
+
+            if (dto.ProjectId <= 0)
+                return ServiceResult<List<UserResponseDto>>.Failure("No program ID supplied");
+
+            try {
+                var userList = await _context.ProjectUsers
+                    .Where(u => u.ProjectId == dto.ProjectId)
+                    .Include(u => u.User)
+                    .ToListAsync();
+                if (!userList.Any()) {
+                    _logger.LogInformation("No users found for this project {ProjectId}", dto.ProjectId);
+                    return ServiceResult<List<UserResponseDto>>.Failure("No users found for selected program");
+                }
+                _logger.LogInformation("Successfully found users for program {ProgramID}", dto.ProjectId);
+
+                return ServiceResult<List<UserResponseDto>>.Success(
+                        userList.Select(u => new UserResponseDto {
+                            UserId = u.UserId,
+                            UserName = u.User.UserName ?? "Unknown",
+                            UserEmail = u.User.Email ?? "Unknown",
+                        }).ToList(),
+                        "Users retrieved successfully"
                     );
             }
             catch (Exception ex) {

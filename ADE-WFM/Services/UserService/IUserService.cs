@@ -11,6 +11,7 @@ namespace ADE_WFM.Services.UserService {
         Task<ServiceResult<List<UserResponseDto>>> GetAllUsers();
         Task<ServiceResult<List<UserResponseDto>>> GetTenantUsers();
         Task<ServiceResult<List<UserResponseDto>>> GetProgramUsers(GetInfoForUsersListDto dto);
+        Task<ServiceResult<List<UserResponseDto>>> GetProjectUsers(GetInfoForUsersListDto dto);
         Task<ServiceResult<LoginResponseDto>> LoginUser(LoginUserDto loginUser);
 
         // UPDATE service (To be added later)
