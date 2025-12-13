@@ -103,7 +103,7 @@ namespace ADE_WFM.Services.TodoService {
 
                 return ServiceResult<List<ToDoResponseDto>>.Success(
                     todos.Select(t => new ToDoResponseDto {
-                        Id = t.Id,
+                        todoId = t.Id,
                         IsComplete = t.IsComplete,
                         UserName = t.User?.UserName ?? "Unknown",
                         ProjectId = t.ProjectId,
@@ -158,7 +158,7 @@ namespace ADE_WFM.Services.TodoService {
 
                 return ServiceResult<List<ToDoResponseDto>>.Success(
                     todos.Select(t => new ToDoResponseDto {
-                        Id = t.Id,
+                        todoId = t.Id,
                         IsComplete = t.IsComplete,
                         UserName = t.User?.UserName ?? "Unknown",
                         ProjectId = t.ProjectId,
@@ -226,7 +226,7 @@ namespace ADE_WFM.Services.TodoService {
 
                 return ServiceResult<ToDoResponseDto>.Success(
                     new ToDoResponseDto {
-                        Id = todo.Id,
+                        todoId = todo.Id,
                         IsComplete = todo.IsComplete,
                         UserName = todo.User?.UserName ?? "Unknown",
                         ProjectId = todo.ProjectId,
@@ -281,7 +281,7 @@ namespace ADE_WFM.Services.TodoService {
 
                 return ServiceResult<ToDoResponseDto>.Success(
                     new ToDoResponseDto {
-                        Id = todo.Id,
+                        todoId = todo.Id,
                         IsComplete = todo.IsComplete,
                         UserName = todo.User?.UserName ?? "Unknown",
                         ProjectId = todo.ProjectId,
@@ -330,7 +330,7 @@ namespace ADE_WFM.Services.TodoService {
 
                 // Prepare response before deletion
                 var response = new ToDoResponseDto {
-                    Id = todo.Id,
+                    todoId = todo.Id,
                     IsComplete = todo.IsComplete,
                     UserName = todo.User?.UserName ?? "Unknown",
                     ProjectId = todo.ProjectId,
