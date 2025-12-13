@@ -48,6 +48,11 @@ namespace ADE_WFM.Services.TodoService {
                     TenantId = _tenantContext.TenantId
                 };
 
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == dto.UserId);
+                if (user == null)
+                    _logger.LogInformation("No username found");
+
                 _context.Todos.Add(todo);
                 await _context.SaveChangesAsync();
 
@@ -55,9 +60,13 @@ namespace ADE_WFM.Services.TodoService {
 
                 return ServiceResult<ToDoResponseDto>.Success(
                     new ToDoResponseDto {
-                        Id = todo.Id,
+                        todoId = todo.Id,
                         IsComplete = todo.IsComplete,
-                        ProjectId = todo.ProjectId
+                        Task = dto.Task,
+                        UserName = user?.UserName ?? "Unknown",
+                        DateCreated = todo.DateCreated,
+                        DueDate = dto.DueDate,
+                        ProjectId = dto.ProjectId
                     },
                     "Todo created successfully."
                     );
