@@ -63,8 +63,11 @@ namespace ADE_WFM.Controllers {
 
         // DELETE API's
         // Delete a project
-        [HttpDelete]
-        public async Task<IActionResult> DeleteProject([FromBody] GetProjectDto dto) {
+        [HttpDelete("{projectId}")]
+        public async Task<IActionResult> DeleteProject(int projectId) {
+            var dto = new GetProjectDto {
+                ProjectId = projectId
+            };
             var result = await _projectService.DeleteProject(dto);
 
             return result.Succeeded ? Ok(result) : BadRequest(result);
