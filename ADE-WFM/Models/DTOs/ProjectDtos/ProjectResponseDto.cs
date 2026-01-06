@@ -5,8 +5,8 @@
         public string? ProjectDescription { get; set; }
         public DateOnly DateCreated { get; set; }
         public DateOnly DueDate { get; set; }
-        public int WorkFlowId { get; set; }
-        public string WorkFlowName { get; set; } = string.Empty;
+        public int programId { get; set; }
+        public string programName { get; set; } = string.Empty;
 
 
         // Lists
