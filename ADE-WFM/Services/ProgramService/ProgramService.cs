@@ -398,6 +398,63 @@ namespace ADE_WFM.Services.WorkFlowService {
             }
         }
 
+        // Get all programs for a user
+        /*
+         * Contains the programs that the logged in user is a part of
+         * Will see what programs are not completed yet
+         * Will also return what projects are incomplete that are part of a program
+         * Display all the users that are part of the program
+         */
+        public async Task<ServiceResult<List<UsersProgramResponseDto>>> GetUserPrograms() {
+            try {
+                var programs = await _context.Programs
+                    .Where(p => p.TenantId == _tenantContext.TenantId &&
+                            p.WorkFlowUsers.Any(wu => wu.UserId == _tenantContext.UserId) &&
+                            !p.Iscompleted)
+                    .Include(p => p.Project!)
+                        .ThenInclude(pt => pt.PorjectTodos)
+                    .Include(p => p.WorkFlowUsers!)
+                        .ThenInclude(wu => wu.User)
+                    .ToListAsync();
+
+                if (!programs.Any())
+                    return ServiceResult<List<UsersProgramResponseDto>>.Failure($"No programs found for {_tenantContext.UserName}");
+
+                return ServiceResult<List<UsersProgramResponseDto>>.Success(
+                        programs.Select(p => new UsersProgramResponseDto {
+                            ProgramId = p.Id,
+                            ProgramName = p.ProgramName,
+                            Description = p.Description,
+                            DateCreated = p.DateCreated,
+                            DueDate = p.DueDate,
+                            IncompleteProjects = p.Project?.Select(proj => new GetProgramProjectsDto {
+                                ProjectId = proj.Id,
+                                ProjectTitle = proj.ProjectTitle,
+                                Todos = proj.PorjectTodos?.Where(t => !t.IsComplete).Select(t => new TodoResponseDto {
+                                    Task = t.Task,
+                                }).ToList(),
+                            }).ToList(),
+                            Users = p.WorkFlowUsers.Select(wu => new GetProgramUsersDto {
+                                UserName = wu.User.UserName ?? "Unkown"
+                            }).ToList(),
+                        }).ToList(),
+                        "Retrieved all users programs"
+                    );
+            }
+            catch (DbUpdateException ex) {
+                _logger.LogError(ex, "Database error retrieving selected Program");
+                return ServiceResult<List<UsersProgramResponseDto>>.Failure(
+                    "A Database error retrieving selected Program.",
+                    new[] { ex.Message });
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Unexpected error while retrieving selected Program");
+                return ServiceResult<List<UsersProgramResponseDto>>.Failure(
+                    "An unexpected while retrieving selected Program.",
+                    new[] { ex.Message });
+            }
+        }
+
 
         //UPDATE:
         // Update program

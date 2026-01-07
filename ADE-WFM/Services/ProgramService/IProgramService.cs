@@ -13,6 +13,7 @@ namespace ADE_WFM.Services.WorkFlowService {
         Task<ServiceResult<List<ProgramResponseDto>>> GetAllPrograms();
         Task<ServiceResult<ProgramResponseDto>> GetProgramById(GetProgramInfoDto dto);
         Task<ServiceResult<ProgramDetailsResponseDto>> GetProgramDetails(GetProgramInfoDto dto);
+        Task<ServiceResult<List<UsersProgramResponseDto>>> GetUserPrograms();
 
         // UPDATE services
         Task<ServiceResult<ProgramResponseDto>> UpdateProgram(UpdateProgramNameDto dto);

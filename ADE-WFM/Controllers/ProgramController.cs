@@ -59,6 +59,13 @@ namespace ADE_WFM.Controllers {
             return result.Succeeded ? Ok(result) : NotFound(result);
         }
 
+        // Return all programs that the user is part of
+        [HttpGet("user")]
+        public async Task<IActionResult> GetUserPrograms() {
+            var result = await _workFlowService.GetUserPrograms();
+
+            return result.Succeeded ? Ok(result) : NotFound(result);
+        }
 
         // UPDATE API's
         [HttpPut]
