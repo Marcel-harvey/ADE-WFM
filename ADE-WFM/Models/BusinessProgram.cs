@@ -11,6 +11,7 @@ namespace ADE_WFM.Models {
         public string Author { get; set; } = string.Empty;
         public DateOnly DateCreated { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
         public DateOnly DueDate { get; set; }
+        public bool Iscompleted { get; set; } = false;
 
 
         // Navigation Properties
