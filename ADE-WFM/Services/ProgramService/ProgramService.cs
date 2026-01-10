@@ -430,8 +430,14 @@ namespace ADE_WFM.Services.WorkFlowService {
                             IncompleteProjects = p.Project?.Select(proj => new GetProgramProjectsDto {
                                 ProjectId = proj.Id,
                                 ProjectTitle = proj.ProjectTitle,
-                                Todos = proj.PorjectTodos?.Where(t => !t.IsComplete).Select(t => new TodoResponseDto {
+                                Todos = proj.PorjectTodos?.Where(t => !t.IsComplete &&
+                                t.UserId == _tenantContext.UserId)
+                                .Select(t => new TodoResponseDto {
+                                    todoId = t.Id,
                                     Task = t.Task,
+                                    DateCreated = t.DateCreated,
+                                    DueDate = t.DueDate,
+                                    IsComplete = t.IsComplete
                                 }).ToList(),
                             }).ToList(),
                             Users = p.WorkFlowUsers.Select(wu => new GetProgramUsersDto {
